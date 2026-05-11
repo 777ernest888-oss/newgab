@@ -1,28 +1,25 @@
-// GAB Калькулятор — приложение для расчёта доходности ГАБ
 document.addEventListener('DOMContentLoaded', function() {
 
+  const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
+  const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+
+  // Безопасная инициализация Telegram
   let tg = null;
-  if (window.Telegram && window.Telegram.WebApp) {
+  try {
+    if (window.Telegram && window.Telegram.WebApp) {
       tg = window.Telegram.WebApp;
       tg.expand();
       tg.ready();
-      console.log("Telegram WebApp инициализирован");
-  } else {
-      console.log("Запуск в обычном браузере");
+      console.log("✅ Telegram WebApp инициализирован");
+    }
+  } catch(e) {
+    console.warn("⚠️ Telegram WebApp недоступен:", e);
   }
-
-  const objects = [
-    { id: 1, title: "Пекарня «Хлеб»", type: "retail", price: 4200000, rent: 35000, yield: 10.0, location: "Приморский р-н" },
-    { id: 2, title: "Офисный блок А3", type: "office", price: 5800000, rent: 48000, yield: 9.9, location: "Центральный р-н" },
-    { id: 3, title: "Складской модуль", type: "warehouse", price: 3100000, rent: 22000, yield: 8.5, location: "Колпинский р-н" },
-    { id: 4, title: "Кофейня у метро", type: "retail", price: 6500000, rent: 55000, yield: 10.1, location: "Московский р-н" }
-  ];
 
   const listEl = document.getElementById('objectsList');
   const typeFilter = document.getElementById('typeFilter');
   const yieldFilter = document.getElementById('yieldFilter');
   const yieldVal = document.getElementById('yieldVal');
- 
   const calcBtn = document.getElementById('calcBtn');
   const calcResult = document.getElementById('calcResult');
  
@@ -33,12 +30,48 @@ document.addEventListener('DOMContentLoaded', function() {
     expenses: document.getElementById('calcExpenses'),
     tax: document.getElementById('calcTax')
   };
- 
   const outputs = {
     monthly: document.getElementById('resMonthly'),
     yield: document.getElementById('resYield'),
     payback: document.getElementById('resPayback')
   };
+
+  let objects = [];
+
+  async function loadObjects() {
+    try {
+      console.log('🔄 Загрузка данных из таблицы...');
+      const response = await fetch(SHEET_URL);
+      const text = await response.text();
+     
+      const jsonString = text.substring(47).slice(0, -2);
+      const json = JSON.parse(jsonString);
+     
+      if (!json.table || !json.table.rows) {        console.error('❌ Нет данных в таблице');
+        return [];
+      }
+
+      const rows = json.table.rows.filter(row => row.c && row.c[0] && row.c[0].v !== null);
+     
+      const loadedObjects = rows.map(row => ({
+        id: row.c[0]?.v,
+        title: row.c[1]?.v || '',
+        type: row.c[2]?.v || 'retail',
+        price: parseFloat(row.c[3]?.v) || 0,
+        rent: parseFloat(row.c[4]?.v) || 0,
+        yield: parseFloat(row.c[5]?.v) || 0,
+        location: row.c[6]?.v || '',
+        risks: row.c[7]?.v || ''
+      })).filter(obj => obj.id && obj.price > 0);
+     
+      console.log('✅ Загружено объектов:', loadedObjects.length);
+      return loadedObjects;
+     
+    } catch (e) {
+      console.error('❌ Ошибка загрузки:', e);
+      return [];
+    }
+  }
 
   function renderList() {
     if (!listEl) return;
@@ -47,18 +80,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const minYield = yieldFilter ? parseFloat(yieldFilter.value) : 8;
     if (yieldVal) yieldVal.textContent = minYield;
 
-    const filtered = objects.filter(obj =>      (type === 'all' || obj.type === type) && obj.yield >= minYield
+    const filtered = objects.filter(obj =>
+      (type === 'all' || obj.type === type) && obj.yield >= minYield
     );
 
-    listEl.innerHTML = filtered.length ? filtered.map(obj => `
+    if (filtered.length === 0) {
+      listEl.innerHTML = '<p style="text-align:center;color:var(--hint);padding:20px;">Нет объектов по фильтрам</p>';
+      return;
+    }
+
+    listEl.innerHTML = filtered.map(obj => `
       <div class="card" onclick="loadToCalc(${obj.price}, ${obj.rent})">
         <div class="card-meta"><span>📍 ${obj.location}</span><span class="card-yield">≈${obj.yield}%</span></div>
         <h3>${obj.title}</h3>
         <div class="card-price">${(obj.price / 1000000).toFixed(2)} млн ₽</div>
         <div style="font-size:13px;color:var(--hint)">Аренда: ${obj.rent.toLocaleString()} ₽/мес</div>
         <button class="card-btn">📥 Загрузить в калькулятор</button>
-      </div>
-    `).join('') : '<p style="text-align:center;color:var(--hint);padding:20px;">Нет объектов по фильтрам</p>';
+      </div>    `).join('');
   }
 
   function calculate() {
@@ -69,8 +107,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const taxRate = parseFloat(inputs.tax.value) || 0;
 
     if (price <= 0 || rent <= 0) {
-      if (tg) tg.showAlert('Укажите цену и аренду');
-      else alert('Укажите цену объекта и сумму аренды');
+      alert('Укажите цену объекта и сумму аренды');
       return;
     }
 
@@ -90,26 +127,25 @@ document.addEventListener('DOMContentLoaded', function() {
     if (outputs.payback) outputs.payback.textContent = `${paybackYears.toFixed(1)} лет`;
 
     if (calcResult) calcResult.classList.remove('hidden');
-   
     if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
   }
 
-  if (calcBtn) {
-      calcBtn.addEventListener('click', function(e) {
-          e.preventDefault();          calculate();
-      });
-  }
-
-  if (typeFilter) typeFilter.addEventListener('change', renderList);
-  if (yieldFilter) yieldFilter.addEventListener('input', renderList);
-
   window.loadToCalc = function(price, rent) {
-      if (inputs.price) inputs.price.value = price;
-      if (inputs.rent) inputs.rent.value = rent;
-      calculate();
-      const calcSection = document.querySelector('.calculator');
-      if (calcSection) calcSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (inputs.price) inputs.price.value = price;
+    if (inputs.rent) inputs.rent.value = rent;
+    calculate();
+    const calcSection = document.querySelector('.calculator');
+    if (calcSection) calcSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
-  renderList();
+  async function init() {
+    objects = await loadObjects();
+    console.log('📦 Всего объектов:', objects.length);
+    renderList();
+   
+    if (typeFilter) typeFilter.addEventListener('change', renderList);
+    if (yieldFilter) yieldFilter.addEventListener('input', renderList);
+    if (calcBtn) calcBtn.addEventListener('click', (e) => { e.preventDefault(); calculate(); });  }
+
+  init();
 });
