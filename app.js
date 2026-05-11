@@ -3,17 +3,15 @@ document.addEventListener('DOMContentLoaded', function() {
   const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
   const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
 
-  // Безопасная инициализация Telegram
   let tg = null;
   try {
     if (window.Telegram && window.Telegram.WebApp) {
       tg = window.Telegram.WebApp;
       tg.expand();
       tg.ready();
-      console.log("✅ Telegram WebApp инициализирован");
     }
   } catch(e) {
-    console.warn("⚠️ Telegram WebApp недоступен:", e);
+    console.warn("Telegram не доступен:", e);
   }
 
   const listEl = document.getElementById('objectsList');
@@ -40,19 +38,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
   async function loadObjects() {
     try {
-      console.log('🔄 Загрузка данных из таблицы...');
+      if (listEl) listEl.innerHTML = '<p style="text-align:center;padding:20px;">⏳ Загрузка...</p>';
+     
       const response = await fetch(SHEET_URL);
       const text = await response.text();
      
+      // Парсим JSON
       const jsonString = text.substring(47).slice(0, -2);
       const json = JSON.parse(jsonString);
      
-      if (!json.table || !json.table.rows) {        console.error('❌ Нет данных в таблице');
-        return [];
+      if (!json.table || !json.table.rows) {        throw new Error('Таблица пуста или неверный формат');
       }
 
       const rows = json.table.rows.filter(row => row.c && row.c[0] && row.c[0].v !== null);
      
+      if (rows.length === 0) {
+        throw new Error('В таблице нет данных (проверьте, что есть строки с объектами)');
+      }
+
       const loadedObjects = rows.map(row => ({
         id: row.c[0]?.v,
         title: row.c[1]?.v || '',
@@ -64,12 +67,11 @@ document.addEventListener('DOMContentLoaded', function() {
         risks: row.c[7]?.v || ''
       })).filter(obj => obj.id && obj.price > 0);
      
-      console.log('✅ Загружено объектов:', loadedObjects.length);
       return loadedObjects;
      
     } catch (e) {
-      console.error('❌ Ошибка загрузки:', e);
-      return [];
+      console.error('Ошибка:', e);
+      throw e;
     }
   }
 
@@ -85,7 +87,7 @@ document.addEventListener('DOMContentLoaded', function() {
     );
 
     if (filtered.length === 0) {
-      listEl.innerHTML = '<p style="text-align:center;color:var(--hint);padding:20px;">Нет объектов по фильтрам</p>';
+      listEl.innerHTML = '<p style="text-align:center;color:var(--hint);padding:20px;">📭 Нет объектов<br><small>Проверьте таблицу или фильтры</small></p>';
       return;
     }
 
@@ -94,9 +96,9 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="card-meta"><span>📍 ${obj.location}</span><span class="card-yield">≈${obj.yield}%</span></div>
         <h3>${obj.title}</h3>
         <div class="card-price">${(obj.price / 1000000).toFixed(2)} млн ₽</div>
-        <div style="font-size:13px;color:var(--hint)">Аренда: ${obj.rent.toLocaleString()} ₽/мес</div>
-        <button class="card-btn">📥 Загрузить в калькулятор</button>
-      </div>    `).join('');
+        <div style="font-size:13px;color:var(--hint)">Аренда: ${obj.rent.toLocaleString()} ₽/мес</div>        <button class="card-btn">📥 Загрузить в калькулятор</button>
+      </div>
+    `).join('');
   }
 
   function calculate() {
@@ -107,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const taxRate = parseFloat(inputs.tax.value) || 0;
 
     if (price <= 0 || rent <= 0) {
-      alert('Укажите цену объекта и сумму аренды');
+      alert('Укажите цену и аренду');
       return;
     }
 
@@ -139,13 +141,21 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 
   async function init() {
-    objects = await loadObjects();
-    console.log('📦 Всего объектов:', objects.length);
-    renderList();
+    try {
+      objects = await loadObjects();
+      console.log('✅ Загружено объектов:', objects.length);
+      renderList();
+    } catch (e) {      console.error('❌ Ошибка:', e);
+      if (listEl) {
+        listEl.innerHTML = `<p style="text-align:center;color:#ff4444;padding:20px;">⚠️ ${e.message}</p>`;
+      }
+      alert('Ошибка загрузки: ' + e.message);
+    }
    
     if (typeFilter) typeFilter.addEventListener('change', renderList);
     if (yieldFilter) yieldFilter.addEventListener('input', renderList);
-    if (calcBtn) calcBtn.addEventListener('click', (e) => { e.preventDefault(); calculate(); });  }
+    if (calcBtn) calcBtn.addEventListener('click', (e) => { e.preventDefault(); calculate(); });
+  }
 
   init();
 });
