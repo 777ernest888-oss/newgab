@@ -8,6 +8,23 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="styles.css">
   <style>
+    /* Стили для кнопки связи */
+    .contact-btn {
+      background-color: #ffffff;
+      color: #3390ec; /* Цвет Telegram */
+      border: 1px solid #3390ec;
+    }
+    .contact-btn:hover {
+      background-color: #f0f7ff;
+    }
+    .card-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .card-buttons button {
+      flex: 1;
+    }
     /* Стили для ошибки загрузки */
     .error-msg { color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 8px; text-align: center; margin: 10px 0; }
   </style>
@@ -30,8 +47,7 @@
         <option value="hypermarket">Гипермаркет</option>
         <option value="pvz">ПВЗ</option>
         <option value="pharmacy">Аптека</option>
-        <option value="other">Другое</option>
-      </select>
+        <option value="other">Другое</option>      </select>
       <label>Мин. доходность: <span id="yieldVal">8</span>%</label>
       <input type="range" id="yieldFilter" min="4" max="15" value="8" step="0.5">
     </section>
@@ -41,13 +57,14 @@
     </section>
 
     <section class="calculator">
-      <h2> Калькулятор доходности</h2>
+      <h2>🧮 Калькулятор доходности</h2>
       <div class="calc-grid">
         <div class="input-group"><label>Цена объекта (₽)</label><input type="number" id="calcPrice" placeholder="5000000"></div>
         <div class="input-group"><label>Аренда/мес (₽)</label><input type="number" id="calcRent" placeholder="45000"></div>
         <div class="input-group"><label>Простой в году (%)</label><input type="number" id="calcVacancy" placeholder="10" value="10"></div>
         <div class="input-group"><label>Расходы/мес (₽)</label><input type="number" id="calcExpenses" placeholder="3000" value="3000"></div>
-        <div class="input-group"><label>Налог (%)</label><input type="number" id="calcTax" placeholder="6" value="6"></div>      </div>
+        <div class="input-group"><label>Налог (%)</label><input type="number" id="calcTax" placeholder="6" value="6"></div>
+      </div>
       <button id="calcBtn" class="tg-btn">Рассчитать чистую доходность</button>
 
       <div id="calcResult" class="result hidden">
@@ -79,24 +96,26 @@
       };
      
       const outputs = {
-        monthly: document.getElementById('resMonthly'),
-        yield: document.getElementById('resYield'),
+        monthly: document.getElementById('resMonthly'),        yield: document.getElementById('resYield'),
         payback: document.getElementById('resPayback')
       };
 
       let objects = [];
 
+      // ВАШ КОНТАКТ
+      const CONTACT_LINK = 'https://t.me/ernest_812';
+
       async function loadObjects() {
-        // ТАЙМАУТ: Если Google не ответит за 5 секунд, прерываем
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
         try {
           const response = await fetch(SHEET_URL, { signal: controller.signal });
-          clearTimeout(timeoutId); // Остановить таймер, если всё ОК
+          clearTimeout(timeoutId);
          
           const text = await response.text();
-          const jsonString = text.substring(47).slice(0, -2);          const json = JSON.parse(jsonString);
+          const jsonString = text.substring(47).slice(0, -2);
+          const json = JSON.parse(jsonString);
          
           const rows = json.table.rows.filter(row => row.c && row.c[0]);
          
@@ -115,11 +134,10 @@
 
         } catch (e) {
           console.error("Ошибка загрузки:", e);
-          // Показываем ошибку пользователю, а не вечную загрузку
           if (e.name === 'AbortError') {
-             listEl.innerHTML = '<div class="error-msg">⚠️ Google Таблицы не отвечают.<br>Проверьте интернет или отключите AdBlock.</div>';
+             listEl.innerHTML = '<div class="error-msg">⚠️ Google Таблицы не отвечают.<br>Проверьте интернет.</div>';
           } else {
-             listEl.innerHTML = '<div class="error-msg">⚠️ Ошибка данных.<br>Попробуйте обновить страницу.</div>';
+             listEl.innerHTML = '<div class="error-msg">⚠️ Ошибка данных.</div>';
           }
         }
       }
@@ -128,7 +146,6 @@
         const type = typeFilter ? typeFilter.value : 'all';
         const minYield = yieldFilter ? parseFloat(yieldFilter.value) : 8;
         if (yieldVal) yieldVal.textContent = minYield;
-
         const filtered = objects.filter(obj =>
           (type === 'all' || obj.type === type) && obj.yield >= minYield
         );
@@ -139,13 +156,18 @@
         }
 
         listEl.innerHTML = filtered.map(obj => `
-          <div class="card" onclick="loadToCalc(${obj.price}, ${obj.rent})">
-            <div class="card-meta"><span>📍 ${obj.location}</span><span class="card-yield">≈${obj.yield}%</span></div>
+          <div class="card">
+            <div class="card-meta"><span> ${obj.location}</span><span class="card-yield">≈${obj.yield}%</span></div>
             <h3>${obj.title}</h3>
             <div class="card-price">${(obj.price / 1000000).toFixed(2)} млн ₽</div>
             <div style="font-size:13px;color:#666">Аренда: ${obj.rent.toLocaleString()} ₽/мес</div>
-            <button class="card-btn">📥 Загрузить в калькулятор</button>
-          </div>        `).join('');
+           
+            <div class="card-buttons">
+              <button class="card-btn" onclick="loadToCalc(${obj.price}, ${obj.rent})">📥 Калькулятор</button>
+              <button class="card-btn contact-btn" onclick="window.open('${CONTACT_LINK}?text=Здравствуйте! Интересует объект: ${obj.title} (${obj.price} ₽)')">💬 Связаться</button>
+            </div>
+          </div>
+        `).join('');
       }
 
       window.loadToCalc = function(price, rent) {
@@ -173,7 +195,6 @@
         const expensesAnnual = expenses * 12;
         const taxAnnual = effectiveIncome * (taxRate / 100);
         const netAnnual = effectiveIncome - expensesAnnual - taxAnnual;
-
         const netMonthly = netAnnual / 12;
         const annualYield = (netAnnual / price) * 100;
         const paybackYears = netAnnual > 0 ? price / netAnnual : 99;
@@ -189,7 +210,6 @@
       if (yieldFilter) yieldFilter.addEventListener('input', renderList);
       if (calcBtn) calcBtn.addEventListener('click', calculate);
 
-      // Запуск
       loadObjects();
     })();
   </script>
