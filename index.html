@@ -7,6 +7,10 @@
   <title>GAB Калькулятор</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Стили для ошибки загрузки */
+    .error-msg { color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 8px; text-align: center; margin: 10px 0; }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -33,56 +37,29 @@
     </section>
 
     <section id="objectsList" class="list">
-      <p style="text-align:center;">⏳ Загрузка...</p>
+      <p style="text-align:center;">⏳ Загрузка объектов...</p>
     </section>
 
     <section class="calculator">
-      <h2>🧮 Калькулятор доходности</h2>
+      <h2> Калькулятор доходности</h2>
       <div class="calc-grid">
-        <div class="input-group">
-          <label>Цена объекта (₽)</label>
-          <input type="number" id="calcPrice" placeholder="5000000">
-        </div>
-        <div class="input-group">
-          <label>Аренда/мес (₽)</label>
-          <input type="number" id="calcRent" placeholder="45000">
-        </div>
-        <div class="input-group">          <label>Простой в году (%)</label>
-          <input type="number" id="calcVacancy" placeholder="10" value="10">
-        </div>
-        <div class="input-group">
-          <label>Расходы/мес (₽)</label>
-          <input type="number" id="calcExpenses" placeholder="3000" value="3000">
-        </div>
-        <div class="input-group">
-          <label>Налог (%)</label>
-          <input type="number" id="calcTax" placeholder="6" value="6">
-        </div>
-      </div>
+        <div class="input-group"><label>Цена объекта (₽)</label><input type="number" id="calcPrice" placeholder="5000000"></div>
+        <div class="input-group"><label>Аренда/мес (₽)</label><input type="number" id="calcRent" placeholder="45000"></div>
+        <div class="input-group"><label>Простой в году (%)</label><input type="number" id="calcVacancy" placeholder="10" value="10"></div>
+        <div class="input-group"><label>Расходы/мес (₽)</label><input type="number" id="calcExpenses" placeholder="3000" value="3000"></div>
+        <div class="input-group"><label>Налог (%)</label><input type="number" id="calcTax" placeholder="6" value="6"></div>      </div>
       <button id="calcBtn" class="tg-btn">Рассчитать чистую доходность</button>
 
-      <!-- БЛОК РЕЗУЛЬТАТОВ -->
       <div id="calcResult" class="result hidden">
-        <div class="res-row">
-          <span>💰 Чистый доход/мес:</span>
-          <span id="resMonthly" style="font-weight:bold; color:#28a745">0 ₽</span>
-        </div>
-        <div class="res-row">
-          <span>📈 Годовая доходность:</span>
-          <span id="resYield" style="font-weight:bold; color:#007bff">0%</span>
-        </div>
-        <div class="res-row">
-          <span>⏳ Окупаемость:</span>
-          <span id="resPayback" style="font-weight:bold; color:#ffc107">0 лет</span>
-        </div>
+        <div class="res-row"><span>💰 Чистый доход/мес:</span><span id="resMonthly" style="font-weight:bold; color:#28a745">0 ₽</span></div>
+        <div class="res-row"><span>📈 Годовая доходность:</span><span id="resYield" style="font-weight:bold; color:#007bff">0%</span></div>
+        <div class="res-row"><span>⏳ Окупаемость:</span><span id="resPayback" style="font-weight:bold; color:#ffc107">0 лет</span></div>
       </div>
     </section>
   </div>
 
   <script>
     (function() {
-      console.log("✅ СКРИПТ ЗАПУЩЕН!");
-     
       const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
       const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
      
@@ -96,7 +73,8 @@
       const inputs = {
         price: document.getElementById('calcPrice'),
         rent: document.getElementById('calcRent'),
-        vacancy: document.getElementById('calcVacancy'),        expenses: document.getElementById('calcExpenses'),
+        vacancy: document.getElementById('calcVacancy'),
+        expenses: document.getElementById('calcExpenses'),
         tax: document.getElementById('calcTax')
       };
      
@@ -109,11 +87,16 @@
       let objects = [];
 
       async function loadObjects() {
+        // ТАЙМАУТ: Если Google не ответит за 5 секунд, прерываем
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
         try {
-          const response = await fetch(SHEET_URL);
+          const response = await fetch(SHEET_URL, { signal: controller.signal });
+          clearTimeout(timeoutId); // Остановить таймер, если всё ОК
+         
           const text = await response.text();
-          const jsonString = text.substring(47).slice(0, -2);
-          const json = JSON.parse(jsonString);
+          const jsonString = text.substring(47).slice(0, -2);          const json = JSON.parse(jsonString);
          
           const rows = json.table.rows.filter(row => row.c && row.c[0]);
          
@@ -131,8 +114,13 @@
           renderList();
 
         } catch (e) {
-          console.error("Ошибка:", e);
-          listEl.innerHTML = '<p style="color:red">Ошибка загрузки</p>';
+          console.error("Ошибка загрузки:", e);
+          // Показываем ошибку пользователю, а не вечную загрузку
+          if (e.name === 'AbortError') {
+             listEl.innerHTML = '<div class="error-msg">⚠️ Google Таблицы не отвечают.<br>Проверьте интернет или отключите AdBlock.</div>';
+          } else {
+             listEl.innerHTML = '<div class="error-msg">⚠️ Ошибка данных.<br>Попробуйте обновить страницу.</div>';
+          }
         }
       }
 
@@ -145,7 +133,8 @@
           (type === 'all' || obj.type === type) && obj.yield >= minYield
         );
 
-        if (filtered.length === 0) {          listEl.innerHTML = '<p style="text-align:center;color:#999;padding:20px">Нет объектов</p>';
+        if (filtered.length === 0) {
+          listEl.innerHTML = '<p style="text-align:center;color:#999;padding:20px">Нет объектов по фильтру</p>';
           return;
         }
 
@@ -156,15 +145,13 @@
             <div class="card-price">${(obj.price / 1000000).toFixed(2)} млн ₽</div>
             <div style="font-size:13px;color:#666">Аренда: ${obj.rent.toLocaleString()} ₽/мес</div>
             <button class="card-btn">📥 Загрузить в калькулятор</button>
-          </div>
-        `).join('');
+          </div>        `).join('');
       }
 
       window.loadToCalc = function(price, rent) {
         inputs.price.value = price;
         inputs.rent.value = rent;
         calculate();
-        // Прокрутка к калькулятору
         document.querySelector('.calculator').scrollIntoView({ behavior: 'smooth' });
       };
 
@@ -180,7 +167,6 @@
           return;
         }
 
-        // Расчет
         const grossAnnual = rent * 12;
         const vacancyLoss = grossAnnual * (vacancy / 100);
         const effectiveIncome = grossAnnual - vacancyLoss;
@@ -192,9 +178,9 @@
         const annualYield = (netAnnual / price) * 100;
         const paybackYears = netAnnual > 0 ? price / netAnnual : 99;
 
-        // Вывод
         if (outputs.monthly) outputs.monthly.textContent = Math.round(netMonthly).toLocaleString() + ' ₽';
-        if (outputs.yield) outputs.yield.textContent = annualYield.toFixed(2) + '%';        if (outputs.payback) outputs.payback.textContent = paybackYears.toFixed(1) + ' лет';
+        if (outputs.yield) outputs.yield.textContent = annualYield.toFixed(2) + '%';
+        if (outputs.payback) outputs.payback.textContent = paybackYears.toFixed(1) + ' лет';
 
         if (calcResult) calcResult.classList.remove('hidden');
       }
