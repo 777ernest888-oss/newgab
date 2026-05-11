@@ -1,0 +1,68 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="NewGAB — калькулятор доходности готового арендного бизнеса">
+  <title>NewGAB — Доходная недвижимость</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🏢 NewGAB</h1>
+      <p class="hint">Выберите объект → рассчитайте чистую доходность</p>
+    </header>
+
+    <section class="filters">
+      <label>Тип объекта</label>
+      <select id="typeFilter">
+        <option value="all">Все</option>
+        <option value="retail">Стрит-ритейл</option>
+        <option value="office">Офис</option>
+        <option value="warehouse">Склад/Лого</option>
+      </select>
+      <label>Мин. доходность: <span id="yieldVal">8</span>%</label>
+      <input type="range" id="yieldFilter" min="4" max="15" value="8" step="0.5">
+    </section>
+
+    <section id="objectsList" class="list"></section>
+
+    <section class="calculator">
+      <h2>🧮 Калькулятор доходности</h2>
+      <div class="calc-grid">
+        <div class="input-group">
+          <label>Цена объекта (₽)</label>
+          <input type="number" id="calcPrice" placeholder="5000000" value="5000000">
+        </div>
+        <div class="input-group">
+          <label>Аренда/мес (₽)</label>
+          <input type="number" id="calcRent" placeholder="45000" value="45000">
+        </div>
+        <div class="input-group">
+          <label>Простой в году (%)</label>
+          <input type="number" id="calcVacancy" placeholder="10" value="10" min="0" max="50">
+        </div>
+        <div class="input-group">
+          <label>Расходы/мес (₽)</label>
+          <input type="number" id="calcExpenses" placeholder="3000" value="3000">
+        </div>
+        <div class="input-group">
+          <label>Налог (%)</label>
+          <input type="number" id="calcTax" placeholder="6" value="6" min="0" max="20">
+        </div>
+      </div>
+      <button id="calcBtn" class="tg-btn">Рассчитать чистую доходность</button>
+
+      <div id="calcResult" class="result hidden">
+        <div class="res-row">Чистый доход/мес: <span id="resMonthly">0 ₽</span></div>
+        <div class="res-row">Годовая доходность: <span id="resYield">0%</span></div>
+        <div class="res-row">Окупаемость: <span id="resPayback">0 лет</span></div>
+      </div>
+    </section>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
