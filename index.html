@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#ffffff">
-  <meta name="description" content="GAB Калькулятор — расчёт доходности готового арендного бизнеса">
-  <title>GAB Калькулятор — Доходная недвижимость</title>
+  <meta name="description" content="GAB Калькулятор">
+  <title>GAB Калькулятор</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -13,7 +13,7 @@
   <div class="container">
     <header>
       <h1>🏢 GAB Калькулятор</h1>
-      <p class="hint">Выберите объект → рассчитайте чистую доходность</p>
+      <p class="hint">Тест связи...</p>
     </header>
 
     <section class="filters">
@@ -28,21 +28,3 @@
         <option value="pvz">ПВЗ</option>
         <option value="pharmacy">Аптека</option>
         <option value="other">Другое</option>
-      </select>
-     
-      <label>Мин. доходность: <span id="yieldVal">8</span>%</label>
-      <input type="range" id="yieldFilter" min="4" max="15" value="8" step="0.5">
-    </section>
-
-    <section id="objectsList" class="list"></section>
-
-    <section class="calculator">
-      <h2> Калькулятор доходности</h2>
-      <div class="calc-grid">
-        <div class="input-group">
-          <label>Цена объекта (₽)</label>
-          <input type="number" id="calcPrice" placeholder="5000000" value="5000000">
-        </div>
-        <div class="input-group">
-          <label>Аренда/мес (₽)</label>
-          <input type="number" id="calcRent" placeholder="45000" value="45000">
