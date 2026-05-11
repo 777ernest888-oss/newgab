@@ -4,16 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#ffffff">
-  <meta name="description" content="GAB Калькулятор">
   <title>GAB Калькулятор</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Стили для диагностики, если styles.css не грузится */
+    body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
+    .card { background: white; padding: 15px; margin-bottom: 10px; border-radius: 10px; }
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
   <div class="container">
     <header>
       <h1>🏢 GAB Калькулятор</h1>
-      <p class="hint">Тест связи...</p>
+      <p class="hint">Версия: Inline JS</p>
     </header>
 
     <section class="filters">
@@ -28,3 +33,138 @@
         <option value="pvz">ПВЗ</option>
         <option value="pharmacy">Аптека</option>
         <option value="other">Другое</option>
+      </select>
+      <label>Мин. доходность: <span id="yieldVal">8</span>%</label>
+      <input type="range" id="yieldFilter" min="4" max="15" value="8" step="0.5">
+    </section>
+
+    <section id="objectsList" class="list">
+      <p style="text-align:center;">⏳ Загрузка...</p>
+    </section>
+
+    <section class="calculator">
+      <h2>🧮 Калькулятор</h2>
+      <div class="calc-grid">
+        <div class="input-group"><label>Цена (₽)</label><input type="number" id="calcPrice" value="5000000"></div>
+        <div class="input-group"><label>Аренда (₽)</label><input type="number" id="calcRent" value="45000"></div>
+        <div class="input-group"><label>Простой (%)</label><input type="number" id="calcVacancy" value="10"></div>        <div class="input-group"><label>Расходы (₽)</label><input type="number" id="calcExpenses" value="3000"></div>
+        <div class="input-group"><label>Налог (%)</label><input type="number" id="calcTax" value="6"></div>
+      </div>
+      <button id="calcBtn" class="tg-btn">Рассчитать</button>
+      <div id="calcResult" class="result hidden">
+        <div class="res-row">Доход: <span id="resMonthly">0 ₽</span></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ВЕСЬ JAVASCRIPT ЗДЕСЬ -->
+  <script>
+    (function() {
+      console.log("✅ СКРИПТ ЗАПУЩЕН ВНУТРИ HTML!");
+      alert("🚀 Старт! Загружаю данные...");
+
+      const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
+      const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
+     
+      const listEl = document.getElementById('objectsList');
+      const typeFilter = document.getElementById('typeFilter');
+      const yieldFilter = document.getElementById('yieldFilter');
+      const yieldVal = document.getElementById('yieldVal');
+      const calcBtn = document.getElementById('calcBtn');
+      const calcResult = document.getElementById('calcResult');
+      const inputs = {
+        price: document.getElementById('calcPrice'),
+        rent: document.getElementById('calcRent'),
+        vacancy: document.getElementById('calcVacancy'),
+        expenses: document.getElementById('calcExpenses'),
+        tax: document.getElementById('calcTax')
+      };
+      const outputs = {
+        monthly: document.getElementById('resMonthly')
+      };
+
+      let objects = [];
+
+      async function loadObjects() {
+        try {
+          const response = await fetch(SHEET_URL);
+          const text = await response.text();
+          const jsonString = text.substring(47).slice(0, -2);
+          const json = JSON.parse(jsonString);
+         
+          const rows = json.table.rows.filter(row => row.c && row.c[0]);
+         
+          objects = rows.map(row => ({
+            id: row.c[0]?.v,
+            title: row.c[1]?.v || 'Без названия',            type: row.c[2]?.v || 'retail',
+            price: parseFloat(row.c[3]?.v) || 0,
+            rent: parseFloat(row.c[4]?.v) || 0,
+            yield: parseFloat(row.c[5]?.v) || 0,
+            location: row.c[6]?.v || '',
+            risks: row.c[7]?.v || ''
+          })).filter(obj => obj.price > 0);
+
+          alert(`✅ Загружено объектов: ${objects.length}`);
+          renderList();
+
+        } catch (e) {
+          alert("❌ Ошибка: " + e.message);
+          listEl.innerHTML = "Ошибка: " + e.message;
+        }
+      }
+
+      function renderList() {
+        const type = typeFilter ? typeFilter.value : 'all';
+        const minYield = yieldFilter ? parseFloat(yieldFilter.value) : 8;
+        if (yieldVal) yieldVal.textContent = minYield;
+
+        const filtered = objects.filter(obj =>
+          (type === 'all' || obj.type === type) && obj.yield >= minYield
+        );
+
+        if (filtered.length === 0) {
+          listEl.innerHTML = '<p style="text-align:center;color:#999">Нет объектов</p>';
+          return;
+        }
+
+        listEl.innerHTML = filtered.map(obj => `
+          <div class="card" onclick="loadToCalc(${obj.price}, ${obj.rent})">
+            <h3>${obj.title}</h3>
+            <p>📍 ${obj.location}</p>
+            <p><b>${(obj.price/1000000).toFixed(2)} млн ₽</b> | ${obj.rent.toLocaleString()} ₽/мес</p>
+            <button>📥 Выбрать</button>
+          </div>
+        `).join('');
+      }
+
+      window.loadToCalc = function(price, rent) {
+        inputs.price.value = price;
+        inputs.rent.value = rent;
+        calculate();
+      };
+
+      function calculate() {
+        const price = parseFloat(inputs.price.value) || 0;
+        const rent = parseFloat(inputs.rent.value) || 0;        const vacancy = parseFloat(inputs.vacancy.value) || 0;
+        const expenses = parseFloat(inputs.expenses.value) || 0;
+        const taxRate = parseFloat(inputs.tax.value) || 0;
+
+        if (price <= 0 || rent <= 0) return;
+
+        const netAnnual = (rent * 12 * (1 - vacancy/100)) - (expenses * 12) - (rent * 12 * (taxRate/100));
+        const netMonthly = netAnnual / 12;
+       
+        if (outputs.monthly) outputs.monthly.textContent = Math.round(netMonthly).toLocaleString() + ' ₽';
+        if (calcResult) calcResult.classList.remove('hidden');
+      }
+
+      if (typeFilter) typeFilter.addEventListener('change', renderList);
+      if (yieldFilter) yieldFilter.addEventListener('input', renderList);
+      if (calcBtn) calcBtn.addEventListener('click', calculate);
+
+      // Запуск
+      loadObjects();
+    })();
+  </script>
+</body>
+</html>
