@@ -1,7 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
 
+  // ВАЖНО: Добавлено &sheet=Sheet1, чтобы читать конкретный лист
   const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
-  const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json`;
+  const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=Sheet1`;
+
+  alert('🚀 Скрипт запущен! Начинаю загрузку...');
 
   let tg = null;
   try {
@@ -10,9 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
       tg.expand();
       tg.ready();
     }
-  } catch(e) {
-    console.warn("Telegram не доступен:", e);
-  }
+  } catch(e) {}
 
   const listEl = document.getElementById('objectsList');
   const typeFilter = document.getElementById('typeFilter');
@@ -38,22 +39,24 @@ document.addEventListener('DOMContentLoaded', function() {
 
   async function loadObjects() {
     try {
-      if (listEl) listEl.innerHTML = '<p style="text-align:center;padding:20px;">⏳ Загрузка...</p>';
+      if (listEl) listEl.innerHTML = '<p style="text-align:center;padding:20px;">⏳ Загружаю данные из Google...</p>';
      
       const response = await fetch(SHEET_URL);
       const text = await response.text();
      
-      // Парсим JSON
-      const jsonString = text.substring(47).slice(0, -2);
-      const json = JSON.parse(jsonString);
+      alert('📥 Данные получены от Google! Обрабатываю...');
      
-      if (!json.table || !json.table.rows) {        throw new Error('Таблица пуста или неверный формат');
+      // Парсим JSON (убираем префикс Google)
+      const jsonString = text.substring(47).slice(0, -2);      const json = JSON.parse(jsonString);
+     
+      if (!json.table || !json.table.rows) {
+        throw new Error('Google вернул пустую таблицу.');
       }
 
       const rows = json.table.rows.filter(row => row.c && row.c[0] && row.c[0].v !== null);
      
       if (rows.length === 0) {
-        throw new Error('В таблице нет данных (проверьте, что есть строки с объектами)');
+        throw new Error('В таблице нет строк с данными (проверьте Sheet1).');
       }
 
       const loadedObjects = rows.map(row => ({
@@ -67,11 +70,13 @@ document.addEventListener('DOMContentLoaded', function() {
         risks: row.c[7]?.v || ''
       })).filter(obj => obj.id && obj.price > 0);
      
+      alert(`✅ Успех! Загружено объектов: ${loadedObjects.length}`);
       return loadedObjects;
      
     } catch (e) {
       console.error('Ошибка:', e);
-      throw e;
+      alert('❌ ОШИБКА: ' + e.message);
+      return [];
     }
   }
 
@@ -87,16 +92,16 @@ document.addEventListener('DOMContentLoaded', function() {
     );
 
     if (filtered.length === 0) {
-      listEl.innerHTML = '<p style="text-align:center;color:var(--hint);padding:20px;">📭 Нет объектов<br><small>Проверьте таблицу или фильтры</small></p>';
+      listEl.innerHTML = '<p style="text-align:center;color:var(--hint);padding:20px;">📭 Нет объектов</p>';
       return;
     }
 
-    listEl.innerHTML = filtered.map(obj => `
-      <div class="card" onclick="loadToCalc(${obj.price}, ${obj.rent})">
+    listEl.innerHTML = filtered.map(obj => `      <div class="card" onclick="loadToCalc(${obj.price}, ${obj.rent})">
         <div class="card-meta"><span>📍 ${obj.location}</span><span class="card-yield">≈${obj.yield}%</span></div>
         <h3>${obj.title}</h3>
         <div class="card-price">${(obj.price / 1000000).toFixed(2)} млн ₽</div>
-        <div style="font-size:13px;color:var(--hint)">Аренда: ${obj.rent.toLocaleString()} ₽/мес</div>        <button class="card-btn">📥 Загрузить в калькулятор</button>
+        <div style="font-size:13px;color:var(--hint)">Аренда: ${obj.rent.toLocaleString()} ₽/мес</div>
+        <button class="card-btn">📥 Загрузить в калькулятор</button>
       </div>
     `).join('');
   }
@@ -140,17 +145,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (calcSection) calcSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
-  async function init() {
-    try {
-      objects = await loadObjects();
-      console.log('✅ Загружено объектов:', objects.length);
-      renderList();
-    } catch (e) {      console.error('❌ Ошибка:', e);
-      if (listEl) {
-        listEl.innerHTML = `<p style="text-align:center;color:#ff4444;padding:20px;">⚠️ ${e.message}</p>`;
-      }
-      alert('Ошибка загрузки: ' + e.message);
-    }
+  async function init() {    objects = await loadObjects();
+    renderList();
    
     if (typeFilter) typeFilter.addEventListener('change', renderList);
     if (yieldFilter) yieldFilter.addEventListener('input', renderList);
