@@ -14,8 +14,6 @@
     .card-buttons { display: flex; gap: 10px; margin-top: 10px; }
     .card-buttons button { flex: 1; }
     .error-msg { color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 8px; text-align: center; margin: 10px 0; }
-   
-    /* Стили для плашки объекта */
     .obj-badge { background:#f0f7ff; border:1px solid #3390ec; padding:10px; border-radius:8px; margin-bottom:15px; display:none; }
     .obj-badge-title { font-weight:bold; font-size:15px; }
     .obj-badge-loc { font-size:13px; color:#444; margin-top:2px; }
@@ -46,12 +44,11 @@
     </section>
 
     <section id="objectsList" class="list">
-      <p style="text-align:center;"> Загрузка объектов...</p>
+      <p style="text-align:center;">⏳ Загрузка объектов...</p>
     </section>
-    <section class="calculator">
-      <h2>🧮 Калькулятор доходности</h2>
+
+    <section class="calculator">      <h2> Калькулятор доходности</h2>
      
-      <!-- Плашка с выбранным объектом -->
       <div id="selectedObject" class="obj-badge">
         <div style="font-size:12px; color:#666; margin-bottom:4px;">📊 Рассчитываем для:</div>
         <div class="obj-badge-title" id="selectedObjectName"></div>
@@ -61,14 +58,11 @@
       <div class="calc-grid">
         <div class="input-group"><label>Цена объекта (₽)</label><input type="number" id="calcPrice" placeholder="5000000"></div>
         <div class="input-group"><label>Аренда/мес (₽)</label><input type="number" id="calcRent" placeholder="45000"></div>
-        <!-- Поле "Простой" удалено -->
-        <div class="input-group"><label>Расходы/мес (₽)</label><input type="number" id="calcExpenses" placeholder="3000" value="3000"></div>
-        <div class="input-group"><label>Налог (%)</label><input type="number" id="calcTax" placeholder="6" value="6"></div>
       </div>
-      <button id="calcBtn" class="tg-btn">Рассчитать чистую доходность</button>
+      <button id="calcBtn" class="tg-btn">Рассчитать доходность</button>
 
       <div id="calcResult" class="result hidden">
-        <div class="res-row"><span>💰 Чистый доход/мес:</span><span id="resMonthly" style="font-weight:bold; color:#28a745">0 ₽</span></div>
+        <div class="res-row"><span>💰 Аренда/мес:</span><span id="resMonthly" style="font-weight:bold; color:#28a745">0 ₽</span></div>
         <div class="res-row"><span>📈 Годовая доходность:</span><span id="resYield" style="font-weight:bold; color:#007bff">0%</span></div>
         <div class="res-row"><span>⏳ Окупаемость:</span><span id="resPayback" style="font-weight:bold; color:#ffc107">0 лет</span></div>
       </div>
@@ -89,27 +83,22 @@
      
       const inputs = {
         price: document.getElementById('calcPrice'),
-        rent: document.getElementById('calcRent'),
-        expenses: document.getElementById('calcExpenses'),
-        tax: document.getElementById('calcTax')
+        rent: document.getElementById('calcRent')
       };
      
       const outputs = {
         monthly: document.getElementById('resMonthly'),
-        yield: document.getElementById('resYield'),        payback: document.getElementById('resPayback')
+        yield: document.getElementById('resYield'),
+        payback: document.getElementById('resPayback')
       };
 
       const objBadge = document.getElementById('selectedObject');
       const objName = document.getElementById('selectedObjectName');
       const objLoc = document.getElementById('selectedObjectLocation');
 
-      let objects = [];
-      const CONTACT_LINK = 'https://t.me/ernest_812';
+      let objects = [];      const CONTACT_LINK = 'https://t.me/ernest_812';
 
-      function hideBadge() {
-        if (objBadge) objBadge.style.display = 'none';
-      }
-
+      function hideBadge() { if (objBadge) objBadge.style.display = 'none'; }
       function showBadge(title, location) {
         if (objName) objName.textContent = title || 'Объект';
         if (objLoc) objLoc.textContent = location ? `📍 ${location}` : '';
@@ -121,31 +110,19 @@
         const result = [];
         for (let i = 1; i < lines.length; i++) {
           if (!lines[i].trim()) continue;
-          // Парсим строку CSV (учитывая кавычки)
           const row = lines[i].match(/(".*?"|[^",\n]+)(?=\s*,|\s*$)/g) || [];
           const clean = row.map(v => v.replace(/^"|"$/g, '').trim());
-         
           if (clean.length >= 3) {
             const price = parseFloat(clean[3]) || 0;
             const rent = parseFloat(clean[4]) || 0;
-           
-            // ✅ АВТО-РАСЧЕТ YIELD: Если столбец пуст, считаем (Аренда * 12 / Цена) * 100
             let yieldVal = parseFloat(clean[5]);
-            if (!yieldVal && price > 0) {
-              yieldVal = (rent * 12 / price) * 100;
-            }
-
+            if (!yieldVal && price > 0) yieldVal = (rent * 12 / price) * 100;
             result.push({
-              id: clean[0],
-              title: clean[1],
-              type: clean[2],
-              price: price,
-              rent: rent,
-              yield: yieldVal || 0, // Если всё равно пусто, ставим 0
-              location: clean[6] || '',
-              risks: clean[7] || ''
+              id: clean[0], title: clean[1], type: clean[2], price, rent,
+              yield: yieldVal || 0, location: clean[6] || '', risks: clean[7] || ''
             });
-          }        }
+          }
+        }
         return result;
       }
 
@@ -166,11 +143,9 @@
         const type = typeFilter ? typeFilter.value : 'all';
         const minYield = yieldFilter ? parseFloat(yieldFilter.value) : 8;
         if (yieldVal) yieldVal.textContent = minYield;
-
         const filtered = objects.filter(o => (type === 'all' || o.type === type) && o.yield >= minYield);
        
-        listEl.innerHTML = filtered.length ? filtered.map(o => {
-          const safeTitle = (o.title || '').replace(/'/g, "\\'");
+        listEl.innerHTML = filtered.length ? filtered.map(o => {          const safeTitle = (o.title || '').replace(/'/g, "\\'");
           const safeLoc = (o.location || '').replace(/'/g, "\\'");
           return `
           <div class="card">
@@ -194,27 +169,22 @@
         document.querySelector('.calculator').scrollIntoView({ behavior: 'smooth' });
       };
 
-      if (inputs.price) inputs.price.addEventListener('input', hideBadge);      if (inputs.rent) inputs.rent.addEventListener('input', hideBadge);
+      if (inputs.price) inputs.price.addEventListener('input', hideBadge);
+      if (inputs.rent) inputs.rent.addEventListener('input', hideBadge);
 
       function calculate() {
         const price = parseFloat(inputs.price.value) || 0;
         const rent = parseFloat(inputs.rent.value) || 0;
-        const expenses = parseFloat(inputs.expenses.value) || 0;
-        const taxRate = parseFloat(inputs.tax.value) || 0;
 
         if (price <= 0 || rent <= 0) return alert('Укажите цену и аренду');
 
-        // ✅ ФОРМУЛА БЕЗ ПРОСТОЯ
-        const grossAnnual = rent * 12;
-        const expensesAnnual = expenses * 12;
-        const taxAnnual = grossAnnual * (taxRate / 100); // Налог от валового дохода
-       
-        const netAnnual = grossAnnual - expensesAnnual - taxAnnual;
-        const netMonthly = netAnnual / 12;
-       
-        if (outputs.monthly) outputs.monthly.textContent = Math.round(netMonthly).toLocaleString() + ' ₽';
-        if (outputs.yield) outputs.yield.textContent = ((netAnnual/price)*100).toFixed(2) + '%';
-        if (outputs.payback) outputs.payback.textContent = netAnnual > 0 ? (price/netAnnual).toFixed(1) + ' лет' : '∞';
+        const annualIncome = rent * 12;
+        const yieldPercent = (annualIncome / price) * 100;
+        const paybackYears = price / annualIncome;
+
+        if (outputs.monthly) outputs.monthly.textContent = Math.round(rent).toLocaleString() + ' ₽';
+        if (outputs.yield) outputs.yield.textContent = yieldPercent.toFixed(2) + '%';
+        if (outputs.payback) outputs.payback.textContent = paybackYears.toFixed(1) + ' лет';
         if (calcResult) calcResult.classList.remove('hidden');
       }
 
@@ -224,5 +194,4 @@
       loadObjects();
     })();
   </script>
-</body>
-</html>
+</body></html>
