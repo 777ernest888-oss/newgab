@@ -3,27 +3,258 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="theme-color" content="#ffffff">
-  <title>GAB Калькулятор</title>
+  <meta name="theme-color" content="#007bff">
+  <title>ГАБ Калькулятор</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="styles.css">
   <link rel="icon" href="favicon.png" type="image/png">
   <style>
-    .contact-btn { background-color: #ffffff; color: #3390ec; border: 1px solid #3390ec; }
-    .contact-btn:hover { background-color: #f0f7ff; }
-    .card-buttons { display: flex; gap: 10px; margin-top: 10px; }
-    .card-buttons button { flex: 1; }
-    .error-msg { color: #d32f2f; background: #ffebee; padding: 10px; border-radius: 8px; text-align: center; margin: 10px 0; }
-    .obj-badge { background:#f0f7ff; border:1px solid #3390ec; padding:10px; border-radius:8px; margin-bottom:15px; display:none; }
-    .obj-badge-title { font-weight:bold; font-size:15px; }
-    .obj-badge-loc { font-size:13px; color:#444; margin-top:2px; }
+    :root {
+      --primary: #007bff;
+      --primary-dark: #0056b3;
+      --success: #28a745;
+      --warning: #ffc107;
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --text-secondary: #666666;
+      --shadow: 0 4px 12px rgba(0,0,0,0.08);
+      --radius: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 0;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: var(--primary);
+    }
+
+    header .hint {      color: var(--text-secondary);
+      font-size: 14px;
+      margin-top: 5px;
+    }
+
+    /* Карточки объектов */
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 20px;
+      transition: transform 0.2s;
+    }
+
+    .card:active {
+      transform: scale(0.98);
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+    }
+
+    .card-yield {
+      font-weight: bold;
+      color: var(--success);
+      background: #e8f5e9;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+
+    .card h3 {
+      margin: 0 0 10px 0;
+      font-size: 18px;
+    }
+
+    .card-price {
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--text);
+      margin-bottom: 5px;
+    }
+
+    .card-buttons {
+      display: flex;
+      gap: 10px;      margin-top: 15px;
+    }
+
+    /* Кнопки */
+    button {
+      border: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+      width: 100%;
+    }
+
+    .tg-btn {
+      background: var(--primary);
+      color: white;
+      font-size: 16px;
+      margin-top: 15px;
+    }
+    .tg-btn:hover { background: var(--primary-dark); }
+
+    .card-btn {
+      background: #f0f2f5;
+      color: var(--text);
+      flex: 1;
+    }
+    .card-btn:hover { background: #e4e6eb; }
+
+    .contact-btn {
+      background: white;
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      flex: 1;
+    }
+    .contact-btn:hover { background: #f0f7ff; }
+
+    .share-btn-small {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid #ddd;
+      padding: 8px;
+      font-size: 12px;
+      margin-top: 10px;
+      width: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    /* Фильтры */
+    .filters {
+      background: white;
+      padding: 20px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    select, input[type="number"] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 16px;
+      box-sizing: border-box;
+      margin-bottom: 15px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    /* Калькулятор */
+    .calculator {
+      background: white;
+      padding: 25px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      margin-top: 30px;
+    }
+
+    .obj-badge {
+      background: #e3f2fd;
+      border-left: 4px solid var(--primary);
+      padding: 12px;
+      margin-bottom: 20px;
+      border-radius: 4px;
+      display: none; /* Скрыто по умолчанию */
+    }
+    .obj-badge-title { font-weight: bold; font-size: 16px; }    .obj-badge-loc { font-size: 13px; color: var(--text-secondary); }
+
+    .calc-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+   
+    .input-group { margin-bottom: 0; }
+    .input-group label { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
+
+    /* Результаты */
+    .result-block {
+      margin-top: 25px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: var(--radius);
+      border: 1px solid #eee;
+    }
+
+    .res-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+    .res-row:last-child { margin-bottom: 0; }
+
+    /* ВЫДЕЛЕНИЕ ОКУПАЕМОСТИ */
+    .payback-highlight {
+      background: #fff3cd;
+      border: 2px solid #ffeeba;
+      color: #856404;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+      margin-top: 15px;
+    }
+    .payback-highlight span {
+      display: block;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      opacity: 0.8;
+    }
+    .payback-highlight strong {
+      display: block;
+      font-size: 24px;
+      font-weight: 800;
+      margin-top: 5px;    }
+
+    .hidden { display: none; }
+   
+    .error-msg { color: #d32f2f; background: #ffebee; padding: 15px; border-radius: 8px; text-align: center; }
   </style>
 </head>
 <body>
   <div class="container">
     <header>
-      <h1>🏢 GAB Калькулятор</h1>
-      <p class="hint">Выберите объект → рассчитайте доходность</p>
+      <h1>🏢 ГАБ Калькулятор</h1>
+      <p class="hint">Готовый Арендный Бизнес: выберите объект и посчитайте доход</p>
     </header>
 
     <section class="filters">
@@ -37,37 +268,57 @@
         <option value="hypermarket">Гипермаркет</option>
         <option value="pvz">ПВЗ</option>
         <option value="pharmacy">Аптека</option>
-        <!-- ✅ НОВЫЕ ТИПЫ -->
         <option value="combo">Комбо</option>
         <option value="darkstore">Даркстор</option>
         <option value="other">Другое</option>
       </select>
+     
       <label>Мин. доходность: <span id="yieldVal">8</span>%</label>
       <input type="range" id="yieldFilter" min="4" max="15" value="8" step="0.5">
     </section>
 
     <section id="objectsList" class="list">
-      <p style="text-align:center;">⏳ Загрузка объектов...</p>    </section>
+      <p style="text-align:center; color:#999;">⏳ Загрузка базы...</p>
+    </section>
 
     <section class="calculator">
-      <h2>🧮 Калькулятор доходности</h2>
+      <h2 style="margin-top:0">🧮 Калькулятор</h2>
      
+      <!-- Плашка выбранного объекта -->
       <div id="selectedObject" class="obj-badge">
-        <div style="font-size:12px; color:#666; margin-bottom:4px;">📊 Рассчитываем для:</div>
         <div class="obj-badge-title" id="selectedObjectName"></div>
         <div class="obj-badge-loc" id="selectedObjectLocation"></div>
       </div>
 
       <div class="calc-grid">
-        <div class="input-group"><label>Цена объекта (₽)</label><input type="number" id="calcPrice" placeholder="5000000"></div>
-        <div class="input-group"><label>Аренда/мес (₽)</label><input type="number" id="calcRent" placeholder="45000"></div>
+        <div class="input-group">
+          <label>Цена (₽)</label>          <input type="number" id="calcPrice" placeholder="5 000 000">
+        </div>
+        <div class="input-group">
+          <label>Аренда/мес (₽)</label>
+          <input type="number" id="calcRent" placeholder="45 000">
+        </div>
       </div>
+     
       <button id="calcBtn" class="tg-btn">Рассчитать доходность</button>
 
-      <div id="calcResult" class="result hidden">
-        <div class="res-row"><span>💰 Аренда/мес:</span><span id="resMonthly" style="font-weight:bold; color:#28a745">0 ₽</span></div>
-        <div class="res-row"><span> Годовая доходность:</span><span id="resYield" style="font-weight:bold; color:#007bff">0%</span></div>
-        <div class="res-row"><span> Окупаемость:</span><span id="resPayback" style="font-weight:bold; color:#ffc107">0 лет</span></div>
+      <div id="calcResult" class="result-block hidden">
+        <div class="res-row">
+          <span>💰 Доход/мес:</span>
+          <strong id="resMonthly" style="color:var(--success)">0 ₽</strong>
+        </div>
+        <div class="res-row">
+          <span>📈 Доходность в год:</span>
+          <strong id="resYield" style="color:var(--primary)">0%</strong>
+        </div>
+       
+        <!-- ВЫДЕЛЕННАЯ ОКУПАЕМОСТЬ -->
+        <div class="payback-highlight">
+          <span>⏳ Полная окупаемость</span>
+          <strong id="resPayback">0 лет</strong>
+        </div>
+
+        <button id="shareResultBtn" class="tg-btn" style="background:#28a745; margin-top:15px">📤 Поделиться расчетом</button>
       </div>
     </section>
   </div>
@@ -83,29 +334,41 @@
       const yieldVal = document.getElementById('yieldVal');
       const calcBtn = document.getElementById('calcBtn');
       const calcResult = document.getElementById('calcResult');
+      const shareResultBtn = document.getElementById('shareResultBtn');
      
       const inputs = {
         price: document.getElementById('calcPrice'),
         rent: document.getElementById('calcRent')
       };
      
-      const outputs = {
-        monthly: document.getElementById('resMonthly'),
+      const outputs = {        monthly: document.getElementById('resMonthly'),
         yield: document.getElementById('resYield'),
         payback: document.getElementById('resPayback')
       };
 
       const objBadge = document.getElementById('selectedObject');
-      const objName = document.getElementById('selectedObjectName');      const objLoc = document.getElementById('selectedObjectLocation');
+      const objName = document.getElementById('selectedObjectName');
+      const objLoc = document.getElementById('selectedObjectLocation');
 
       let objects = [];
       const CONTACT_LINK = 'https://t.me/ernest_812';
+      const BASE_URL = window.location.href.split('#')[0];
+
+      // Форматирование чисел (1 000 000)
+      function fmt(n) {
+        return new Intl.NumberFormat('ru-RU').format(Math.round(n));
+      }
 
       function hideBadge() { if (objBadge) objBadge.style.display = 'none'; }
-      function showBadge(title, location) {
+     
+      function showBadge(title, location, id) {
         if (objName) objName.textContent = title || 'Объект';
         if (objLoc) objLoc.textContent = location ? `📍 ${location}` : '';
-        if (objBadge) objBadge.style.display = 'block';
+        if (objBadge) {
+          objBadge.style.display = 'block';
+          // Обновляем URL без перезагрузки
+          window.location.hash = `obj-${id}`;
+        }
       }
 
       function parseCSV(csv) {
@@ -128,46 +391,70 @@
         }
         return result;
       }
-
       async function loadObjects() {
         try {
           const res = await fetch(SHEET_URL);
-          if (!res.ok) throw new Error('Сеть недоступна');
+          if (!res.ok) throw new Error('Network error');
           const csv = await res.text();
           objects = parseCSV(csv).filter(o => o.price > 0);
+         
+          // Проверка хэша в URL (для прямой ссылки на объект)
+          const hash = window.location.hash.replace('#obj-', '');
+          if (hash) {
+            const targetObj = objects.find(o => o.id == hash);
+            if (targetObj) {
+              loadToCalc(targetObj.price, targetObj.rent, targetObj.title, targetObj.location, targetObj.id);
+            }
+          }
+         
           renderList();
         } catch (e) {
           console.error(e);
-          listEl.innerHTML = '<div class="error-msg">️ Не удалось загрузить базу.<br>Проверьте интернет.</div>';
+          listEl.innerHTML = '<div class="error-msg">⚠️ Ошибка загрузки базы</div>';
         }
       }
 
       function renderList() {
         const type = typeFilter ? typeFilter.value : 'all';
         const minYield = yieldFilter ? parseFloat(yieldFilter.value) : 8;
-        if (yieldVal) yieldVal.textContent = minYield;        const filtered = objects.filter(o => (type === 'all' || o.type === type) && o.yield >= minYield);
+        if (yieldVal) yieldVal.textContent = minYield;
        
-        listEl.innerHTML = filtered.length ? filtered.map(o => {
+        const filtered = objects.filter(o => (type === 'all' || o.type === type) && o.yield >= minYield);
+       
+        if (filtered.length === 0) {
+          listEl.innerHTML = '<p style="text-align:center;color:#999;padding:20px">Нет объектов</p>';
+          return;
+        }
+
+        listEl.innerHTML = filtered.map(o => {
           const safeTitle = (o.title || '').replace(/'/g, "\\'");
           const safeLoc = (o.location || '').replace(/'/g, "\\'");
+          const link = `${BASE_URL}#obj-${o.id}`;
+         
           return `
           <div class="card">
             <div class="card-meta"><span>📍 ${o.location}</span><span class="card-yield">≈${o.yield.toFixed(1)}%</span></div>
             <h3>${o.title}</h3>
-            <div class="card-price">${(o.price / 1000000).toFixed(2)} млн ₽</div>
-            <div style="font-size:13px;color:#666">Аренда: ${o.rent.toLocaleString()} ₽/мес</div>
+            <div class="card-price">${fmt(o.price)} ₽</div>
+            <div style="font-size:13px;color:#666">Аренда: ${fmt(o.rent)} ₽/мес</div>
             <div class="card-buttons">
-              <button class="card-btn" onclick="loadToCalc(${o.price}, ${o.rent}, '${safeTitle}', '${safeLoc}')"> Калькулятор</button>
-              <button class="card-btn contact-btn" onclick="window.open('${CONTACT_LINK}?text=Здравствуйте! Интересует объект: ${safeTitle} (${o.price} ₽)')">💬 Связаться</button>
-            </div>
+              <button class="card-btn" onclick="loadToCalc(${o.price}, ${o.rent}, '${safeTitle}', '${safeLoc}', ${o.id})">📥 В калькулятор</button>
+              <button class="contact-btn" onclick="window.open('${CONTACT_LINK}?text=Интересует: ${safeTitle} (${fmt(o.price)} ₽)')">💬 Связаться</button>            </div>
+            <button class="share-btn-small" onclick="copyLink('${link}', '${safeTitle}')">🔗 Копировать ссылку</button>
           </div>`;
-        }).join('') : '<p style="text-align:center;color:#999;padding:20px">Нет объектов по фильтру</p>';
+        }).join('');
       }
 
-      window.loadToCalc = function(p, r, title, location) {
+      window.copyLink = function(url, title) {
+        navigator.clipboard.writeText(url).then(() => {
+          alert(`Ссылка на "${title}" скопирована!`);
+        });
+      };
+
+      window.loadToCalc = function(p, r, title, location, id) {
         inputs.price.value = p;
         inputs.rent.value = r;
-        showBadge(title, location);
+        showBadge(title, location, id);
         calculate();
         document.querySelector('.calculator').scrollIntoView({ behavior: 'smooth' });
       };
@@ -179,22 +466,43 @@
         const price = parseFloat(inputs.price.value) || 0;
         const rent = parseFloat(inputs.rent.value) || 0;
 
-        if (price <= 0 || rent <= 0) return alert('Укажите цену и аренду');
+        if (price <= 0 || rent <= 0) return alert('Введите цену и аренду');
 
         const annualIncome = rent * 12;
         const yieldPercent = (annualIncome / price) * 100;
         const paybackYears = price / annualIncome;
 
-        if (outputs.monthly) outputs.monthly.textContent = Math.round(rent).toLocaleString() + ' ₽';
+        if (outputs.monthly) outputs.monthly.textContent = fmt(rent) + ' ₽';
         if (outputs.yield) outputs.yield.textContent = yieldPercent.toFixed(2) + '%';
         if (outputs.payback) outputs.payback.textContent = paybackYears.toFixed(1) + ' лет';
+       
         if (calcResult) calcResult.classList.remove('hidden');
+      }
+
+      // Кнопка "Поделиться расчетом"
+      if (shareResultBtn) {
+        shareResultBtn.addEventListener('click', async () => {
+          const text = `🏢 ГАБ Калькулятор\n💰 Доход: ${outputs.monthly.textContent}\n📈 Доходность: ${outputs.yield.textContent}\n⏳ Окупаемость: ${outputs.payback.textContent}\n\nСсылка: ${BASE_URL}`;
+         
+          if (navigator.share) {
+            try {
+              await navigator.share({ title: 'Расчет ГАБ', text: text });
+            } catch (err) { console.log('Share canceled'); }
+          } else {            navigator.clipboard.writeText(text);
+            alert('Расчет скопирован в буфер обмена!');
+          }
+        });
       }
 
       typeFilter?.addEventListener('change', renderList);
       yieldFilter?.addEventListener('input', renderList);
       calcBtn?.addEventListener('click', calculate);
-      loadObjects();    })();
+     
+      // Слушаем изменение хэша (назад/вперед в браузере)
+      window.addEventListener('hashchange', loadObjects);
+
+      loadObjects();
+    })();
   </script>
 </body>
 </html>
