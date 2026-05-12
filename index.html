@@ -47,8 +47,7 @@
     .calculator { background: var(--card); padding: 25px; border-radius: var(--radius); box-shadow: var(--shadow); margin-top: 20px; }
     .calc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
     .obj-badge { background: #eff6ff; border-left: 4px solid var(--primary); padding: 12px; border-radius: 6px; flex: 1; margin-right: 15px; }
-    .obj-badge-title { font-weight: bold; font-size: 16px; }
-    .obj-badge-loc { font-size: 13px; color: var(--text-sec); }
+    .obj-badge-title { font-weight: bold; font-size: 16px; }    .obj-badge-loc { font-size: 13px; color: var(--text-sec); }
     .calc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
     .input-group label { display: block; font-size: 13px; color: var(--text-sec); margin-bottom: 6px; }
     .input-group input { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 16px; }
@@ -97,8 +96,7 @@
     <section class="calculator">
       <div class="calc-header">
         <div id="selectedObject" class="obj-badge hidden"><div class="obj-badge-title" id="selName"></div><div class="obj-badge-loc" id="selLoc"></div></div>
-        <button id="shareCalcBtn" class="btn btn-outline" style="width:auto; display:none;">📤 Поделиться</button>
-      </div>
+        <button id="shareCalcBtn" class="btn btn-outline" style="width:auto; display:none;">📤 Поделиться</button>      </div>
       <div class="calc-grid">
         <div class="input-group"><label>Цена объекта (₽)</label><input type="number" id="calcPrice"></div>
         <div class="input-group"><label>Аренда/мес (₽)</label><input type="number" id="calcRent"></div>
@@ -137,21 +135,17 @@
   <script>
     (function() {
       const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
-      // ✅ ЖЁСТКО УКАЗЫВАЕМ ЛИСТ. Если ваша вкладка называется иначе, поменяйте Sheet1 на точное имя вкладки
       const SHEET_NAME = 'Sheet1';
       const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&sheet=${encodeURIComponent(SHEET_NAME)}&v=${Date.now()}`;
-     
       const CONTACT_LINK = 'https://t.me/ernest_812';
       const BASE_URL = window.location.href.split('#')[0];
       const errorContainer = document.getElementById('errorContainer');
 
       console.log('🚀 [INIT] Запуск приложения...');
-      console.log('🔗 URL загрузки:', SHEET_URL);
 
       const els = {
         list: document.getElementById('objectsList'), cityFilter: document.getElementById('cityFilter'),
-        typeFilter: document.getElementById('typeFilter'), yieldFilter: document.getElementById('yieldFilter'),
-        yieldVal: document.getElementById('yieldVal'), calcPrice: document.getElementById('calcPrice'),
+        typeFilter: document.getElementById('typeFilter'), yieldFilter: document.getElementById('yieldFilter'),        yieldVal: document.getElementById('yieldVal'), calcPrice: document.getElementById('calcPrice'),
         calcRent: document.getElementById('calcRent'), calcBtn: document.getElementById('calcBtn'),
         calcResult: document.getElementById('calcResult'), resMonthly: document.getElementById('resMonthly'),
         resYield: document.getElementById('resYield'), resPayback: document.getElementById('resPayback'),
@@ -174,22 +168,39 @@
       }
       formatInput(els.calcPrice); formatInput(els.calcRent);
 
+      // ✅ ИСПРАВЛЕННЫЙ ПАРСЕР: Теперь корректно читает пустые ячейки
       function parseCSV(csv) {
         const lines = csv.split(/\r?\n/).filter(l => l.trim());
         console.log(`📊 Всего строк в файле: ${lines.length}`);
-        if(lines.length < 2) { console.error('❌ Файл пуст или содержит только заголовки'); return []; }
+        if(lines.length < 2) { console.error(' Файл пуст'); return []; }
        
         const res = [];
         for(let i=1; i<lines.length; i++) {
-          const row = lines[i].match(/(".*?"|[^",\n]+)(?=\s*,|\s*$)/g) || [];
-          const c = row.map(v => v.replace(/^"|"$/g, '').trim());
-          if(c.length >= 9) { // Проверяем, что есть все 9 столбцов
-            const price = parseFloat(c[3])||0, rent = parseFloat(c[4])||0;
-            let y = parseFloat(c[5]); if(!y && price>0) y = (rent*12/price)*100;
-            res.push({ id: c[0], title: c[1], type: c[2], price, rent, yield: y||0, city: c[6]||'', location: c[7]||'', photo: c[8]||'' });
-          } else {
-            console.warn(`️ Строка ${i+1} пропущена: мало столбцов (${c.length} из 9)`);
+          // Используем split, который сохраняет пустые строки между запятыми
+          const cols = lines[i].split(',');
+         
+          // Нам нужно минимум 7 колонок (id, title, type, price, rent, yield, city)
+          if(cols.length < 7) {
+             console.warn(`️ Строка ${i} пропущена: мало данных`);
+             continue;
           }
+
+          const id = cols[0]?.trim();
+          const title = cols[1]?.trim();
+          const type = cols[2]?.trim();
+          const price = parseFloat(cols[3]?.trim().replace(/\s/g, '')) || 0;
+          const rent = parseFloat(cols[4]?.trim().replace(/\s/g, '')) || 0;
+          const yieldVal = parseFloat(cols[5]?.trim()) || 0;
+          const city = cols[6]?.trim();
+          const location = cols[7]?.trim() || '';
+          const photo = cols[8]?.trim() || '';
+          // Если цены нет, пропускаем
+          if (price <= 0) continue;
+
+          let y = yieldVal;
+          if(!y && rent > 0) y = (rent * 12 / price) * 100;
+
+          res.push({ id, title, type, price, rent, yield: y, city, location, photo });
         }
         console.log(`✅ Успешно распарсено объектов: ${res.length}`);
         return res;
@@ -198,8 +209,10 @@
       function populateCities() {
         const fixedOrder = ['Москва', 'Московская область', 'Санкт-Петербург', 'Ленинградская область', 'Другое'];
         const allCities = [...new Set(objects.map(o => o.city).filter(Boolean))];
-        const sortedCities = fixedOrder.filter(c => allCities.includes(c)).concat(allCities.filter(c => !fixedOrder.includes(c)).sort());
-        els.cityFilter.innerHTML = '<option value="all">Все города</option>' + sortedCities.map(c => `<option value="${c}">${c}</option>`).join('');
+        const sortedCities = fixedOrder.filter(c => allCities.includes(c))
+          .concat(allCities.filter(c => !fixedOrder.includes(c)).sort());
+        els.cityFilter.innerHTML = '<option value="all">Все города</option>' +
+          sortedCities.map(c => `<option value="${c}">${c}</option>`).join('');
       }
 
       function showError(title, message, details = '') {
@@ -212,44 +225,36 @@
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 8000);
          
-          console.log('📡 Запрос к Google Sheets...');
           const res = await fetch(SHEET_URL, { signal: controller.signal });
           clearTimeout(timeoutId);
          
           if(!res.ok) throw new Error(`HTTP ${res.status}`);
          
           const csv = await res.text();
-          console.log('📥 CSV получен. Размер:', csv.length, 'символов');
-         
           objects = parseCSV(csv);
           if(objects.length === 0) {
-            showError('Нет данных', 'В листе "' + SHEET_NAME + '" не найдено объектов. Проверьте, что данные находятся в 9 столбцах (A-I) и лист называется именно так.', 'Столбцов в файле: ' + csv.split(/\r?\n/)[1]?.split(',').length);
+            showError('Нет данных', 'В таблице не найдено объектов с ценой.', 'Строк: ' + csv.split('\n').length);
             return;
           }
          
           populateCities();
           renderList();
-          console.log('✅ Загрузка завершена успешно');
          
           const hash = window.location.hash.replace('#obj-','');
           if(hash) { const obj = objects.find(o => o.id == hash); if(obj) openModal(obj); }
         } catch(e) {
-          console.error('❌ Ошибка:', e);
-          let msg = 'Не удалось загрузить таблицу';
-          let details = e.message;
-          if(e.name === 'AbortError') { msg = 'Таймаут (8 сек)'; details = 'Google не отвечает. Проверьте интернет или доступ к таблице.'; }
-          showError('Ошибка подключения', msg, details);
+          console.error(' Ошибка:', e);          showError('Ошибка подключения', 'Не удалось загрузить таблицу', e.message);
         }
       }
 
       function copyLink(url, title) {
-        navigator.clipboard.writeText(url).then(() => alert(`🔗 Ссылка на "${title}" скопирована!`)).catch(() => alert('❌ Не удалось скопировать'));
+        navigator.clipboard.writeText(url).then(() => alert(`🔗 Ссылка на "${title}" скопирована!`)).catch(() => alert(' Не удалось скопировать'));
       }
 
       async function shareObject(obj) {
         const text = `🏢 ${obj.title}\n💰 ${fmt(obj.price)} ₽\n📈 ${obj.yield.toFixed(1)}%\n📍 ${obj.city}\n\nСмотреть: ${BASE_URL}#obj-${obj.id}`;
         if(navigator.share) { try { await navigator.share({title: obj.title, text}); } catch(e){} }
-        else { navigator.clipboard.writeText(text); alert(' Скопировано!'); }
+        else { navigator.clipboard.writeText(text); alert('📤 Скопировано!'); }
       }
 
       function renderList() {
@@ -274,7 +279,7 @@
               <button class="btn btn-outline" onclick="event.stopPropagation(); window.open('${CONTACT_LINK}?text=Интересует: ${o.title.replace(/'/g, "%27")}')">💬</button>
             </div>
             <div class="card-links" onclick="event.stopPropagation()">
-              <button class="btn btn-outline btn-small" onclick="copyLink('${link}', '${safeTitle}')">🔗 Копировать</button>
+              <button class="btn btn-outline btn-small" onclick="copyLink('${link}', '${safeTitle}')"> Копировать</button>
               <button class="btn btn-outline btn-small" onclick="shareObjectById('${o.id}')">📤 Поделиться</button>
             </div>
           </div>`;
@@ -287,8 +292,7 @@
       function openModal(obj) {
         currentObj = obj;
         els.modalImg.src = obj.photo || 'https://via.placeholder.com/400x200?text=Нет+фото';
-        els.modalTitle.textContent = obj.title; els.modalPrice.textContent = fmt(obj.price) + ' ₽';
-        els.modalCity.textContent = obj.city; els.modalLoc.textContent = obj.location;
+        els.modalTitle.textContent = obj.title; els.modalPrice.textContent = fmt(obj.price) + ' ₽';        els.modalCity.textContent = obj.city; els.modalLoc.textContent = obj.location;
         els.modalType.textContent = obj.type; els.modalYield.textContent = obj.yield.toFixed(1) + '%';
         els.modalOverlay.classList.add('active'); window.location.hash = `obj-${obj.id}`;
       }
@@ -318,12 +322,11 @@
 
       els.calcBtn.addEventListener('click', calculate);
       els.shareCalcBtn.addEventListener('click', async () => {
-        const text = `🧮 Расчет ГАБ\n💰 Доход: ${els.resMonthly.textContent}\n📈 Доходность: ${els.resYield.textContent}\n Окупаемость: ${els.resPayback.textContent}\n\n${BASE_URL}`;
+        const text = `🧮 Расчет ГАБ\n💰 Доход: ${els.resMonthly.textContent}\n📈 Доходность: ${els.resYield.textContent}\n⏳ Окупаемость: ${els.resPayback.textContent}\n\n${BASE_URL}`;
         if(navigator.share) await navigator.share({title:'Расчет ГАБ', text}); else { navigator.clipboard.writeText(text); alert('📤 Скопировано!'); }
       });
 
       els.cityFilter.addEventListener('change', renderList); els.typeFilter.addEventListener('change', renderList); els.yieldFilter.addEventListener('input', renderList);
-     
       loadData();
     })();
   </script>
