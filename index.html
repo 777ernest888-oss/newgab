@@ -77,11 +77,45 @@
     .modal-info b { color: var(--text-sec); font-weight: 500; }
     .modal-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
     .hidden { display: none !important; }
+   
+    /* Стили для ошибок */
+    .error-box {
+      background: #fee2e2;
+      border: 2px solid #ef4444;
+      color: #991b1b;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px auto;
+      max-width: 600px;
+      text-align: center;
+    }
+    .error-box h3 { margin: 0 0 10px; }
+    .error-box code {
+      display: block;
+      background: #fef2f2;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 10px;
+      font-size: 12px;      word-break: break-all;
+    }
+    .retry-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      margin-top: 15px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+   
     @media (max-width: 600px) { .filters, .calc-grid, .list { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
   <div class="container">
+    <div id="errorContainer"></div>
+   
     <header>
       <h1>🏢 ГАБ Калькулятор</h1>
       <p class="hint">Готовый Арендный Бизнес: выберите объект и посчитайте доход</p>
@@ -96,7 +130,8 @@
           <option value="pvz">ПВЗ</option><option value="pharmacy">Аптека</option><option value="combo">Комбо</option><option value="darkstore">Даркстор</option><option value="other">Другое</option>
         </select>
       </div>
-      <div class="yield-row"><label>Мин. доходность:</label><input type="range" id="yieldFilter" min="4" max="15" value="8" step="0.5"><span class="yield-val" id="yieldVal">8%</span></div>    </section>
+      <div class="yield-row"><label>Мин. доходность:</label><input type="range" id="yieldFilter" min="4" max="15" value="8" step="0.5"><span class="yield-val" id="yieldVal">8%</span></div>
+    </section>
 
     <section id="objectsList" class="list"><p style="grid-column:1/-1; text-align:center; color:var(--text-sec); padding:40px;">⏳ Загрузка базы...</p></section>
 
@@ -110,8 +145,7 @@
         <div class="input-group"><label>Аренда/мес (₽)</label><input type="number" id="calcRent"></div>
       </div>
       <button id="calcBtn" class="btn btn-primary" style="width:100%">Рассчитать доходность</button>
-      <div id="calcResult" class="result-block hidden">
-        <div class="res-row"><span>💰 Чистый доход/мес:</span><strong id="resMonthly" style="color:var(--success)">0 ₽</strong></div>
+      <div id="calcResult" class="result-block hidden">        <div class="res-row"><span>💰 Чистый доход/мес:</span><strong id="resMonthly" style="color:var(--success)">0 ₽</strong></div>
         <div class="res-row"><span>📈 Годовая доходность:</span><strong id="resYield" style="color:var(--primary)">0%</strong></div>
         <div class="payback-box"><span>⏳ Полная окупаемость</span><strong id="resPayback">0 лет</strong></div>
       </div>
@@ -132,9 +166,9 @@
           <div><b>Доходность:</b> <span id="modalYield"></span></div>
         </div>
         <div class="modal-actions">
-          <button class="btn btn-primary" id="modalCalcBtn" style="flex:2"> В калькулятор</button>
+          <button class="btn btn-primary" id="modalCalcBtn" style="flex:2">📥 В калькулятор</button>
           <button class="btn btn-outline" id="modalContactBtn">💬</button>
-          <button class="btn btn-outline" id="modalCopyLinkBtn"></button>
+          <button class="btn btn-outline" id="modalCopyLinkBtn">🔗</button>
           <button class="btn btn-outline" id="modalShareBtn">📤</button>
         </div>
       </div>
@@ -145,7 +179,9 @@
     (function() {
       const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
       const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&v=${Date.now()}`;
-      const CONTACT_LINK = 'https://t.me/ernest_812';      const BASE_URL = window.location.href.split('#')[0];
+      const CONTACT_LINK = 'https://t.me/ernest_812';
+      const BASE_URL = window.location.href.split('#')[0];
+      const errorContainer = document.getElementById('errorContainer');
 
       const els = {
         list: document.getElementById('objectsList'), cityFilter: document.getElementById('cityFilter'),
@@ -158,8 +194,7 @@
         selLoc: document.getElementById('selLoc'), shareCalcBtn: document.getElementById('shareCalcBtn'),
         modalOverlay: document.getElementById('modalOverlay'), modalImg: document.getElementById('modalImg'),
         modalTitle: document.getElementById('modalTitle'), modalPrice: document.getElementById('modalPrice'),
-        modalCity: document.getElementById('modalCity'), modalLoc: document.getElementById('modalLoc'),
-        modalType: document.getElementById('modalType'), modalYield: document.getElementById('modalYield'),
+        modalCity: document.getElementById('modalCity'), modalLoc: document.getElementById('modalLoc'),        modalType: document.getElementById('modalType'), modalYield: document.getElementById('modalYield'),
         modalCalcBtn: document.getElementById('modalCalcBtn'), modalContactBtn: document.getElementById('modalContactBtn'),
         modalCopyLinkBtn: document.getElementById('modalCopyLinkBtn'), modalShareBtn: document.getElementById('modalShareBtn')
       };
@@ -188,44 +223,91 @@
         return res;
       }
 
-      // ✅ ОБНОВЛЕННАЯ ФУНКЦИЯ СОРТИРОВКИ ГОРОДОВ
       function populateCities() {
-        // 1. Строгий порядок для главных городов
         const fixedOrder = ['Москва', 'Московская область', 'Санкт-Петербург', 'Ленинградская область', 'Другое'];
-       
-        // 2. Получаем все уникальные города из базы
-        const allCities = [...new Set(objects.map(o => o.city).filter(Boolean))];       
-        // 3. Сортируем: сначала главные (в нужном порядке), потом остальные по алфавиту
+        const allCities = [...new Set(objects.map(o => o.city).filter(Boolean))];
         const sortedCities = fixedOrder.filter(c => allCities.includes(c))
           .concat(allCities.filter(c => !fixedOrder.includes(c)).sort());
-       
-        // 4. Заполняем селект
         els.cityFilter.innerHTML = '<option value="all">Все города</option>' +
           sortedCities.map(c => `<option value="${c}">${c}</option>`).join('');
       }
 
-      async function loadData() {
-        try {
-          const res = await fetch(SHEET_URL); if(!res.ok) throw new Error('Network');
-          const csv = await res.text(); objects = parseCSV(csv).filter(o=>o.price>0);
-          populateCities(); renderList();
-          const hash = window.location.hash.replace('#obj-','');
-          if(hash) { const obj = objects.find(o=>o.id==hash); if(obj) openModal(obj); }
-        } catch(e) { els.list.innerHTML = `<p style="grid-column:1/-1;text-align:center;color:#ef4444">⚠️ Ошибка загрузки</p>`; }
+      function showError(title, message, details = '') {
+        errorContainer.innerHTML = `
+          <div class="error-box">
+            <h3>⚠️ ${title}</h3>
+            <p>${message}</p>
+            ${details ? `<code>${details}</code>` : ''}
+            <button class="retry-btn" onclick="location.reload()">🔄 Обновить страницу</button>
+          </div>
+        `;
       }
 
+      async function loadData() {        try {
+          console.log('🔄 Загрузка данных из Google Sheets...');
+          console.log('URL:', SHEET_URL);
+         
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000);
+         
+          const res = await fetch(SHEET_URL, { signal: controller.signal });
+          clearTimeout(timeoutId);
+         
+          if(!res.ok) {
+            throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          }
+         
+          const csv = await res.text();
+          console.log('✅ CSV получен, длина:', csv.length);
+         
+          objects = parseCSV(csv).filter(o => o.price > 0);
+          console.log('✅ Объектов загружено:', objects.length);
+         
+          if(objects.length === 0) {
+            showError('Нет данных', 'В таблице не найдено объектов с ценой', 'Проверьте Google Таблицу');
+            return;
+          }
+         
+          populateCities();
+          renderList();
+         
+          const hash = window.location.hash.replace('#obj-','');
+          if(hash) {
+            const obj = objects.find(o => o.id == hash);
+            if(obj) openModal(obj);
+          }
+        } catch(e) {
+          console.error('❌ Ошибка загрузки:', e);
+          let msg = 'Не удалось загрузить данные из таблицы';
+          let details = e.message;
+         
+          if(e.name === 'AbortError') {
+            msg = 'Превышено время ожидания';
+            details = 'Google Sheets не отвечает более 10 секунд';
+          } else if(e.message.includes('CORS')) {
+            msg = 'Блокировка CORS';
+            details = 'Браузер блокирует доступ к Google Sheets';
+          }
+         
+          showError('Ошибка загрузки', msg, details);
+        }
+      }
       function copyLink(url, title) {
         navigator.clipboard.writeText(url).then(() => {
           alert(`🔗 Ссылка на "${title}" скопирована!`);
+        }).catch(() => {
+          alert('❌ Не удалось скопировать ссылку');
         });
       }
 
       async function shareObject(obj) {
         const text = `🏢 ${obj.title}\n💰 ${fmt(obj.price)} ₽\n📈 ${obj.yield.toFixed(1)}%\n📍 ${obj.city}\n\nСмотреть: ${BASE_URL}#obj-${obj.id}`;
         if(navigator.share) {
-          try { await navigator.share({title: obj.title, text}); } catch(e) { console.log('Share canceled'); }
+          try { await navigator.share({title: obj.title, text}); }
+          catch(e) { console.log('Share canceled'); }
         } else {
-          navigator.clipboard.writeText(text); alert('📤 Информация скопирована!');
+          navigator.clipboard.writeText(text);
+          alert('📤 Информация скопирована!');
         }
       }
 
@@ -233,7 +315,10 @@
         const city = els.cityFilter.value, type = els.typeFilter.value, minY = parseFloat(els.yieldFilter.value);
         els.yieldVal.textContent = minY + '%';
         const filtered = objects.filter(o => (city==='all' || o.city===city) && (type==='all' || o.type===type) && o.yield >= minY);
-        if(filtered.length===0) { els.list.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-sec);padding:40px">Нет объектов по фильтру</p>'; return; }
+        if(filtered.length===0) {
+          els.list.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-sec);padding:40px">Нет объектов по фильтру</p>';
+          return;
+        }
        
         els.list.innerHTML = filtered.map(o => {
           const link = `${BASE_URL}#obj-${o.id}`;
@@ -243,58 +328,31 @@
             <img class="card-img" src="${o.photo || 'https://via.placeholder.com/400x200?text=Нет+фото'}" loading="lazy">
             <div class="card-meta"><span>📍 ${o.city}</span><span class="card-badge">≈${o.yield.toFixed(1)}%</span></div>
             <h3>${o.title}</h3>
-            <div class="card-price">${fmt(o.price)} ₽</div>            <div class="card-rent">Аренда: ${fmt(o.rent)} ₽/мес</div>
+            <div class="card-price">${fmt(o.price)} ₽</div>
+            <div class="card-rent">Аренда: ${fmt(o.rent)} ₽/мес</div>
             <div class="card-actions" onclick="event.stopPropagation()">
               <button class="btn btn-primary" onclick="loadToCalc(${o.price},${o.rent},'${safeTitle}','${o.city}, ${o.location}')">📥 Калькулятор</button>
               <button class="btn btn-outline" onclick="event.stopPropagation(); window.open('${CONTACT_LINK}?text=Интересует: ${o.title.replace(/'/g, "%27")}')">💬</button>
             </div>
             <div class="card-links" onclick="event.stopPropagation()">
-              <button class="btn btn-outline btn-small" onclick="copyLink('${link}', '${safeTitle}')"> Копировать</button>
+              <button class="btn btn-outline btn-small" onclick="copyLink('${link}', '${safeTitle}')">🔗 Копировать</button>
               <button class="btn btn-outline btn-small" onclick="shareObjectById('${o.id}')">📤 Поделиться</button>
             </div>
           </div>`;
         }).join('');
       }
-
       window.shareObjectById = function(id) {
         const obj = objects.find(o=>o.id==id);
         if(obj) shareObject(obj);
       };
 
-      window.openModalById = function(id) { const obj = objects.find(o=>o.id==id); if(obj) openModal(obj); }
+      window.openModalById = function(id) {
+        const obj = objects.find(o=>o.id==id);
+        if(obj) openModal(obj);
+      }
      
       function openModal(obj) {
         currentObj = obj;
         els.modalImg.src = obj.photo || 'https://via.placeholder.com/400x200?text=Нет+фото';
-        els.modalTitle.textContent = obj.title; els.modalPrice.textContent = fmt(obj.price) + ' ₽';
-        els.modalCity.textContent = obj.city; els.modalLoc.textContent = obj.location;
-        els.modalType.textContent = obj.type; els.modalYield.textContent = obj.yield.toFixed(1) + '%';
-        els.modalOverlay.classList.add('active'); window.location.hash = `obj-${obj.id}`;
-      }
-     
-      window.closeModal = function() { els.modalOverlay.classList.remove('active'); history.pushState('', document.title, BASE_URL); }
-      els.modalOverlay.addEventListener('click', e => { if(e.target===els.modalOverlay) closeModal(); });
-
-      els.modalCalcBtn.addEventListener('click', () => { loadToCalc(currentObj.price, currentObj.rent, currentObj.title, currentObj.city + ', ' + currentObj.location); closeModal(); });
-      els.modalContactBtn.addEventListener('click', () => { window.open(`${CONTACT_LINK}?text=Интересует объект: ${currentObj.title} (${fmt(currentObj.price)} ₽)`); });
-      els.modalCopyLinkBtn.addEventListener('click', () => { copyLink(`${BASE_URL}#obj-${currentObj.id}`, currentObj.title); });
-      els.modalShareBtn.addEventListener('click', () => { shareObject(currentObj); });
-
-      function loadToCalc(p, r, name, loc) {
-        els.calcPrice.value = p; els.calcRent.value = r;
-        els.selName.textContent = name; els.selLoc.textContent = loc;
-        els.selectedObject.classList.remove('hidden'); els.shareCalcBtn.style.display = 'block';
-        calculate(); document.querySelector('.calculator').scrollIntoView({behavior:'smooth'});
-      }
-
-      function calculate() {
-        const p = parseFloat(els.calcPrice.value.replace(/\s/g,''))||0, r = parseFloat(els.calcRent.value.replace(/\s/g,''))||0;
-        if(p<=0 || r<=0) return alert('Введите цену и аренду');
-        const annual = r*12, y = (annual/p)*100, payback = p/annual;
-        els.resMonthly.textContent = fmt(r) + ' ₽'; els.resYield.textContent = y.toFixed(2) + '%'; els.resPayback.textContent = payback.toFixed(1) + ' лет';
-        els.calcResult.classList.remove('hidden');      }
-
-      els.calcBtn.addEventListener('click', calculate);
-      els.shareCalcBtn.addEventListener('click', async () => {
-        const text = `🧮 Расчет ГАБ\n Доход: ${els.resMonthly.textContent}\n Доходность: ${els.resYield.textContent}\n⏳ Окупаемость: ${els.resPayback.textContent}\n\n${BASE_URL}`;
-        if(navigator.share) await navigator.share({
+        els.modalTitle.textContent = obj.title;
+        els.modalPrice.textContent = fmt(obj.price)
