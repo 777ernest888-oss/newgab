@@ -37,6 +37,9 @@
         <option value="hypermarket">Гипермаркет</option>
         <option value="pvz">ПВЗ</option>
         <option value="pharmacy">Аптека</option>
+        <!-- ✅ НОВЫЕ ТИПЫ -->
+        <option value="combo">Комбо</option>
+        <option value="darkstore">Даркстор</option>
         <option value="other">Другое</option>
       </select>
       <label>Мин. доходность: <span id="yieldVal">8</span>%</label>
@@ -44,10 +47,10 @@
     </section>
 
     <section id="objectsList" class="list">
-      <p style="text-align:center;">⏳ Загрузка объектов...</p>
-    </section>
+      <p style="text-align:center;">⏳ Загрузка объектов...</p>    </section>
 
-    <section class="calculator">      <h2> Калькулятор доходности</h2>
+    <section class="calculator">
+      <h2>🧮 Калькулятор доходности</h2>
      
       <div id="selectedObject" class="obj-badge">
         <div style="font-size:12px; color:#666; margin-bottom:4px;">📊 Рассчитываем для:</div>
@@ -63,8 +66,8 @@
 
       <div id="calcResult" class="result hidden">
         <div class="res-row"><span>💰 Аренда/мес:</span><span id="resMonthly" style="font-weight:bold; color:#28a745">0 ₽</span></div>
-        <div class="res-row"><span>📈 Годовая доходность:</span><span id="resYield" style="font-weight:bold; color:#007bff">0%</span></div>
-        <div class="res-row"><span>⏳ Окупаемость:</span><span id="resPayback" style="font-weight:bold; color:#ffc107">0 лет</span></div>
+        <div class="res-row"><span> Годовая доходность:</span><span id="resYield" style="font-weight:bold; color:#007bff">0%</span></div>
+        <div class="res-row"><span> Окупаемость:</span><span id="resPayback" style="font-weight:bold; color:#ffc107">0 лет</span></div>
       </div>
     </section>
   </div>
@@ -93,10 +96,10 @@
       };
 
       const objBadge = document.getElementById('selectedObject');
-      const objName = document.getElementById('selectedObjectName');
-      const objLoc = document.getElementById('selectedObjectLocation');
+      const objName = document.getElementById('selectedObjectName');      const objLoc = document.getElementById('selectedObjectLocation');
 
-      let objects = [];      const CONTACT_LINK = 'https://t.me/ernest_812';
+      let objects = [];
+      const CONTACT_LINK = 'https://t.me/ernest_812';
 
       function hideBadge() { if (objBadge) objBadge.style.display = 'none'; }
       function showBadge(title, location) {
@@ -135,17 +138,17 @@
           renderList();
         } catch (e) {
           console.error(e);
-          listEl.innerHTML = '<div class="error-msg">⚠️ Не удалось загрузить базу.<br>Проверьте интернет.</div>';
+          listEl.innerHTML = '<div class="error-msg">️ Не удалось загрузить базу.<br>Проверьте интернет.</div>';
         }
       }
 
       function renderList() {
         const type = typeFilter ? typeFilter.value : 'all';
         const minYield = yieldFilter ? parseFloat(yieldFilter.value) : 8;
-        if (yieldVal) yieldVal.textContent = minYield;
-        const filtered = objects.filter(o => (type === 'all' || o.type === type) && o.yield >= minYield);
+        if (yieldVal) yieldVal.textContent = minYield;        const filtered = objects.filter(o => (type === 'all' || o.type === type) && o.yield >= minYield);
        
-        listEl.innerHTML = filtered.length ? filtered.map(o => {          const safeTitle = (o.title || '').replace(/'/g, "\\'");
+        listEl.innerHTML = filtered.length ? filtered.map(o => {
+          const safeTitle = (o.title || '').replace(/'/g, "\\'");
           const safeLoc = (o.location || '').replace(/'/g, "\\'");
           return `
           <div class="card">
@@ -154,7 +157,7 @@
             <div class="card-price">${(o.price / 1000000).toFixed(2)} млн ₽</div>
             <div style="font-size:13px;color:#666">Аренда: ${o.rent.toLocaleString()} ₽/мес</div>
             <div class="card-buttons">
-              <button class="card-btn" onclick="loadToCalc(${o.price}, ${o.rent}, '${safeTitle}', '${safeLoc}')">📥 Калькулятор</button>
+              <button class="card-btn" onclick="loadToCalc(${o.price}, ${o.rent}, '${safeTitle}', '${safeLoc}')"> Калькулятор</button>
               <button class="card-btn contact-btn" onclick="window.open('${CONTACT_LINK}?text=Здравствуйте! Интересует объект: ${safeTitle} (${o.price} ₽)')">💬 Связаться</button>
             </div>
           </div>`;
@@ -191,7 +194,7 @@
       typeFilter?.addEventListener('change', renderList);
       yieldFilter?.addEventListener('input', renderList);
       calcBtn?.addEventListener('click', calculate);
-      loadObjects();
-    })();
+      loadObjects();    })();
   </script>
-</body></html>
+</body>
+</html>
