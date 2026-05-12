@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0f172a">
   <title>ГАБ Калькулятор</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="icon" href="favicon.png" type="image/png">
   <style>
     :root {
@@ -78,7 +77,6 @@
     .modal-actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
     .hidden { display: none !important; }
    
-    /* Стили для ошибок */
     .error-box {
       background: #fee2e2;
       border: 2px solid #ef4444;
@@ -96,9 +94,9 @@
       padding: 10px;
       border-radius: 6px;
       margin-top: 10px;
-      font-size: 12px;      word-break: break-all;
-    }
-    .retry-btn {
+      font-size: 12px;
+      word-break: break-all;
+    }    .retry-btn {
       background: var(--primary);
       color: white;
       border: none;
@@ -145,9 +143,9 @@
         <div class="input-group"><label>Аренда/мес (₽)</label><input type="number" id="calcRent"></div>
       </div>
       <button id="calcBtn" class="btn btn-primary" style="width:100%">Рассчитать доходность</button>
-      <div id="calcResult" class="result-block hidden">        <div class="res-row"><span>💰 Чистый доход/мес:</span><strong id="resMonthly" style="color:var(--success)">0 ₽</strong></div>
-        <div class="res-row"><span>📈 Годовая доходность:</span><strong id="resYield" style="color:var(--primary)">0%</strong></div>
-        <div class="payback-box"><span>⏳ Полная окупаемость</span><strong id="resPayback">0 лет</strong></div>
+      <div id="calcResult" class="result-block hidden">
+        <div class="res-row"><span>💰 Чистый доход/мес:</span><strong id="resMonthly" style="color:var(--success)">0 ₽</strong></div>
+        <div class="res-row"><span>📈 Годовая доходность:</span><strong id="resYield" style="color:var(--primary)">0%</strong></div>        <div class="payback-box"><span>⏳ Полная окупаемость</span><strong id="resPayback">0 лет</strong></div>
       </div>
     </section>
   </div>
@@ -194,9 +192,9 @@
         selLoc: document.getElementById('selLoc'), shareCalcBtn: document.getElementById('shareCalcBtn'),
         modalOverlay: document.getElementById('modalOverlay'), modalImg: document.getElementById('modalImg'),
         modalTitle: document.getElementById('modalTitle'), modalPrice: document.getElementById('modalPrice'),
-        modalCity: document.getElementById('modalCity'), modalLoc: document.getElementById('modalLoc'),        modalType: document.getElementById('modalType'), modalYield: document.getElementById('modalYield'),
-        modalCalcBtn: document.getElementById('modalCalcBtn'), modalContactBtn: document.getElementById('modalContactBtn'),
-        modalCopyLinkBtn: document.getElementById('modalCopyLinkBtn'), modalShareBtn: document.getElementById('modalShareBtn')
+        modalCity: document.getElementById('modalCity'), modalLoc: document.getElementById('modalLoc'),
+        modalType: document.getElementById('modalType'), modalYield: document.getElementById('modalYield'),
+        modalCalcBtn: document.getElementById('modalCalcBtn'), modalContactBtn: document.getElementById('modalContactBtn'),        modalCopyLinkBtn: document.getElementById('modalCopyLinkBtn'), modalShareBtn: document.getElementById('modalShareBtn')
       };
 
       let objects = [], currentObj = null;
@@ -243,9 +241,9 @@
         `;
       }
 
-      async function loadData() {        try {
-          console.log('🔄 Загрузка данных из Google Sheets...');
-          console.log('URL:', SHEET_URL);
+      async function loadData() {
+        try {
+          console.log('🔄 Загрузка данных из Google Sheets...');          console.log('URL:', SHEET_URL);
          
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 10000);
@@ -292,9 +290,9 @@
           showError('Ошибка загрузки', msg, details);
         }
       }
+
       function copyLink(url, title) {
-        navigator.clipboard.writeText(url).then(() => {
-          alert(`🔗 Ссылка на "${title}" скопирована!`);
+        navigator.clipboard.writeText(url).then(() => {          alert(`🔗 Ссылка на "${title}" скопирована!`);
         }).catch(() => {
           alert('❌ Не удалось скопировать ссылку');
         });
@@ -341,9 +339,9 @@
           </div>`;
         }).join('');
       }
+
       window.shareObjectById = function(id) {
-        const obj = objects.find(o=>o.id==id);
-        if(obj) shareObject(obj);
+        const obj = objects.find(o=>o.id==id);        if(obj) shareObject(obj);
       };
 
       window.openModalById = function(id) {
@@ -355,4 +353,6 @@
         currentObj = obj;
         els.modalImg.src = obj.photo || 'https://via.placeholder.com/400x200?text=Нет+фото';
         els.modalTitle.textContent = obj.title;
-        els.modalPrice.textContent = fmt(obj.price)
+        els.modalPrice.textContent = fmt(obj.price) + ' ₽';
+        els.modalCity.textContent = obj.city;
+        els.modalLoc.textContent = obj.lo
