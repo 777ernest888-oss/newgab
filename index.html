@@ -89,13 +89,14 @@
 
   <div id="toast" class="toast hidden"></div>
 
-  <script>
+<script>
     // ==================== НАСТРОЙКИ ====================
     const BASE_URL = window.location.origin + window.location.pathname;
     const CONTACT_LINK = 'https://t.me/newgab_bot';
     const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
     const SHEET_NAME = 'Sheet1';
     const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+
     let tg = null;
     try {
       if (window.Telegram && window.Telegram.WebApp) {
@@ -129,7 +130,7 @@
 
     function shareObject(obj) {
       const shareUrl = BASE_URL + '#obj-' + obj.id;
-      const shareText = '🏠 ' + obj.title + '\n💰 ' + fmt(obj.price) + ' ₽\n📈 ' + (obj.yield || 0) + '% доходность';
+      const shareText = ' ' + obj.title + '\n💰 ' + fmt(obj.price) + ' ₽\n ' + (obj.yield || 0) + '% доходность';
 
       if (tg) {
         tg.openLink('https://t.me/share/url?url=' + encodeURIComponent(shareUrl) + '&text=' + encodeURIComponent(shareText));
@@ -137,29 +138,36 @@
         navigator.share({ title: obj.title, text: shareText, url: shareUrl }).catch(() => copyLink(shareUrl));
       } else {
         copyLink(shareUrl);
-      }
-    }
+      }    }
 
     let objects = [], filtered = [], currentObj = null;
 
     async function loadData() {
       const listEl = document.getElementById('objectsList');
       listEl.innerHTML = '<div class="loading">⏳ Загружаем объекты...</div>';
-            try {
+     
+      try {
         const res = await fetch(SHEET_URL);
         const text = await res.text();
         const json = JSON.parse(text.substring(47).slice(0, -2));
-        const rows = json.table.rows.filter(r => r.c && r.c[0] && r.c[0].v);
        
+        // Ищем строки с данными
+        const rows = json.table.rows.filter(r => r.c && r.c[0] && r.c[0].v != null);
+       
+        if (rows.length === 0) {
+          throw new Error("Таблица пуста или не найдена");
+        }
+
         objects = rows.map(r => ({
-          id: r.c[0].v || '',
-          title: r.c[1].v || '',
-          type: r.c[2].v || '',          // Столбец C
-          price: Number(r.c[3].v) || 0,  // Столбец D
-          rent: Number(r.c[4].v) || 0,   // Столбец E
-          yield: Number(r.c[5].v) || 0,  // Столбец F
-          city: r.c[6].v || '',          // Столбец G (Регион)
-          location: r.c[7].v || ''       // Столбец H (Локация)
+          // Используем '?.' чтобы не ломаться на пустых ячейках
+          id: r.c[0]?.v || '',
+          title: r.c[1]?.v || 'Без названия',
+          type: r.c[2]?.v || '',          // Столбец C
+          price: Number(r.c[3]?.v) || 0,  // Столбец D
+          rent: Number(r.c[4]?.v) || 0,   // Столбец E
+          yield: Number(r.c[5]?.v) || 0,  // Столбец F
+          city: r.c[6]?.v || '',          // Столбец G (Регион)
+          location: r.c[7]?.v || ''       // Столбец H (Локация)
         }));
        
         filtered = [...objects];
@@ -167,7 +175,7 @@
         showToast('✅ Загружено ' + objects.length + ' объектов', 'success');
       } catch (e) {
         console.error(e);
-        listEl.innerHTML = '<div class="error">Ошибка загрузки данных. Проверьте доступ к таблице.</div>';
+        listEl.innerHTML = '<div class="error">❌ Ошибка загрузки данных.<br><small>' + e.message + '</small></div>';
       }
     }
 
@@ -179,8 +187,7 @@
      
       document.getElementById('yieldValue').textContent = minYield + '%';
      
-      filtered = objects.filter(o =>
-        (!city || o.city.includes(city)) &&
+      filtered = objects.filter(o =>         (!city || o.city.includes(city)) &&
         (!type || o.type === type) &&
         (o.yield >= minYield)
       );
@@ -194,7 +201,8 @@
         <div class="card" onclick="openModal(objects.find(o=>o.id=='${obj.id}'))">
           <div class="card-meta">
             <span>${obj.city || ''}</span>
-            <span class="card-yield">${obj.yield}%</span>          </div>
+            <span class="card-yield">${obj.yield}%</span>
+          </div>
           <h3>${obj.title}</h3>
           <div class="card-price">${fmt(obj.price)} ₽</div>
           <small>Аренда: ${fmt(obj.rent)} ₽/мес</small>
@@ -228,8 +236,7 @@
       document.getElementById('calcRent').value = currentObj.rent;
       document.getElementById('selName').textContent = currentObj.title;
       document.getElementById('selLoc').textContent = currentObj.city;
-      document.getElementById('selectedObject').classList.remove('hidden');
-      document.getElementById('calculatorSection').scrollIntoView({behavior:'smooth'});
+      document.getElementById('selectedObject').classList.remove('hidden');      document.getElementById('calculatorSection').scrollIntoView({behavior:'smooth'});
       calculate();
       closeModal();
     };
@@ -243,7 +250,8 @@
       const p = parseFloat(document.getElementById('calcPrice').value) || 0;
       const r = parseFloat(document.getElementById('calcRent').value) || 0;
       if(p<=0 || r<=0) return;
-            const annual = r*12;
+     
+      const annual = r*12;
       const y = (annual/p)*100;
       const pay = p/annual;
      
