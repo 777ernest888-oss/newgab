@@ -6,6 +6,8 @@
   <title>ГАБ Калькулятор</title>
   <link rel="stylesheet" href="styles.css" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Предзагрузка для скорости -->
+  <link rel="preconnect" href="https://docs.google.com" />
 </head>
 <body>
   <div class="container">
@@ -45,9 +47,9 @@
         <label>Цена объекта (₽)
           <input type="number" id="calcPrice" placeholder="5 000 000" />
         </label>
-        <label>Аренда в месяц (₽)
-          <input type="number" id="calcRent" placeholder="40 000" />
-        </label>        <button class="tg-btn" id="calcBtn">Рассчитать</button>
+        <label>Аренда в месяц (₽)          <input type="number" id="calcRent" placeholder="40 000" />
+        </label>
+        <button class="tg-btn" id="calcBtn">Рассчитать</button>
       </div>
       <div id="calcResult" class="result hidden">
         <div class="res-row"><span>Доход в месяц:</span><span id="resMonthly">—</span></div>
@@ -69,7 +71,23 @@
   <div id="modalOverlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
     <div class="modal">
       <button class="modal-close" onclick="closeModal()">×</button>
-      <img id="modalImg" src="" alt="" class="modal-img" />
+      <div id="modalImgContainer" style="width:100%;height:200px;background:linear-gradient(135deg,#3390ec,#2563eb);border-radius:12px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;overflow:hidden;">
+        <img id="modalImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;" />
+        <!-- SVG заглушка встроена прямо в HTML для скорости -->
+        <svg id="placeholderSvg" xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 800 400" style="position:absolute;width:100%;height:100%;">
+          <defs>
+            <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#3390ec;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#2563eb;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          <rect width="800" height="400" fill="url(#grad)"/>
+          <text x="50%" y="42%" font-family="system-ui, -apple-system, sans-serif" font-size="42" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">ВАШ</text>
+          <text x="50%" y="58%" font-family="system-ui, -apple-system, sans-serif" font-size="26" font-weight="bold" fill="white" text-anchor="middle" dominant-baseline="middle">Готовый Арендный Бизнес</text>
+          <text x="50%" y="78%" font-family="system-ui, -apple-system, sans-serif" font-size="16" fill="white" opacity="0.85" text-anchor="middle" dominant-baseline="middle">ГАБ Калькулятор</text>
+        </svg>
+      </div>
+     
       <h3 id="modalTitle"></h3>
       <div class="modal-price" id="modalPrice"></div>
       <div class="modal-meta">
@@ -78,8 +96,7 @@
       <div class="modal-yield" id="modalYieldLabel">Доходность: <strong id="modalYield">0%</strong></div>
      
       <div id="modalDescription" class="modal-description hidden"></div>
-     
-      <div class="modal-actions">
+            <div class="modal-actions">
         <button class="tg-btn" id="modalCalcBtn">💰 Рассчитать доходность</button>
         <button class="tg-btn" id="modalContactBtn" style="background:var(--secondary-bg);color:var(--btn-bg)">📞 Связаться</button>
         <div style="display:flex;gap:8px;margin-top:8px">
@@ -97,6 +114,7 @@
 
     </div>
   </div>
+
   <div id="toast" class="toast hidden"></div>
 
   <script>
@@ -107,9 +125,6 @@
     const SHEET_NAME = 'Sheet1';
     const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
     const CACHE_DURATION = 6 * 60 * 60 * 1000;
-
-    // Base64 encoded SVG placeholder — 100% надёжно
-    const PLACEHOLDER_SVG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNDAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMzM5MGVjIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMjU2M2ViIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNnKSIvPjx0ZXh0IHg9IjUwJSIgeT0iNDUlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI4IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPldhc2ggR290b3Z5aTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU4JSIgZm9udC1mYW1pbHk9InN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyOCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5BcmVuZG55eSBCaXpuZXM8L3RleHQ+PHRleHQgeD0iNTAlIiB5PSI3NSUiIGZvbnQtZmFtaWx5PSJzeXN0ZW0tdWksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkdBQiBLYWxrdWx5YXRvcjwvdGV4dD48L3N2Zz4=';
 
     let tg = null;
     let isInTelegram = false;
@@ -131,7 +146,6 @@
         }
       }
     } catch (e) { console.warn('Telegram WebApp error:', e); }
-
     const fmt = (num) => new Intl.NumberFormat('ru-RU').format(num);
    
     function showToast(msg, type = 'info') {
@@ -145,7 +159,8 @@
     function copyLink(url) {
       navigator.clipboard.writeText(url).then(() => {
         showToast('🔗 Ссылка скопирована!');
-      }).catch(() => showToast('❌ Ошибка', 'error'));    }
+      }).catch(() => showToast('❌ Ошибка', 'error'));
+    }
 
     async function shareObject(obj) {
       const shareUrl = BASE_URL + '#obj-' + obj.id;
@@ -179,8 +194,7 @@
     }
 
     function saveToCache(data) {
-      try {
-        localStorage.setItem('gab_objects', JSON.stringify({ data, timestamp: Date.now() }));
+      try {        localStorage.setItem('gab_objects', JSON.stringify({ data, timestamp: Date.now() }));
       } catch (e) { console.warn('Cache save error:', e); }
     }
 
@@ -194,7 +208,8 @@
           return null;
         }
         return data;
-      } catch (e) { return null; }    }
+      } catch (e) { return null; }
+    }
 
     async function loadData() {
       const listEl = document.getElementById('objectsList');
@@ -205,12 +220,20 @@
         filtered = [...objects];
         renderList();
         showToast('✅ Загружено из кэша', 'success');
-      } else {
-        listEl.innerHTML = '<div class="loading">⏳ Загружаем объекты...</div>';
+        return;
       }
      
       try {
-        const res = await fetch(SHEET_URL);
+        // Ускоренная загрузка с timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 10000);
+       
+        const res = await fetch(SHEET_URL, {
+          signal: controller.signal,
+          cache: 'no-store'
+        });
+        clearTimeout(timeoutId);
+       
         const text = await res.text();
         const json = JSON.parse(text.substring(47).slice(0, -2));
         const rows = json.table.rows.filter(r => r.c && r.c[0] && r.c[0].v != null);
@@ -220,8 +243,7 @@
         objects = rows.map(r => {
           const price = Number(r.c[3]?.v) || 0;
           const rent = Number(r.c[4]?.v) || 0;
-          const sheetYield = Number(r.c[5]?.v) || 0;
-          const finalYield = sheetYield > 0 ? sheetYield : calculateYield(price, rent);
+          const sheetYield = Number(r.c[5]?.v) || 0;          const finalYield = sheetYield > 0 ? sheetYield : calculateYield(price, rent);
          
           return {
             id: r.c[0]?.v || '',
@@ -239,13 +261,10 @@
         saveToCache(objects);
         filtered = [...objects];
         renderList();
-        if (!cachedData) showToast('✅ Загружено ' + objects.length + ' объектов', 'success');
+        showToast('✅ Загружено ' + objects.length + ' объектов', 'success');
       } catch (e) {
         console.error(e);
-        if (objects.length === 0) {
-          listEl.innerHTML = '<div class="error">❌ Ошибка загрузки.<br><small>' + e.message + '</small></div>';        } else {
-          showToast('⚠️ Нет сети, показываем кэш', 'error');
-        }
+        listEl.innerHTML = '<div class="error">❌ Ошибка загрузки.<br><small>Проверьте интернет или обновите страницу</small></div>';
       }
     }
 
@@ -273,8 +292,7 @@
           <div class="card-meta">
             <span>${obj.city || ''}</span>
             <span class="card-yield">Доходность: ${obj.yield.toFixed(1)}%</span>
-          </div>
-          <h3>${obj.title}</h3>
+          </div>          <h3>${obj.title}</h3>
           <div class="card-price">${fmt(obj.price)} ₽</div>
           <small>Аренда: ${fmt(obj.rent)} ₽/мес</small>
           <div style="display:flex;gap:8px;margin-top:8px">
@@ -287,15 +305,27 @@
 
     function openModal(obj) {
       currentObj = obj;
-      // ВАЖНО: Сначала устанавливаем src, потом показываем
+     
       const imgEl = document.getElementById('modalImg');
-      imgEl.src = obj.photo_url || PLACEHOLDER_SVG;
-      imgEl.style.display = 'block';
-      imgEl.style.width = '100%';
-      imgEl.style.height = '200px';      imgEl.style.objectFit = 'cover';
-      imgEl.style.borderRadius = '12px';
-      imgEl.style.marginBottom = '12px';
-      imgEl.style.background = '#f0f2f5';
+      const placeholderEl = document.getElementById('placeholderSvg');
+      const containerEl = document.getElementById('modalImgContainer');
+     
+      if (obj.photo_url && obj.photo_url.trim() !== '') {
+        // Загружаем фото
+        imgEl.src = obj.photo_url;
+        imgEl.style.display = 'block';
+        placeholderEl.style.display = 'none';
+       
+        // Обработка ошибки загрузки фото
+        imgEl.onerror = () => {
+          imgEl.style.display = 'none';
+          placeholderEl.style.display = 'block';
+        };
+      } else {
+        // Показываем заглушку
+        imgEl.style.display = 'none';
+        placeholderEl.style.display = 'block';
+      }
      
       document.getElementById('modalTitle').textContent = obj.title;
       document.getElementById('modalPrice').textContent = fmt(obj.price) + ' ₽';
@@ -311,8 +341,7 @@
         descEl.style.cssText = 'margin-top:12px; padding:12px; background:var(--secondary-bg); border-radius:10px; font-size:14px; line-height:1.5;';
       } else {
         descEl.className = 'modal-description hidden';
-      }
-     
+      }     
       document.getElementById('modalCalcResult').classList.add('hidden');
       document.getElementById('modalOverlay').classList.add('active');
       history.pushState({modal:true}, '', '#obj-'+obj.id);
@@ -341,7 +370,8 @@
       if (isInTelegram && tg) {
         tg.openLink('https://t.me/share/url?url=' + encodeURIComponent(BASE_URL) + '&text=' + encodeURIComponent(text));
         showToast('↗️ Выберите чат');
-      } else if (navigator.share) {        try { await navigator.share({ title: 'ГАБ Расчёт', text, url: BASE_URL }); }
+      } else if (navigator.share) {
+        try { await navigator.share({ title: 'ГАБ Расчёт', text, url: BASE_URL }); }
         catch (e) { if (e.name !== 'AbortError') copyLink(BASE_URL); }
       } else { copyLink(BASE_URL); }
     };
@@ -360,8 +390,7 @@
       document.getElementById('resPayback').textContent = pay.toFixed(1) + ' лет';
       document.getElementById('calcResult').classList.remove('hidden');
       document.getElementById('shareCalcBtn').style.display = 'block';
-    }
-   
+    }   
     document.getElementById('shareCalcBtn').onclick = async () => {
       const text = `🧮 Расчёт ГАБ\n💰 ${document.getElementById('resMonthly').textContent}\n📈 ${document.getElementById('resYield').textContent}`;
       if (isInTelegram && tg) {
@@ -376,6 +405,7 @@
     document.getElementById('typeFilter').onchange = renderList;
     document.getElementById('yieldFilter').oninput = renderList;
 
+    // Быстрая загрузка при старте
     window.addEventListener('load', () => {
       loadData();
       if(window.location.hash.startsWith('#obj-')) {
@@ -383,7 +413,7 @@
         setTimeout(() => {
           const obj = objects.find(o=>o.id==id);
           if(obj) openModal(obj);
-        }, 300);
+        }, 200);
       }
     });
   </script>
