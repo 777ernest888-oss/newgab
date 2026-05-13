@@ -90,13 +90,21 @@
      
       <div id="modalDescription" class="hidden" style="margin-bottom:12px;padding:10px;background:var(--secondary-bg,#f5f5f5);border-radius:8px;font-size:14px;line-height:1.5;"></div>
      
+      <!-- Карточка контактов (для сайта) -->
+      <div id="contactCard" class="hidden" style="margin-bottom:12px;padding:14px;background:var(--secondary-bg,#f5f5f5);border-radius:10px;text-align:center;">
+        <div style="font-weight:600;margin-bottom:6px;">📞 Контакты брокера</div>
+        <div style="margin:4px 0;"><a id="contactPhone" href="#" style="color:var(--btn-bg,#3390ec);text-decoration:none;font-size:16px;font-weight:500;">+7 (XXX) XXX-XX-XX</a></div>
+        <div style="margin:4px 0;"><a id="contactTg" href="#" target="_blank" style="color:var(--btn-bg,#3390ec);text-decoration:none;font-size:16px;font-weight:500;">@username</a></div>
+        <button id="hideContactBtn" style="margin-top:8px;padding:6px 12px;background:#fff;border:1px solid #ddd;border-radius:6px;font-size:13px;cursor:pointer;">Скрыть</button>
+      </div>
       <div style="display:flex;flex-direction:column;gap:10px;">
         <button id="modalCalcBtn" class="tg-btn">💰 Рассчитать доходность</button>
         <button id="modalContactBtn" style="width:100%;padding:14px;background:var(--secondary-bg,#f0f2f5);color:var(--btn-bg,#3390ec);border:none;border-radius:10px;font-size:16px;font-weight:500;cursor:pointer;">📞 Связаться с брокером</button>
         <div style="display:flex;gap:10px;">
           <button id="modalCopyLinkBtn" style="flex:1;padding:12px;background:var(--secondary-bg,#f0f2f5);border:none;border-radius:8px;color:var(--btn-bg,#3390ec);font-weight:500;cursor:pointer;">🔗 Копировать</button>
           <button id="modalShareBtn" style="flex:1;padding:12px;background:var(--secondary-bg,#f0f2f5);border:none;border-radius:8px;color:var(--btn-bg,#3390ec);font-weight:500;cursor:pointer;">↗️ Поделиться</button>
-        </div>      </div>
+        </div>
+      </div>
 
       <div id="modalCalcResult" class="hidden" style="margin-top:16px;padding:14px;background:var(--secondary-bg,#f5f5f5);border-radius:10px;border-left:4px solid var(--btn-bg,#3390ec);">
         <div style="font-size:14px;margin-bottom:4px;">💰 Доход: <strong id="mResMonthly"></strong></div>
@@ -112,13 +120,17 @@
   <script>
     (function() {
       'use strict';
-      const BOT_USERNAME = 'newgab_bot';
+      // 👇 ЗАМЕНИ НА СВОИ ДАННЫЕ
+      const BROKER_PHONE = '+7 (931) 265-68-00';
+      const BROKER_TG = 'ernest_812';
+      // 👆 КОНЕЦ БЛОКА ЗАМЕНЫ
+
+      const BOT_USERNAME = BROKER_TG;
       const MINI_APP_URL = `https://t.me/${BOT_USERNAME}/app`;
-      const CONTACT_LINK = `https://t.me/${BOT_USERNAME}`;
       const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
       const SHEET_NAME = 'Sheet1';
       const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-      const CACHE_KEY = 'gab_cache_v4';
+      const CACHE_KEY = 'gab_cache_v6';
       const CACHE_TTL = 6 * 60 * 60 * 1000;
 
       let tg = null, isInTelegram = false;
@@ -133,9 +145,14 @@
               document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
               document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
             }
-          }
-        }
+          }        }
       } catch(e) {}
+
+      // Инициализация контактов в DOM
+      document.getElementById('contactPhone').textContent = BROKER_PHONE;
+      document.getElementById('contactPhone').href = `tel:${BROKER_PHONE.replace(/\D/g,'')}`;
+      document.getElementById('contactTg').textContent = `@${BROKER_TG}`;
+      document.getElementById('contactTg').href = `https://t.me/${BROKER_TG}`;
 
       const fmt = n => new Intl.NumberFormat('ru-RU').format(n || 0);
       const showToast = msg => {
@@ -146,6 +163,7 @@
 
       let objects = [], filtered = [], currentObj = null;
       const calcYield = (p, r) => (p && r && p > 0) ? (r * 12 / p) * 100 : 0;
+
       const getCache = () => {
         try {
           const c = JSON.parse(localStorage.getItem(CACHE_KEY));
@@ -176,8 +194,7 @@
           <div class="card" data-id="${o.id}">
             <div class="card-meta">
               <span>${o.city || ''}</span>
-              <span class="card-yield">${o.yield.toFixed(1)}%</span>
-            </div>
+              <span class="card-yield">${o.yield.toFixed(1)}%</span>            </div>
             <h3>${o.title}</h3>
             <div class="card-price">${fmt(o.price)} ₽</div>
             <small>Аренда: ${fmt(o.rent)} ₽/мес</small>
@@ -194,7 +211,8 @@
         const copyBtn = e.target.closest('.btn-copy');
         const shareBtn = e.target.closest('.btn-share');
 
-        if (copyBtn) {          e.stopPropagation();
+        if (copyBtn) {
+          e.stopPropagation();
           const obj = objects.find(o => o.id == copyBtn.dataset.id);
           if (obj) copyLink(obj.id);
           return;
@@ -209,11 +227,13 @@
       });
 
       const modalOverlay = document.getElementById('modalOverlay');
+      const contactCard = document.getElementById('contactCard');
      
       const openModal = id => {
         const obj = objects.find(o => o.id == id);
         if (!obj) return;
         currentObj = obj;
+        contactCard.classList.add('hidden'); // Скрываем контакты при открытии новой карточки
 
         const img = document.getElementById('modalImg');
         const ph = document.getElementById('modalPlaceholder');
@@ -223,8 +243,7 @@
           ph.style.display = 'none';
           img.onerror = () => { img.style.display = 'none'; ph.style.display = 'flex'; };
         } else {
-          img.style.display = 'none'; ph.style.display = 'flex';
-        }
+          img.style.display = 'none'; ph.style.display = 'flex';        }
 
         document.getElementById('modalTitle').textContent = obj.title;
         document.getElementById('modalPrice').textContent = fmt(obj.price) + ' ₽';
@@ -244,6 +263,7 @@
         modalOverlay.classList.add('active');
         history.pushState({m:1}, '', '#obj-'+id);
       };
+
       const closeModal = () => {
         modalOverlay.classList.remove('active');
         if (history.state?.m) history.back();
@@ -272,27 +292,29 @@
       };
 
       document.getElementById('modalCopyLinkBtn').onclick = () => {
-        if (currentObj) copyLink(currentObj.id);
-      };
+        if (currentObj) copyLink(currentObj.id);      };
 
-      // ИСПРАВЛЕННАЯ КНОПКА СВЯЗАТЬСЯ
+      // === КНОПКА СВЯЗАТЬСЯ (РАЗНОЕ ПОВЕДЕНИЕ ДЛЯ САЙТА И МИНИ-АППА) ===
       document.getElementById('modalContactBtn').onclick = () => {
         if (!currentObj) return;
-        const msg = `Здравствуйте! Интересует объект: ${currentObj.title} (${fmt(currentObj.price)} ₽)`;
-       
-        if (isInTelegram && tg) {
-          // Правильный способ для Mini App
-          tg.openLink(`https://t.me/${BOT_USERNAME}?start=${encodeURIComponent(msg)}`);
+        if (isInTelegram) {
+          // Мини-апп: сразу открываем чат с брокером
+          tg.openLink(`https://t.me/${BOT_USERNAME}`);
         } else {
-          // Для веб-сайта
-          window.open(`${CONTACT_LINK}?text=${encodeURIComponent(msg)}`, '_blank');
+          // Сайт: показываем карточку контактов
+          contactCard.classList.toggle('hidden');
         }
+      };
+
+      document.getElementById('hideContactBtn').onclick = () => {
+        contactCard.classList.add('hidden');
       };
 
       const copyLink = (objId) => {
         const link = `${MINI_APP_URL}?startapp=obj_${objId}`;
         navigator.clipboard.writeText(link).then(() => showToast('🔗 Ссылка скопирована'));
       };
+
       const shareObject = obj => {
         const text = `🏠 ${obj.title}\n💰 ${fmt(obj.price)} ₽\n📈 ${obj.yield.toFixed(1)}% доходность`;
         shareLink(obj.id, text);
@@ -300,9 +322,7 @@
 
       const shareLink = (objId, text) => {
         const link = `${MINI_APP_URL}?startapp=obj_${objId}`;
-       
         if (isInTelegram && tg) {
-          // Отправляем ссылку на мини-апп с параметром объекта
           tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
         } else if (navigator.share) {
           navigator.share({title: 'ГАБ Объект', text, url: link}).catch(() => copyLink(objId));
@@ -315,7 +335,6 @@
         const p = parseFloat(document.getElementById('calcPrice').value) || 0;
         const r = parseFloat(document.getElementById('calcRent').value) || 0;
         if (p <= 0 || r <= 0) return showToast('Введите цену и аренду');
-       
         const annual = r * 12;
         document.getElementById('resMonthly').textContent = fmt(r) + ' ₽';
         document.getElementById('resYield').textContent = (annual / p * 100).toFixed(2) + '%';
@@ -323,7 +342,6 @@
         document.getElementById('calcResult').classList.remove('hidden');
         document.getElementById('shareCalcBtn').style.display = 'block';
       };
-
       document.getElementById('shareCalcBtn').onclick = () => {
         const txt = `🧮 Расчёт ГАБ\n💰 ${document.getElementById('resMonthly').textContent}\n📈 ${document.getElementById('resYield').textContent}`;
         shareLink(null, txt);
@@ -336,13 +354,9 @@
       const loadData = async () => {
         const cached = getCache();
         if (cached) {
-          objects = cached;
-          filtered = [...objects];
-          renderList();
-          showToast('✅ Загружено из кэша');
-          fetchSheetData(true);
-          return;        }
-       
+          objects = cached; filtered = [...objects]; renderList();
+          showToast('✅ Загружено из кэша'); fetchSheetData(true); return;
+        }
         document.getElementById('objectsList').innerHTML = '<div class="loading">⏳ Загрузка...</div>';
         await fetchSheetData(false);
       };
@@ -352,27 +366,16 @@
           const res = await fetch(SHEET_URL, {signal: AbortSignal.timeout(8000)});
           const txt = await res.text();
           const rows = JSON.parse(txt.substring(47).slice(0, -2)).table.rows.filter(r => r.c?.[0]?.v != null);
-         
           objects = rows.map(r => {
-            const p = Number(r.c[3]?.v) || 0;
-            const rent = Number(r.c[4]?.v) || 0;
-            const sheetYield = Number(r.c[5]?.v) || 0;
+            const p = Number(r.c[3]?.v) || 0, rent = Number(r.c[4]?.v) || 0, sy = Number(r.c[5]?.v) || 0;
             return {
-              id: r.c[0].v,
-              title: r.c[1]?.v || 'Без названия',
-              type: r.c[2]?.v || '',
-              price: p, rent,
-              yield: sheetYield > 0 ? sheetYield : calcYield(p, rent),
-              city: r.c[6]?.v || '',
-              location: r.c[7]?.v || '',
-              photo_url: r.c[8]?.v || '',
-              description: r.c[9]?.v || ''
+              id: r.c[0].v, title: r.c[1]?.v || '', type: r.c[2]?.v || '',
+              price: p, rent, yield: sy > 0 ? sy : calcYield(p, rent),
+              city: r.c[6]?.v || '', location: r.c[7]?.v || '',
+              photo_url: r.c[8]?.v || '', description: r.c[9]?.v || ''
             };
           });
-         
-          saveCache(objects);
-          filtered = [...objects];
-          renderList();
+          saveCache(objects); filtered = [...objects]; renderList();
           if (!isBackground) showToast('✅ Загружено ' + objects.length + ' объектов');
         } catch (e) {
           if (!isBackground && objects.length === 0) {
@@ -387,7 +390,6 @@
           setTimeout(() => openModal(window.location.hash.replace('#obj-', '')), 200);
         }
       });
-    })();
-  </script>
+    })();  </script>
 </body>
 </html>
