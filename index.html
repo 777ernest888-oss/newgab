@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>ГАБ Калькулятор</title>
   <link rel="stylesheet" href="styles.css" />
+  <!-- Подключаем Telegram WebApp SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
   <div class="container">
@@ -38,7 +40,6 @@
       </label>
     </section>
 
-    <!-- Калькулятор теперь виден сразу (убран класс hidden) -->
     <section class="calculator" id="calculatorSection">
       <h2>🧮 Калькулятор доходности</h2>
       <div class="input-group">
@@ -46,8 +47,8 @@
           <input type="number" id="calcPrice" placeholder="5 000 000" />
         </label>
         <label>Аренда в месяц (₽)
-          <input type="number" id="calcRent" placeholder="40 000" />
-        </label>        <button class="tg-btn" id="calcBtn">Рассчитать</button>
+          <input type="number" id="calcRent" placeholder="40 000" />        </label>
+        <button class="tg-btn" id="calcBtn">Рассчитать</button>
       </div>
       <div id="calcResult" class="result hidden">
         <div class="res-row"><span>Доход в месяц:</span><span id="resMonthly">—</span></div>
@@ -76,20 +77,31 @@
         <span id="modalCity"></span> • <span id="modalLoc"></span> • <span id="modalType"></span>
       </div>
       <div class="modal-yield">Доходность: <strong id="modalYield"></strong></div>
+     
+      <!-- Описание объекта -->
+      <div id="modalDescription" class="modal-description hidden"></div>
+     
       <div class="modal-actions">
         <button class="tg-btn" id="modalCalcBtn">💰 Рассчитать доходность</button>
-        <button class="tg-btn" id="modalContactBtn" style="background:var(--secondary-bg);color:var(--btn-bg)"> Связаться</button>
+        <button class="tg-btn" id="modalContactBtn" style="background:var(--secondary-bg);color:var(--btn-bg)">📞 Связаться</button>
         <div style="display:flex;gap:8px;margin-top:8px">
           <button class="card-btn" id="modalCopyLinkBtn">🔗 Копировать ссылку</button>
           <button class="card-btn" id="modalShareBtn">↗️ Поделиться</button>
         </div>
+      </div>
+
+      <div id="modalCalcResult" class="hidden" style="margin-top:16px; padding:12px; background:var(--secondary-bg); border-radius:10px; border-left: 4px solid var(--btn-bg);">
+        <div style="font-size:14px; margin-bottom:4px;">💰 Доход в месяц: <strong id="mResMonthly"></strong></div>
+        <div style="font-size:14px; margin-bottom:4px;">📈 Доходность: <strong id="mResYield"></strong></div>
+        <div style="font-size:14px; margin-bottom:12px;">⏳ Окупаемость: <strong id="mResPayback"></strong></div>
+        <button class="tg-btn" id="modalShareCalcBtn" style="font-size:14px; padding:10px;">↗️ Поделиться расчётом</button>
       </div>
     </div>
   </div>
 
   <div id="toast" class="toast hidden"></div>
 
-<script>
+  <script>
     // ==================== НАСТРОЙКИ ====================
     const BASE_URL = window.location.origin + window.location.pathname;
     const CONTACT_LINK = 'https://t.me/newgab_bot';
@@ -130,15 +142,15 @@
 
     function shareObject(obj) {
       const shareUrl = BASE_URL + '#obj-' + obj.id;
-      const shareText = ' ' + obj.title + '\n💰 ' + fmt(obj.price) + ' ₽\n ' + (obj.yield || 0) + '% доходность';
+      const shareText = '🏠 ' + obj.title + '\n💰 ' + fmt(obj.price) + ' ₽\n📈 ' + (obj.yield || 0) + '% доходность';
 
       if (tg) {
-        tg.openLink('https://t.me/share/url?url=' + encodeURIComponent(shareUrl) + '&text=' + encodeURIComponent(shareText));
-      } else if (navigator.share) {
+        tg.openLink('https://t.me/share/url?url=' + encodeURIComponent(shareUrl) + '&text=' + encodeURIComponent(shareText));      } else if (navigator.share) {
         navigator.share({ title: obj.title, text: shareText, url: shareUrl }).catch(() => copyLink(shareUrl));
       } else {
         copyLink(shareUrl);
-      }    }
+      }
+    }
 
     let objects = [], filtered = [], currentObj = null;
 
@@ -150,24 +162,21 @@
         const res = await fetch(SHEET_URL);
         const text = await res.text();
         const json = JSON.parse(text.substring(47).slice(0, -2));
-       
-        // Ищем строки с данными
         const rows = json.table.rows.filter(r => r.c && r.c[0] && r.c[0].v != null);
        
-        if (rows.length === 0) {
-          throw new Error("Таблица пуста или не найдена");
-        }
+        if (rows.length === 0) throw new Error("Таблица пуста");
 
         objects = rows.map(r => ({
-          // Используем '?.' чтобы не ломаться на пустых ячейках
           id: r.c[0]?.v || '',
           title: r.c[1]?.v || 'Без названия',
-          type: r.c[2]?.v || '',          // Столбец C
-          price: Number(r.c[3]?.v) || 0,  // Столбец D
-          rent: Number(r.c[4]?.v) || 0,   // Столбец E
-          yield: Number(r.c[5]?.v) || 0,  // Столбец F
-          city: r.c[6]?.v || '',          // Столбец G (Регион)
-          location: r.c[7]?.v || ''       // Столбец H (Локация)
+          type: r.c[2]?.v || '',         
+          price: Number(r.c[3]?.v) || 0, 
+          rent: Number(r.c[4]?.v) || 0,  
+          yield: Number(r.c[5]?.v) || 0, 
+          city: r.c[6]?.v || '',         
+          location: r.c[7]?.v || '',
+          photo_url: r.c[8]?.v || '',     // Колонка I - фото
+          description: r.c[9]?.v || ''    // Колонка J - описание (новая!)
         }));
        
         filtered = [...objects];
@@ -185,9 +194,9 @@
       const type = document.getElementById('typeFilter').value;
       const minYield = Number(document.getElementById('yieldFilter').value);
      
-      document.getElementById('yieldValue').textContent = minYield + '%';
-     
-      filtered = objects.filter(o =>         (!city || o.city.includes(city)) &&
+      document.getElementById('yieldValue').textContent = minYield + '%';     
+      filtered = objects.filter(o =>
+        (!city || o.city.includes(city)) &&
         (!type || o.type === type) &&
         (o.yield >= minYield)
       );
@@ -207,8 +216,8 @@
           <div class="card-price">${fmt(obj.price)} ₽</div>
           <small>Аренда: ${fmt(obj.rent)} ₽/мес</small>
           <div style="display:flex;gap:8px;margin-top:8px">
-             <button class="card-btn btn-copy" onclick="event.stopPropagation();copyLink('${BASE_URL}#obj-${obj.id}')">🔗</button>
-             <button class="card-btn btn-share" onclick="event.stopPropagation();shareObject(objects.find(o=>o.id=='${obj.id}'))">↗️</button>
+             <button class="card-btn btn-copy" onclick="event.stopPropagation();copyLink('${BASE_URL}#obj-${obj.id}')">🔗 Копировать ссылку</button>
+             <button class="card-btn btn-share" onclick="event.stopPropagation();shareObject(objects.find(o=>o.id=='${obj.id}'))">↗️ Поделиться</button>
           </div>
         </div>
       `).join('');
@@ -216,12 +225,28 @@
 
     function openModal(obj) {
       currentObj = obj;
+     
+      // Показываем фото или заглушку
+      document.getElementById('modalImg').src = obj.photo_url || 'https://via.placeholder.com/400x200?text=Нет+фото';
+     
       document.getElementById('modalTitle').textContent = obj.title;
       document.getElementById('modalPrice').textContent = fmt(obj.price) + ' ₽';
       document.getElementById('modalCity').textContent = obj.city;
       document.getElementById('modalLoc').textContent = obj.location;
       document.getElementById('modalType').textContent = obj.type;
       document.getElementById('modalYield').textContent = obj.yield + '%';
+     
+      // Показываем описание, если оно есть
+      const descEl = document.getElementById('modalDescription');
+      if (obj.description && obj.description.trim() !== '') {
+        descEl.textContent = obj.description;
+        descEl.classList.remove('hidden');
+      } else {
+        descEl.classList.add('hidden');
+      }     
+      // Сбрасываем предыдущий расчет
+      document.getElementById('modalCalcResult').classList.add('hidden');
+     
       document.getElementById('modalOverlay').classList.add('active');
       history.pushState({modal:true}, '', '#obj-'+obj.id);
     }
@@ -232,15 +257,29 @@
     };
 
     document.getElementById('modalCalcBtn').onclick = () => {
-      document.getElementById('calcPrice').value = currentObj.price;
-      document.getElementById('calcRent').value = currentObj.rent;
-      document.getElementById('selName').textContent = currentObj.title;
-      document.getElementById('selLoc').textContent = currentObj.city;
-      document.getElementById('selectedObject').classList.remove('hidden');      document.getElementById('calculatorSection').scrollIntoView({behavior:'smooth'});
-      calculate();
-      closeModal();
+      const p = currentObj.price;
+      const r = currentObj.rent;
+     
+      const annual = r * 12;
+      const y = (annual / p) * 100;
+      const pay = p / annual;
+     
+      document.getElementById('mResMonthly').textContent = fmt(r) + ' ₽';
+      document.getElementById('mResYield').textContent = y.toFixed(2) + '%';
+      document.getElementById('mResPayback').textContent = pay.toFixed(1) + ' лет';
+     
+      document.getElementById('modalCalcResult').classList.remove('hidden');
     };
    
+    document.getElementById('modalShareCalcBtn').onclick = () => {
+      const text = `🧮 Расчёт для объекта: ${currentObj.title}\n💰 Доход: ${document.getElementById('mResMonthly').textContent}\n📈 Доходность: ${document.getElementById('mResYield').textContent}`;
+      if (tg) {
+        tg.openLink('https://t.me/share/url?url=' + encodeURIComponent(BASE_URL) + '&text=' + encodeURIComponent(text));
+      } else {
+        copyLink(BASE_URL);
+      }
+    };
+
     document.getElementById('modalShareBtn').onclick = () => shareObject(currentObj);
     document.getElementById('modalCopyLinkBtn').onclick = () => copyLink(BASE_URL + '#obj-' + currentObj.id);
    
@@ -253,8 +292,7 @@
      
       const annual = r*12;
       const y = (annual/p)*100;
-      const pay = p/annual;
-     
+      const pay = p/annual;     
       document.getElementById('resMonthly').textContent = fmt(r) + ' ₽';
       document.getElementById('resYield').textContent = y.toFixed(2) + '%';
       document.getElementById('resPayback').textContent = pay.toFixed(1) + ' лет';
