@@ -6,9 +6,7 @@
   <title>ГАБ Калькулятор</title>
   <link rel="stylesheet" href="styles.css" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Предзагрузка для ускорения -->
   <link rel="dns-prefetch" href="https://docs.google.com" />
-  <link rel="dns-prefetch" href="https://t.me" />
 </head>
 <body>
   <div class="container">
@@ -47,9 +45,9 @@
       <div class="input-group">
         <label>Цена объекта (₽)
           <input type="number" id="calcPrice" placeholder="5 000 000" />
-        </label>        <label>Аренда в месяц (₽)
-          <input type="number" id="calcRent" placeholder="40 000" />
         </label>
+        <label>Аренда в месяц (₽)
+          <input type="number" id="calcRent" placeholder="40 000" />        </label>
         <button class="tg-btn" id="calcBtn">Рассчитать</button>
       </div>
       <div id="calcResult" class="result hidden">
@@ -69,11 +67,9 @@
     </section>
   </div>
 
-  <!-- Модальное окно -->
   <div id="modalOverlay" class="modal-overlay">
     <div class="modal">
       <button class="modal-close" id="closeModalBtn">×</button>
-      <!-- Фото / Заглушка -->
       <div style="width:100%;height:200px;border-radius:12px;margin-bottom:12px;overflow:hidden;position:relative;background:linear-gradient(135deg,#3390ec,#2563eb);">
         <img id="modalImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;" />
         <div id="modalPlaceholder" style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:system-ui,-apple-system,sans-serif;text-align:center;padding:0 16px;">
@@ -95,16 +91,12 @@
       <div id="modalDescription" class="hidden" style="margin-bottom:12px;padding:10px;background:var(--secondary-bg,#f5f5f5);border-radius:8px;font-size:14px;line-height:1.5;"></div>
      
       <div style="display:flex;flex-direction:column;gap:10px;">
-        <!-- Кнопки модалки -->
-        <button id="modalCalcBtn" class="tg-btn">💰 Рассчитать доходность</button>       
-        <!-- ИСПРАВЛЕННАЯ КНОПКА СВЯЗАТЬСЯ -->
+        <button id="modalCalcBtn" class="tg-btn">💰 Рассчитать доходность</button>
         <button id="modalContactBtn" style="width:100%;padding:14px;background:var(--secondary-bg,#f0f2f5);color:var(--btn-bg,#3390ec);border:none;border-radius:10px;font-size:16px;font-weight:500;cursor:pointer;">📞 Связаться с брокером</button>
-       
         <div style="display:flex;gap:10px;">
           <button id="modalCopyLinkBtn" style="flex:1;padding:12px;background:var(--secondary-bg,#f0f2f5);border:none;border-radius:8px;color:var(--btn-bg,#3390ec);font-weight:500;cursor:pointer;">🔗 Копировать</button>
           <button id="modalShareBtn" style="flex:1;padding:12px;background:var(--secondary-bg,#f0f2f5);border:none;border-radius:8px;color:var(--btn-bg,#3390ec);font-weight:500;cursor:pointer;">↗️ Поделиться</button>
-        </div>
-      </div>
+        </div>      </div>
 
       <div id="modalCalcResult" class="hidden" style="margin-top:16px;padding:14px;background:var(--secondary-bg,#f5f5f5);border-radius:10px;border-left:4px solid var(--btn-bg,#3390ec);">
         <div style="font-size:14px;margin-bottom:4px;">💰 Доход: <strong id="mResMonthly"></strong></div>
@@ -120,20 +112,19 @@
   <script>
     (function() {
       'use strict';
-      const BASE_URL = window.location.origin + window.location.pathname;
-      // Ссылка на бота
-      const CONTACT_LINK = 'https://t.me/newgab_bot';
+      const BOT_USERNAME = 'newgab_bot';
+      const MINI_APP_URL = `https://t.me/${BOT_USERNAME}/app`;
+      const CONTACT_LINK = `https://t.me/${BOT_USERNAME}`;
       const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
       const SHEET_NAME = 'Sheet1';
       const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-      const CACHE_KEY = 'gab_cache_v3';
-      const CACHE_TTL = 6 * 60 * 60 * 1000; // 6 часов
+      const CACHE_KEY = 'gab_cache_v4';
+      const CACHE_TTL = 6 * 60 * 60 * 1000;
 
       let tg = null, isInTelegram = false;
       try {
         if (window.Telegram?.WebApp) {
           tg = window.Telegram.WebApp;
-          // Проверка, что мы реально в приложении
           isInTelegram = tg.initData !== '' && tg.initData !== undefined;
           if (isInTelegram) {
             tg.ready(); tg.expand();
@@ -145,6 +136,7 @@
           }
         }
       } catch(e) {}
+
       const fmt = n => new Intl.NumberFormat('ru-RU').format(n || 0);
       const showToast = msg => {
         const t = document.getElementById('toast');
@@ -154,8 +146,6 @@
 
       let objects = [], filtered = [], currentObj = null;
       const calcYield = (p, r) => (p && r && p > 0) ? (r * 12 / p) * 100 : 0;
-
-      // --- КЭШ ---
       const getCache = () => {
         try {
           const c = JSON.parse(localStorage.getItem(CACHE_KEY));
@@ -164,7 +154,6 @@
       };
       const saveCache = d => { try { localStorage.setItem(CACHE_KEY, JSON.stringify({d, t: Date.now()})); } catch{} };
 
-      // --- ОТРИСОВКА ---
       const renderList = () => {
         const el = document.getElementById('objectsList');
         const city = document.getElementById('cityFilter').value;
@@ -183,7 +172,6 @@
           return;
         }
 
-        // Генерируем HTML списка
         el.innerHTML = filtered.map(o => `
           <div class="card" data-id="${o.id}">
             <div class="card-meta">
@@ -194,22 +182,21 @@
             <div class="card-price">${fmt(o.price)} ₽</div>
             <small>Аренда: ${fmt(o.rent)} ₽/мес</small>
             <div style="display:flex;gap:8px;margin-top:10px;">
-              <button class="card-btn btn-copy" data-id="${o.id}">🔗 Копировать</button>              <button class="card-btn btn-share" data-id="${o.id}">↗️ Поделиться</button>
+              <button class="card-btn btn-copy" data-id="${o.id}">🔗 Копировать</button>
+              <button class="card-btn btn-share" data-id="${o.id}">↗️ Поделиться</button>
             </div>
           </div>
         `).join('');
       };
 
-      // --- ОБРАБОТЧИКИ СПИСКА (Делегирование) ---
       document.getElementById('objectsList').addEventListener('click', e => {
         const card = e.target.closest('.card');
         const copyBtn = e.target.closest('.btn-copy');
         const shareBtn = e.target.closest('.btn-share');
 
-        if (copyBtn) {
-          e.stopPropagation();
+        if (copyBtn) {          e.stopPropagation();
           const obj = objects.find(o => o.id == copyBtn.dataset.id);
-          if (obj) copyLink(BASE_URL + '#obj-' + obj.id);
+          if (obj) copyLink(obj.id);
           return;
         }
         if (shareBtn) {
@@ -221,7 +208,6 @@
         if (card) openModal(card.dataset.id);
       });
 
-      // --- МОДАЛКА ---
       const modalOverlay = document.getElementById('modalOverlay');
      
       const openModal = id => {
@@ -231,7 +217,6 @@
 
         const img = document.getElementById('modalImg');
         const ph = document.getElementById('modalPlaceholder');
-        // Логика фото
         if (obj.photo_url?.trim()) {
           img.src = obj.photo_url;
           img.style.display = 'block';
@@ -243,7 +228,8 @@
 
         document.getElementById('modalTitle').textContent = obj.title;
         document.getElementById('modalPrice').textContent = fmt(obj.price) + ' ₽';
-        document.getElementById('modalCity').textContent = obj.city;        document.getElementById('modalLoc').textContent = obj.location;
+        document.getElementById('modalCity').textContent = obj.city;
+        document.getElementById('modalLoc').textContent = obj.location;
         document.getElementById('modalType').textContent = obj.type;
         document.getElementById('modalYield').textContent = obj.yield.toFixed(1) + '%';
 
@@ -258,7 +244,6 @@
         modalOverlay.classList.add('active');
         history.pushState({m:1}, '', '#obj-'+id);
       };
-
       const closeModal = () => {
         modalOverlay.classList.remove('active');
         if (history.state?.m) history.back();
@@ -267,9 +252,6 @@
       modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) closeModal(); });
       window.addEventListener('popstate', () => { if(modalOverlay.classList.contains('active')) closeModal(); });
 
-      // --- КНОПКИ ВНУТРИ МОДАЛКИ ---
-     
-      // 1. Рассчитать
       document.getElementById('modalCalcBtn').onclick = () => {
         if (!currentObj) return;
         const p = currentObj.price, r = currentObj.rent;
@@ -280,68 +262,61 @@
         document.getElementById('modalCalcResult').classList.remove('hidden');
       };
 
-      // 2. Поделиться расчётом
       document.getElementById('modalShareCalcBtn').onclick = () => {
         const txt = `🧮 Расчёт: ${currentObj.title}\n💰 ${document.getElementById('mResMonthly').textContent}\n📈 ${document.getElementById('mResYield').textContent}`;
-        shareLink(BASE_URL, txt);
+        shareLink(currentObj.id, txt);
       };
 
-      // 3. Поделиться объектом
       document.getElementById('modalShareBtn').onclick = () => {
         if (currentObj) shareObject(currentObj);
       };
 
-      // 4. Копировать ссылку
-      document.getElementById('modalCopyLinkBtn').onclick = () => {        if (currentObj) copyLink(BASE_URL + '#obj-' + currentObj.id);
+      document.getElementById('modalCopyLinkBtn').onclick = () => {
+        if (currentObj) copyLink(currentObj.id);
       };
 
-      // 5. ИСПРАВЛЕННАЯ КНОПКА СВЯЗАТЬСЯ
+      // ИСПРАВЛЕННАЯ КНОПКА СВЯЗАТЬСЯ
       document.getElementById('modalContactBtn').onclick = () => {
         if (!currentObj) return;
         const msg = `Здравствуйте! Интересует объект: ${currentObj.title} (${fmt(currentObj.price)} ₽)`;
-        const link = `${CONTACT_LINK}?text=${encodeURIComponent(msg)}`;
        
-        // Если мы в Telegram приложении -> открываем нативно
-        if (isInTelegram) {
-          tg.openLink(link);
+        if (isInTelegram && tg) {
+          // Правильный способ для Mini App
+          tg.openLink(`https://t.me/${BOT_USERNAME}?start=${encodeURIComponent(msg)}`);
         } else {
-          // Если сайт в браузере -> открываем в новой вкладке
-          window.open(link, '_blank');
+          // Для веб-сайта
+          window.open(`${CONTACT_LINK}?text=${encodeURIComponent(msg)}`, '_blank');
         }
       };
 
-      // --- УТИЛИТЫ ---
-      const copyLink = url => {
-        navigator.clipboard.writeText(url).then(() => showToast('🔗 Ссылка скопирована'));
+      const copyLink = (objId) => {
+        const link = `${MINI_APP_URL}?startapp=obj_${objId}`;
+        navigator.clipboard.writeText(link).then(() => showToast('🔗 Ссылка скопирована'));
       };
-
       const shareObject = obj => {
-        const url = BASE_URL + '#obj-' + obj.id;
         const text = `🏠 ${obj.title}\n💰 ${fmt(obj.price)} ₽\n📈 ${obj.yield.toFixed(1)}% доходность`;
-        shareLink(url, text);
+        shareLink(obj.id, text);
       };
 
-      const shareLink = (url, text) => {
-        // 1. Если Telegram App -> используем нативный шеринг Telegram
-        if (isInTelegram) {
-          tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
-          return;
+      const shareLink = (objId, text) => {
+        const link = `${MINI_APP_URL}?startapp=obj_${objId}`;
+       
+        if (isInTelegram && tg) {
+          // Отправляем ссылку на мини-апп с параметром объекта
+          tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+        } else if (navigator.share) {
+          navigator.share({title: 'ГАБ Объект', text, url: link}).catch(() => copyLink(objId));
+        } else {
+          copyLink(objId);
         }
-        // 2. Если Мобильный браузер -> системное меню
-        if (navigator.share) {
-          navigator.share({title: 'ГАБ Объект', text, url}).catch(() => copyLink(url));
-          return;
-        }
-        // 3. Если Десктоп браузер -> просто копируем (так как меню вызвать нельзя)
-        copyLink(url);
       };
 
-      // --- ГЛАВНЫЙ КАЛЬКУЛЯТОР ---
       document.getElementById('calcBtn').onclick = () => {
         const p = parseFloat(document.getElementById('calcPrice').value) || 0;
         const r = parseFloat(document.getElementById('calcRent').value) || 0;
         if (p <= 0 || r <= 0) return showToast('Введите цену и аренду');
-                const annual = r * 12;
+       
+        const annual = r * 12;
         document.getElementById('resMonthly').textContent = fmt(r) + ' ₽';
         document.getElementById('resYield').textContent = (annual / p * 100).toFixed(2) + '%';
         document.getElementById('resPayback').textContent = (p / annual).toFixed(1) + ' лет';
@@ -351,29 +326,23 @@
 
       document.getElementById('shareCalcBtn').onclick = () => {
         const txt = `🧮 Расчёт ГАБ\n💰 ${document.getElementById('resMonthly').textContent}\n📈 ${document.getElementById('resYield').textContent}`;
-        shareLink(BASE_URL, txt);
+        shareLink(null, txt);
       };
 
-      // Фильтры
       ['cityFilter', 'typeFilter', 'yieldFilter'].forEach(id => {
         document.getElementById(id).addEventListener('input', renderList);
       });
 
-      // --- ЗАГРУЗКА ДАННЫХ ---
       const loadData = async () => {
         const cached = getCache();
-        // 1. Сначала показываем кэш (мгновенно)
         if (cached) {
           objects = cached;
           filtered = [...objects];
           renderList();
           showToast('✅ Загружено из кэша');
-          // 2. Потом обновляем данные в фоне
           fetchSheetData(true);
-          return;
-        }
+          return;        }
        
-        // Если кэша нет, грузим с сети
         document.getElementById('objectsList').innerHTML = '<div class="loading">⏳ Загрузка...</div>';
         await fetchSheetData(false);
       };
@@ -390,7 +359,8 @@
             const sheetYield = Number(r.c[5]?.v) || 0;
             return {
               id: r.c[0].v,
-              title: r.c[1]?.v || 'Без названия',              type: r.c[2]?.v || '',
+              title: r.c[1]?.v || 'Без названия',
+              type: r.c[2]?.v || '',
               price: p, rent,
               yield: sheetYield > 0 ? sheetYield : calcYield(p, rent),
               city: r.c[6]?.v || '',
@@ -411,7 +381,6 @@
         }
       };
 
-      // Старт
       window.addEventListener('DOMContentLoaded', () => {
         loadData();
         if (window.location.hash.startsWith('#obj-')) {
