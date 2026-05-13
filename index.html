@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>ГАБ Калькулятор</title>
   <link rel="stylesheet" href="styles.css" />
-  <!-- Подключаем Telegram WebApp SDK -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
@@ -47,8 +46,8 @@
           <input type="number" id="calcPrice" placeholder="5 000 000" />
         </label>
         <label>Аренда в месяц (₽)
-          <input type="number" id="calcRent" placeholder="40 000" />        </label>
-        <button class="tg-btn" id="calcBtn">Рассчитать</button>
+          <input type="number" id="calcRent" placeholder="40 000" />
+        </label>        <button class="tg-btn" id="calcBtn">Рассчитать</button>
       </div>
       <div id="calcResult" class="result hidden">
         <div class="res-row"><span>Доход в месяц:</span><span id="resMonthly">—</span></div>
@@ -78,7 +77,6 @@
       </div>
       <div class="modal-yield">Доходность: <strong id="modalYield"></strong></div>
      
-      <!-- Описание объекта -->
       <div id="modalDescription" class="modal-description hidden"></div>
      
       <div class="modal-actions">
@@ -96,13 +94,12 @@
         <div style="font-size:14px; margin-bottom:12px;">⏳ Окупаемость: <strong id="mResPayback"></strong></div>
         <button class="tg-btn" id="modalShareCalcBtn" style="font-size:14px; padding:10px;">↗️ Поделиться расчётом</button>
       </div>
+
     </div>
   </div>
-
   <div id="toast" class="toast hidden"></div>
 
   <script>
-    // ==================== НАСТРОЙКИ ====================
     const BASE_URL = window.location.origin + window.location.pathname;
     const CONTACT_LINK = 'https://t.me/newgab_bot';
     const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
@@ -110,16 +107,22 @@
     const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
 
     let tg = null;
+    let isInTelegram = false;
+   
     try {
       if (window.Telegram && window.Telegram.WebApp) {
         tg = window.Telegram.WebApp;
-        tg.ready();
-        tg.expand();
-        if (tg.themeParams) {
-          document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
-          document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
-          document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
-          document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
+        isInTelegram = tg.initData !== '' && tg.initData !== undefined;
+       
+        if (isInTelegram) {
+          tg.ready();
+          tg.expand();
+          if (tg.themeParams) {
+            document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
+            document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
+            document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
+            document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
+          }
         }
       }
     } catch (e) { console.warn('Telegram WebApp error:', e); }
@@ -140,16 +143,27 @@
       }).catch(() => showToast('❌ Ошибка', 'error'));
     }
 
-    function shareObject(obj) {
+    async function shareObject(obj) {
       const shareUrl = BASE_URL + '#obj-' + obj.id;
       const shareText = '🏠 ' + obj.title + '\n💰 ' + fmt(obj.price) + ' ₽\n📈 ' + (obj.yield || 0) + '% доходность';
-
-      if (tg) {
-        tg.openLink('https://t.me/share/url?url=' + encodeURIComponent(shareUrl) + '&text=' + encodeURIComponent(shareText));      } else if (navigator.share) {
-        navigator.share({ title: obj.title, text: shareText, url: shareUrl }).catch(() => copyLink(shareUrl));
-      } else {
-        copyLink(shareUrl);
+      if (isInTelegram && tg) {
+        try {
+          tg.openLink('https://t.me/share/url?url=' + encodeURIComponent(shareUrl) + '&text=' + encodeURIComponent(shareText));
+          showToast('↗️ Выберите чат для отправки');
+          return;
+        } catch (e) { console.warn('tg.openLink error:', e); }
       }
+
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: obj.title, text: shareText, url: shareUrl });
+          return;
+        } catch (e) {
+          if (e.name !== 'AbortError') console.warn('navigator.share error:', e);
+        }
+      }
+
+      copyLink(shareUrl);
     }
 
     let objects = [], filtered = [], currentObj = null;
@@ -169,19 +183,18 @@
         objects = rows.map(r => ({
           id: r.c[0]?.v || '',
           title: r.c[1]?.v || 'Без названия',
-          type: r.c[2]?.v || '',         
-          price: Number(r.c[3]?.v) || 0, 
-          rent: Number(r.c[4]?.v) || 0,  
-          yield: Number(r.c[5]?.v) || 0, 
-          city: r.c[6]?.v || '',         
+          type: r.c[2]?.v || '',
+          price: Number(r.c[3]?.v) || 0,
+          rent: Number(r.c[4]?.v) || 0,
+          yield: Number(r.c[5]?.v) || 0,
+          city: r.c[6]?.v || '',
           location: r.c[7]?.v || '',
-          photo_url: r.c[8]?.v || '',     // Колонка I - фото
-          description: r.c[9]?.v || ''    // Колонка J - описание (новая!)
+          photo_url: r.c[8]?.v || '',
+          description: r.c[9]?.v || ''
         }));
        
         filtered = [...objects];
-        renderList();
-        showToast('✅ Загружено ' + objects.length + ' объектов', 'success');
+        renderList();        showToast('✅ Загружено ' + objects.length + ' объектов', 'success');
       } catch (e) {
         console.error(e);
         listEl.innerHTML = '<div class="error">❌ Ошибка загрузки данных.<br><small>' + e.message + '</small></div>';
@@ -194,7 +207,8 @@
       const type = document.getElementById('typeFilter').value;
       const minYield = Number(document.getElementById('yieldFilter').value);
      
-      document.getElementById('yieldValue').textContent = minYield + '%';     
+      document.getElementById('yieldValue').textContent = minYield + '%';
+     
       filtered = objects.filter(o =>
         (!city || o.city.includes(city)) &&
         (!type || o.type === type) &&
@@ -225,28 +239,22 @@
 
     function openModal(obj) {
       currentObj = obj;
-     
-      // Показываем фото или заглушку
       document.getElementById('modalImg').src = obj.photo_url || 'https://via.placeholder.com/400x200?text=Нет+фото';
-     
       document.getElementById('modalTitle').textContent = obj.title;
       document.getElementById('modalPrice').textContent = fmt(obj.price) + ' ₽';
       document.getElementById('modalCity').textContent = obj.city;
-      document.getElementById('modalLoc').textContent = obj.location;
-      document.getElementById('modalType').textContent = obj.type;
+      document.getElementById('modalLoc').textContent = obj.location;      document.getElementById('modalType').textContent = obj.type;
       document.getElementById('modalYield').textContent = obj.yield + '%';
      
-      // Показываем описание, если оно есть
       const descEl = document.getElementById('modalDescription');
       if (obj.description && obj.description.trim() !== '') {
         descEl.textContent = obj.description;
         descEl.classList.remove('hidden');
       } else {
         descEl.classList.add('hidden');
-      }     
-      // Сбрасываем предыдущий расчет
-      document.getElementById('modalCalcResult').classList.add('hidden');
+      }
      
+      document.getElementById('modalCalcResult').classList.add('hidden');
       document.getElementById('modalOverlay').classList.add('active');
       history.pushState({modal:true}, '', '#obj-'+obj.id);
     }
@@ -259,7 +267,6 @@
     document.getElementById('modalCalcBtn').onclick = () => {
       const p = currentObj.price;
       const r = currentObj.rent;
-     
       const annual = r * 12;
       const y = (annual / p) * 100;
       const pay = p / annual;
@@ -267,19 +274,25 @@
       document.getElementById('mResMonthly').textContent = fmt(r) + ' ₽';
       document.getElementById('mResYield').textContent = y.toFixed(2) + '%';
       document.getElementById('mResPayback').textContent = pay.toFixed(1) + ' лет';
-     
       document.getElementById('modalCalcResult').classList.remove('hidden');
     };
    
-    document.getElementById('modalShareCalcBtn').onclick = () => {
+    document.getElementById('modalShareCalcBtn').onclick = async () => {
       const text = `🧮 Расчёт для объекта: ${currentObj.title}\n💰 Доход: ${document.getElementById('mResMonthly').textContent}\n📈 Доходность: ${document.getElementById('mResYield').textContent}`;
-      if (tg) {
+     
+      if (isInTelegram && tg) {
         tg.openLink('https://t.me/share/url?url=' + encodeURIComponent(BASE_URL) + '&text=' + encodeURIComponent(text));
+        showToast('↗️ Выберите чат для отправки');
+      } else if (navigator.share) {
+        try {
+          await navigator.share({ title: 'ГАБ Калькулятор - Расчёт', text: text, url: BASE_URL });
+        } catch (e) {
+          if (e.name !== 'AbortError') console.warn('Share error:', e);
+        }
       } else {
         copyLink(BASE_URL);
       }
     };
-
     document.getElementById('modalShareBtn').onclick = () => shareObject(currentObj);
     document.getElementById('modalCopyLinkBtn').onclick = () => copyLink(BASE_URL + '#obj-' + currentObj.id);
    
@@ -292,13 +305,32 @@
      
       const annual = r*12;
       const y = (annual/p)*100;
-      const pay = p/annual;     
+      const pay = p/annual;
+     
       document.getElementById('resMonthly').textContent = fmt(r) + ' ₽';
       document.getElementById('resYield').textContent = y.toFixed(2) + '%';
       document.getElementById('resPayback').textContent = pay.toFixed(1) + ' лет';
       document.getElementById('calcResult').classList.remove('hidden');
       document.getElementById('shareCalcBtn').style.display = 'block';
     }
+   
+    document.getElementById('shareCalcBtn').onclick = async () => {
+      const text = `🧮 Расчёт ГАБ Калькулятора\n💰 Доход: ${document.getElementById('resMonthly').textContent}\n📈 Доходность: ${document.getElementById('resYield').textContent}\n⏳ Окупаемость: ${document.getElementById('resPayback').textContent}`;
+     
+      if (isInTelegram && tg) {
+        tg.openLink('https://t.me/share/url?url=' + encodeURIComponent(BASE_URL) + '&text=' + encodeURIComponent(text));
+        showToast('↗️ Выберите чат для отправки');
+      } else if (navigator.share) {
+        try {
+          await navigator.share({ title: 'ГАБ Калькулятор', text: text, url: BASE_URL });
+        } catch (e) {
+          if (e.name !== 'AbortError') console.warn('Share error:', e);
+          copyLink(BASE_URL);
+        }
+      } else {
+        copyLink(BASE_URL);
+      }
+    };
 
     document.getElementById('cityFilter').onchange = renderList;
     document.getElementById('typeFilter').onchange = renderList;
@@ -309,8 +341,7 @@
       if(window.location.hash.startsWith('#obj-')) {
         const id = window.location.hash.replace('#obj-','');
         setTimeout(() => {
-          const obj = objects.find(o=>o.id==id);
-          if(obj) openModal(obj);
+          const obj = objects.find(o=>o.id==id);          if(obj) openModal(obj);
         }, 1000);
       }
     });
