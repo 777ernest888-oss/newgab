@@ -19,15 +19,18 @@
           <option value="">Все города</option>
           <option value="Москва">Москва</option>
           <option value="Санкт-Петербург">Санкт-Петербург</option>
-          <option value="Казань">Казань</option>
+          <option value="Московская">Московская область</option>
         </select>
       </label>
       <label>Тип объекта
         <select id="typeFilter">
           <option value="">Все типы</option>
-          <option value="Квартира">Квартира</option>
-          <option value="Апартаменты">Апартаменты</option>
-          <option value="Коммерция">Коммерция</option>
+          <option value="pharmacy">Аптека</option>
+          <option value="hypermarket">Супермаркет</option>
+          <option value="pvz">ПВЗ</option>
+          <option value="darkstore">Даркстор</option>
+          <option value="combo">Комбо</option>
+          <option value="other">Другое</option>
         </select>
       </label>
       <label>Доходность: <span id="yieldValue">0%</span>
@@ -35,11 +38,8 @@
       </label>
     </section>
 
-    <section id="objectsList" class="list">
-      <div class="loading">⏳ Загружаем объекты...</div>
-    </section>
-
-    <section class="calculator hidden" id="calculatorSection">
+    <!-- Калькулятор теперь виден сразу (убран класс hidden) -->
+    <section class="calculator" id="calculatorSection">
       <h2>🧮 Калькулятор доходности</h2>
       <div class="input-group">
         <label>Цена объекта (₽)
@@ -60,6 +60,10 @@
         <small id="selLoc" style="color:var(--hint)"></small>
       </div>
     </section>
+
+    <section id="objectsList" class="list">
+      <div class="loading">⏳ Загружаем объекты...</div>
+    </section>
   </div>
 
   <div id="modalOverlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
@@ -74,7 +78,7 @@
       <div class="modal-yield">Доходность: <strong id="modalYield"></strong></div>
       <div class="modal-actions">
         <button class="tg-btn" id="modalCalcBtn">💰 Рассчитать доходность</button>
-        <button class="tg-btn" id="modalContactBtn" style="background:var(--secondary-bg);color:var(--btn-bg)">📞 Связаться</button>
+        <button class="tg-btn" id="modalContactBtn" style="background:var(--secondary-bg);color:var(--btn-bg)"> Связаться</button>
         <div style="display:flex;gap:8px;margin-top:8px">
           <button class="card-btn" id="modalCopyLinkBtn">🔗 Копировать ссылку</button>
           <button class="card-btn" id="modalShareBtn">↗️ Поделиться</button>
@@ -92,11 +96,10 @@
     const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
     const SHEET_NAME = 'Sheet1';
     const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-
-    // ==================== TELEGRAM WEBAPP (безопасная инициализация) ====================
     let tg = null;
     try {
-      if (window.Telegram && window.Telegram.WebApp) {        tg = window.Telegram.WebApp;
+      if (window.Telegram && window.Telegram.WebApp) {
+        tg = window.Telegram.WebApp;
         tg.ready();
         tg.expand();
         if (tg.themeParams) {
@@ -106,11 +109,8 @@
           document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
         }
       }
-    } catch (e) {
-      console.warn('Telegram WebApp не инициализирован:', e);
-    }
+    } catch (e) { console.warn('Telegram WebApp error:', e); }
 
-    // ==================== УТИЛИТЫ ====================
     const fmt = (num) => new Intl.NumberFormat('ru-RU').format(num);
    
     function showToast(msg, type = 'info') {
@@ -118,82 +118,59 @@
       toast.textContent = msg;
       toast.className = 'toast ' + type;
       toast.classList.remove('hidden');
-      setTimeout(function() { toast.classList.add('hidden'); }, 3000);
+      setTimeout(() => toast.classList.add('hidden'), 3000);
     }
 
-    function copyLink(url, title) {
-      navigator.clipboard.writeText(url).then(function() {
-        showToast('🔗 Ссылка скопирована! Вставьте в чат');
-        if (navigator.vibrate) navigator.vibrate(50);
-      }).catch(function() {
-        showToast('❌ Не удалось скопировать', 'error');
-      });
+    function copyLink(url) {
+      navigator.clipboard.writeText(url).then(() => {
+        showToast('🔗 Ссылка скопирована!');
+      }).catch(() => showToast('❌ Ошибка', 'error'));
     }
 
-    async function shareObject(obj) {
+    function shareObject(obj) {
       const shareUrl = BASE_URL + '#obj-' + obj.id;
-      const shareText = '🏠 ' + obj.title + '\n💰 ' + fmt(obj.price) + ' ₽\n📈 ' + (obj.yield ? obj.yield.toFixed(1) : '0') + '% доходность\n\nГАБ Калькулятор';
+      const shareText = '🏠 ' + obj.title + '\n💰 ' + fmt(obj.price) + ' ₽\n📈 ' + (obj.yield || 0) + '% доходность';
 
       if (tg) {
-        try {
-          const encodedUrl = encodeURIComponent(shareUrl);
-          const encodedText = encodeURIComponent(shareText);
-          tg.openLink('https://t.me/share/url?url=' + encodedUrl + '&text=' + encodedText);
-          showToast('↗️ Выберите чат для отправки');
-          return;
-        } catch (e) {
-          console.warn('tg.openLink error:', e);
-        }
+        tg.openLink('https://t.me/share/url?url=' + encodeURIComponent(shareUrl) + '&text=' + encodeURIComponent(shareText));
+      } else if (navigator.share) {
+        navigator.share({ title: obj.title, text: shareText, url: shareUrl }).catch(() => copyLink(shareUrl));
+      } else {
+        copyLink(shareUrl);
       }
-      if (navigator.share) {
-        try {
-          await navigator.share({ title: obj.title, text: shareText, url: shareUrl });
-          return;
-        } catch (e) {
-          if (e.name !== 'AbortError') console.warn('navigator.share error:', e);
-        }
-      }
-
-      copyLink(shareUrl, obj.title);
     }
 
-    // ==================== ДАННЫЕ ====================
     let objects = [], filtered = [], currentObj = null;
 
     async function loadData() {
       const listEl = document.getElementById('objectsList');
       listEl.innerHTML = '<div class="loading">⏳ Загружаем объекты...</div>';
-     
-      try {
+            try {
         const res = await fetch(SHEET_URL);
         const text = await res.text();
-        const jsonText = text.substring(47).slice(0, -2);
-        const json = JSON.parse(jsonText);
-        const rows = json.table.rows.filter(function(r) { return r.c && r.c[0] && r.c[0].v; });
+        const json = JSON.parse(text.substring(47).slice(0, -2));
+        const rows = json.table.rows.filter(r => r.c && r.c[0] && r.c[0].v);
        
-        objects = rows.map(function(r, i) {
-          return {
-            id: r.c[0].v || i,
-            title: r.c[1] && r.c[1].v ? r.c[1].v : 'Без названия',
-            city: r.c[2] && r.c[2].v ? r.c[2].v : '',
-            location: r.c[3] && r.c[3].v ? r.c[3].v : '',
-            type: r.c[4] && r.c[4].v ? r.c[4].v : '',
-            price: Number(r.c[5] && r.c[5].v ? r.c[5].v : 0),
-            rent: Number(r.c[6] && r.c[6].v ? r.c[6].v : 0),
-            yield: Number(r.c[7] && r.c[7].v ? r.c[7].v : 0),
-            photo: r.c[8] && r.c[8].v ? r.c[8].v : ''
-          };
-        });
+        objects = rows.map(r => ({
+          id: r.c[0].v || '',
+          title: r.c[1].v || '',
+          type: r.c[2].v || '',          // Столбец C
+          price: Number(r.c[3].v) || 0,  // Столбец D
+          rent: Number(r.c[4].v) || 0,   // Столбец E
+          yield: Number(r.c[5].v) || 0,  // Столбец F
+          city: r.c[6].v || '',          // Столбец G (Регион)
+          location: r.c[7].v || ''       // Столбец H (Локация)
+        }));
        
-        filtered = objects.slice();
+        filtered = [...objects];
         renderList();
         showToast('✅ Загружено ' + objects.length + ' объектов', 'success');
       } catch (e) {
-        console.error('Load error:', e);
-        listEl.innerHTML = '<div class="error">❌ Ошибка загрузки:<br><small>' + e.message + '</small></div>';
-        showToast('Не удалось загрузить объекты', 'error');
+        console.error(e);
+        listEl.innerHTML = '<div class="error">Ошибка загрузки данных. Проверьте доступ к таблице.</div>';
       }
     }
+
     function renderList() {
       const listEl = document.getElementById('objectsList');
       const city = document.getElementById('cityFilter').value;
@@ -202,148 +179,94 @@
      
       document.getElementById('yieldValue').textContent = minYield + '%';
      
-      filtered = objects.filter(function(o) {
-        return (!city || o.city === city) &&
-               (!type || o.type === type) &&
-               (o.yield >= minYield);
-      });
+      filtered = objects.filter(o =>
+        (!city || o.city.includes(city)) &&
+        (!type || o.type === type) &&
+        (o.yield >= minYield)
+      );
      
       if (filtered.length === 0) {
-        listEl.innerHTML = '<div class="empty">😕 Объекты не найдены.<br><small>Попробуйте изменить фильтры</small></div>';
+        listEl.innerHTML = '<div class="empty">😕 Объекты не найдены</div>';
         return;
       }
      
-      listEl.innerHTML = filtered.map(function(obj, idx) {
-        return '<div class="card" id="card-' + idx + '" data-id="' + obj.id + '">' +
-          '<div class="card-meta">' +
-            '<span>' + obj.city + (obj.location ? ', ' + obj.location : '') + '</span>' +
-            '<span class="card-yield">' + obj.yield.toFixed(1) + '%</span>' +
-          '</div>' +
-          '<h3>' + obj.title + '</h3>' +
-          '<div class="card-price">' + fmt(obj.price) + ' ₽</div>' +
-          '<small style="color:var(--hint)">Аренда: ' + fmt(obj.rent) + ' ₽/мес</small>' +
-          '<div style="display:flex;gap:8px;margin-top:12px">' +
-            '<button class="card-btn btn-copy" data-link="' + BASE_URL + '#obj-' + obj.id + '" data-title="' + obj.title + '">🔗 Копировать</button>' +
-            '<button class="card-btn btn-share" data-id="' + obj.id + '">↗️ Поделиться</button>' +
-          '</div>' +
-        '</div>';
-      }).join('');
-     
-      bindCardEvents();
-    }
-
-    function bindCardEvents() {
-      document.querySelectorAll('.btn-copy').forEach(function(btn) {
-        btn.onclick = function(e) {
-          e.stopPropagation();
-          copyLink(btn.dataset.link, btn.dataset.title);
-        };
-      });
-      document.querySelectorAll('.btn-share').forEach(function(btn) {
-        btn.onclick = function(e) {
-          e.stopPropagation();
-          const obj = objects.find(function(o) { return o.id == btn.dataset.id; });
-          if (obj) shareObject(obj);        };
-      });
-      document.querySelectorAll('.card').forEach(function(card) {
-        card.onclick = function() {
-          const idx = parseInt(card.id.replace('card-', ''));
-          if (filtered[idx]) openModal(filtered[idx]);
-        };
-      });
+      listEl.innerHTML = filtered.map((obj, i) => `
+        <div class="card" onclick="openModal(objects.find(o=>o.id=='${obj.id}'))">
+          <div class="card-meta">
+            <span>${obj.city || ''}</span>
+            <span class="card-yield">${obj.yield}%</span>          </div>
+          <h3>${obj.title}</h3>
+          <div class="card-price">${fmt(obj.price)} ₽</div>
+          <small>Аренда: ${fmt(obj.rent)} ₽/мес</small>
+          <div style="display:flex;gap:8px;margin-top:8px">
+             <button class="card-btn btn-copy" onclick="event.stopPropagation();copyLink('${BASE_URL}#obj-${obj.id}')">🔗</button>
+             <button class="card-btn btn-share" onclick="event.stopPropagation();shareObject(objects.find(o=>o.id=='${obj.id}'))">↗️</button>
+          </div>
+        </div>
+      `).join('');
     }
 
     function openModal(obj) {
       currentObj = obj;
-      document.getElementById('modalImg').src = obj.photo || 'https://via.placeholder.com/400x200?text=Нет+фото';
       document.getElementById('modalTitle').textContent = obj.title;
       document.getElementById('modalPrice').textContent = fmt(obj.price) + ' ₽';
       document.getElementById('modalCity').textContent = obj.city;
       document.getElementById('modalLoc').textContent = obj.location;
       document.getElementById('modalType').textContent = obj.type;
-      document.getElementById('modalYield').textContent = obj.yield.toFixed(1) + '%';
+      document.getElementById('modalYield').textContent = obj.yield + '%';
       document.getElementById('modalOverlay').classList.add('active');
-      history.pushState({modal: true}, '', '#obj-' + obj.id);
+      history.pushState({modal:true}, '', '#obj-'+obj.id);
     }
 
-    window.closeModal = function() {
+    window.closeModal = () => {
       document.getElementById('modalOverlay').classList.remove('active');
-      if (history.state && history.state.modal) history.back();
+      if(history.state?.modal) history.back();
     };
 
-    document.getElementById('modalCalcBtn').onclick = function() {
-      loadToCalc(currentObj.price, currentObj.rent, currentObj.title, currentObj.city + ', ' + currentObj.location);
+    document.getElementById('modalCalcBtn').onclick = () => {
+      document.getElementById('calcPrice').value = currentObj.price;
+      document.getElementById('calcRent').value = currentObj.rent;
+      document.getElementById('selName').textContent = currentObj.title;
+      document.getElementById('selLoc').textContent = currentObj.city;
+      document.getElementById('selectedObject').classList.remove('hidden');
+      document.getElementById('calculatorSection').scrollIntoView({behavior:'smooth'});
+      calculate();
       closeModal();
     };
-    document.getElementById('modalContactBtn').onclick = function() {
-      const text = 'Здравствуйте! Интересует объект: ' + currentObj.title + ' (' + fmt(currentObj.price) + ' ₽)';
-      window.open(CONTACT_LINK + '?text=' + encodeURIComponent(text), '_blank');
-    };
-    document.getElementById('modalCopyLinkBtn').onclick = function() {
-      copyLink(BASE_URL + '#obj-' + currentObj.id, currentObj.title);
-    };
-    document.getElementById('modalShareBtn').onclick = function() {
-      shareObject(currentObj);
-    };
-
-    function loadToCalc(price, rent, name, location) {
-      document.getElementById('calcPrice').value = price;
-      document.getElementById('calcRent').value = rent;
-      document.getElementById('selName').textContent = name;
-      document.getElementById('selLoc').textContent = location;
-      document.getElementById('selectedObject').classList.remove('hidden');
-      document.getElementById('shareCalcBtn').style.display = 'block';      document.getElementById('calculatorSection').classList.remove('hidden');
-      calculate();
-      document.querySelector('.calculator').scrollIntoView({behavior: 'smooth'});
-    }
-
+   
+    document.getElementById('modalShareBtn').onclick = () => shareObject(currentObj);
+    document.getElementById('modalCopyLinkBtn').onclick = () => copyLink(BASE_URL + '#obj-' + currentObj.id);
+   
+    document.getElementById('calcBtn').onclick = calculate;
+   
     function calculate() {
       const p = parseFloat(document.getElementById('calcPrice').value) || 0;
       const r = parseFloat(document.getElementById('calcRent').value) || 0;
-      if (p <= 0 || r <= 0) return showToast('Введите корректные значения', 'error');
-     
-      const annual = r * 12;
-      const yieldPct = (annual / p) * 100;
-      const payback = p / annual;
+      if(p<=0 || r<=0) return;
+            const annual = r*12;
+      const y = (annual/p)*100;
+      const pay = p/annual;
      
       document.getElementById('resMonthly').textContent = fmt(r) + ' ₽';
-      document.getElementById('resYield').textContent = yieldPct.toFixed(2) + '%';
-      document.getElementById('resPayback').textContent = payback.toFixed(1) + ' лет';
+      document.getElementById('resYield').textContent = y.toFixed(2) + '%';
+      document.getElementById('resPayback').textContent = pay.toFixed(1) + ' лет';
       document.getElementById('calcResult').classList.remove('hidden');
+      document.getElementById('shareCalcBtn').style.display = 'block';
     }
-
-    document.getElementById('calcBtn').onclick = calculate;
-    document.getElementById('shareCalcBtn').onclick = function() {
-      const text = '🧮 Расчёт ГАБ Калькулятора\n💰 Доход: ' + document.getElementById('resMonthly').textContent + '\n📈 Доходность: ' + document.getElementById('resYield').textContent + '\n⏳ Окупаемость: ' + document.getElementById('resPayback').textContent + '\n\n' + BASE_URL;
-     
-      if (tg) {
-        const encodedUrl = encodeURIComponent(BASE_URL);
-        const encodedText = encodeURIComponent(text);
-        tg.openLink('https://t.me/share/url?url=' + encodedUrl + '&text=' + encodedText);
-        showToast('↗️ Выберите чат для отправки');
-      } else if (navigator.share) {
-        navigator.share({ title: 'ГАБ Калькулятор', text: text, url: BASE_URL }).catch(function() {
-          copyLink(BASE_URL, 'Расчёт ГАБ');
-        });
-      } else {
-        copyLink(BASE_URL, 'Расчёт ГАБ');
-      }
-    };
 
     document.getElementById('cityFilter').onchange = renderList;
     document.getElementById('typeFilter').onchange = renderList;
     document.getElementById('yieldFilter').oninput = renderList;
 
-    window.addEventListener('load', function() {
+    window.addEventListener('load', () => {
       loadData();
-      const hash = window.location.hash;
-      if (hash.startsWith('#obj-')) {
-        const id = hash.replace('#obj-', '');
-        const obj = objects.find(function(o) { return o.id == id; });
-        if (obj) setTimeout(function() { openModal(obj); }, 500);
-      }    });
-    window.addEventListener('popstate', function() {
-      if (!location.hash.startsWith('#obj-')) closeModal();
+      if(window.location.hash.startsWith('#obj-')) {
+        const id = window.location.hash.replace('#obj-','');
+        setTimeout(() => {
+          const obj = objects.find(o=>o.id==id);
+          if(obj) openModal(obj);
+        }, 1000);
+      }
     });
   </script>
 </body>
