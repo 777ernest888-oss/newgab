@@ -8,23 +8,34 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="dns-prefetch" href="https://docs.google.com" />
   <style>
-    /* Стили для Стартового Экрана */
+    /* Стили для Стартового Экрана (Красивый дизайн) */
     #startScreen {
-      position: fixed; inset: 0; background: var(--tg-theme-bg-color, #fff);
+      position: fixed; inset: 0;
+      background: #29419E; /* Насыщенный синий как на скрине */
       z-index: 100; display: flex; flex-direction: column;
       transition: opacity 0.3s ease;
     }
-    .hero-img { width: 100%; height: 45%; object-fit: cover; }
-    .hero-content { padding: 24px; flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; }
-    .hero-title { font-size: 28px; font-weight: 800; margin-bottom: 8px; color: var(--tg-theme-text-color); }
-    .hero-subtitle { font-size: 16px; color: var(--tg-theme-hint-color, #888); margin-bottom: 24px; line-height: 1.5; }
-    .hero-btn {
-      width: 100%; padding: 16px; background: var(--tg-theme-button-color, #3390ec);
-      color: var(--tg-theme-button-text-color, #fff); border: none; border-radius: 12px;
-      font-size: 18px; font-weight: 600; cursor: pointer; margin-top: auto;
-      box-shadow: 0 4px 12px rgba(51, 144, 236, 0.3);
+    .hero-img { width: 100%; height: 40%; object-fit: cover; object-position: top; }
+    .hero-content {
+      padding: 30px 24px; flex: 1; display: flex; flex-direction: column;
+      align-items: center; text-align: center; justify-content: center;
     }
-    .hero-btn:active { transform: scale(0.98); opacity: 0.9; }
+    .hero-title {
+      font-size: 32px; font-weight: 800; margin-bottom: 16px;
+      color: #FFFFFF; line-height: 1.2;
+    }
+    .hero-subtitle {
+      font-size: 18px; color: #FFFFFF; margin-bottom: 40px;
+      line-height: 1.6; opacity: 0.9;
+    }
+    .hero-btn {
+      width: 100%; padding: 18px; background: #FF3B30; /* Красная кнопка */
+      color: #FFFFFF; border: none; border-radius: 12px;
+      font-size: 20px; font-weight: 700; cursor: pointer;
+      box-shadow: 0 6px 20px rgba(255, 59, 48, 0.4);
+      text-transform: uppercase;
+    }
+    .hero-btn:active { transform: scale(0.97); opacity: 0.95; }
    
     /* Скрытие основного приложения до старта */
     #mainApp { display: none; opacity: 0; transition: opacity 0.3s ease; }
@@ -35,19 +46,18 @@
   <!-- 1. СТАРТОВЫЙ ЭКРАН -->
   <div id="startScreen">
     <!-- Картинка hero.png -->
-    <img src="hero.png" alt="ГАБ Калькулятор" class="hero-img" onerror="this.style.background='linear-gradient(135deg,#3390ec,#2563eb)'" />
-    <div class="hero-content">
-      <h1 class="hero-title">ГАБ Калькулятор</h1>
+    <img src="hero.png" alt="ГАБ Калькулятор" class="hero-img" onerror="this.style.background='#29419E'" />
+    <div class="hero-content">      <h1 class="hero-title">ГАБ Калькулятор</h1>
       <p class="hero-subtitle">
         Готовый арендный бизнес для пассивного дохода.<br>
         Объекты с доходностью от 10% годовых.
       </p>
-      <div style="flex:1;"></div>
       <button id="startBtn" class="hero-btn">🔍 Выбрать ГАБ</button>
     </div>
   </div>
 
-  <!-- 2. ОСНОВНОЕ ПРИЛОЖЕНИЕ -->  <div id="mainApp">
+  <!-- 2. ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
+  <div id="mainApp">
     <div class="container">
       <header>
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -86,8 +96,7 @@
         <h2>🧮 Калькулятор доходности</h2>
         <div class="input-group">
           <label>Цена объекта (₽)
-            <input type="number" id="calcPrice" placeholder="5 000 000" />
-          </label>
+            <input type="number" id="calcPrice" placeholder="5 000 000" />          </label>
           <label>Аренда в месяц (₽)
             <input type="number" id="calcRent" placeholder="40 000" />
           </label>
@@ -96,7 +105,8 @@
         <div id="calcResult" class="result hidden">
           <div class="res-row"><span>Доход в месяц:</span><span id="resMonthly">—</span></div>
           <div class="res-row"><span>Доходность:</span><span id="resYield">—</span></div>
-          <div class="res-row"><span>Окупаемость:</span><span id="resPayback">—</span></div>          <button class="tg-btn" id="shareCalcBtn" style="margin-top:12px;display:none">↗️ Поделиться расчётом</button>
+          <div class="res-row"><span>Окупаемость:</span><span id="resPayback">—</span></div>
+          <button class="tg-btn" id="shareCalcBtn" style="margin-top:12px;display:none">↗️ Поделиться расчётом</button>
         </div>
         <div id="selectedObject" class="hidden" style="margin-top:12px;padding:12px;background:var(--secondary-bg);border-radius:10px">
           <strong id="selName"></strong><br>
@@ -135,8 +145,7 @@
        
         <div id="contactCard" class="hidden" style="margin-bottom:12px;padding:14px;background:var(--secondary-bg,#f5f5f5);border-radius:10px;text-align:center;">
           <div style="font-weight:600;margin-bottom:6px;">📞 Контакты брокера</div>
-          <div style="margin:4px 0;"><a id="contactPhone" href="#" style="color:var(--btn-bg,#3390ec);text-decoration:none;font-size:16px;font-weight:500;">+7 (XXX) XXX-XX-XX</a></div>
-          <div style="margin:4px 0;"><a id="contactTg" href="#" target="_blank" style="color:var(--btn-bg,#3390ec);text-decoration:none;font-size:16px;font-weight:500;">@username</a></div>
+          <div style="margin:4px 0;"><a id="contactPhone" href="#" style="color:var(--btn-bg,#3390ec);text-decoration:none;font-size:16px;font-weight:500;">+7 (XXX) XXX-XX-XX</a></div>          <div style="margin:4px 0;"><a id="contactTg" href="#" target="_blank" style="color:var(--btn-bg,#3390ec);text-decoration:none;font-size:16px;font-weight:500;">@username</a></div>
           <button id="hideContactBtn" style="margin-top:8px;padding:6px 12px;background:#fff;border:1px solid #ddd;border-radius:6px;font-size:13px;cursor:pointer;">Скрыть</button>
         </div>
 
@@ -145,7 +154,8 @@
           <button id="modalContactBtn" style="width:100%;padding:14px;background:var(--secondary-bg,#f0f2f5);color:var(--btn-bg,#3390ec);border:none;border-radius:10px;font-size:16px;font-weight:500;cursor:pointer;">📞 Связаться с брокером</button>
           <div style="display:flex;gap:10px;">
             <button id="modalCopyLinkBtn" style="flex:1;padding:12px;background:var(--secondary-bg,#f0f2f5);border:none;border-radius:8px;color:var(--btn-bg,#3390ec);font-weight:500;cursor:pointer;">🔗 Копировать</button>
-            <button id="modalShareBtn" style="flex:1;padding:12px;background:var(--secondary-bg,#f0f2f5);border:none;border-radius:8px;color:var(--btn-bg,#3390ec);font-weight:500;cursor:pointer;">↗️ Поделиться</button>          </div>
+            <button id="modalShareBtn" style="flex:1;padding:12px;background:var(--secondary-bg,#f0f2f5);border:none;border-radius:8px;color:var(--btn-bg,#3390ec);font-weight:500;cursor:pointer;">↗️ Поделиться</button>
+          </div>
         </div>
 
         <div id="modalCalcResult" class="hidden" style="margin-top:16px;padding:14px;background:var(--secondary-bg,#f5f5f5);border-radius:10px;border-left:4px solid var(--btn-bg,#3390ec);">
@@ -184,8 +194,7 @@
           if (isInTelegram) {
             tg.ready(); tg.expand();
             if (tg.themeParams) {
-              document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
-              document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
+              document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');              document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
               document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
             }
           }
@@ -194,7 +203,8 @@
 
       // Инициализация контактов
       document.getElementById('contactPhone').textContent = BROKER_PHONE;
-      document.getElementById('contactPhone').href = `tel:${BROKER_PHONE.replace(/\D/g,'')}`;      document.getElementById('contactTg').textContent = `@${BROKER_TG}`;
+      document.getElementById('contactPhone').href = `tel:${BROKER_PHONE.replace(/\D/g,'')}`;
+      document.getElementById('contactTg').textContent = `@${BROKER_TG}`;
       document.getElementById('contactTg').href = `https://t.me/${BROKER_TG}`;
 
       const fmt = n => new Intl.NumberFormat('ru-RU').format(n || 0);
@@ -233,8 +243,7 @@
           const c = JSON.parse(localStorage.getItem(CACHE_KEY));
           return (c && Date.now() - c.t < CACHE_TTL) ? c.d : null;
         } catch { return null; }
-      };
-      const saveCache = d => { try { localStorage.setItem(CACHE_KEY, JSON.stringify({d, t: Date.now()})); } catch{} };
+      };      const saveCache = d => { try { localStorage.setItem(CACHE_KEY, JSON.stringify({d, t: Date.now()})); } catch{} };
 
       const renderList = () => {
         const el = document.getElementById('objectsList');
@@ -243,7 +252,8 @@
         const minY = Number(document.getElementById('yieldFilter').value);
         document.getElementById('yieldValue').textContent = minY + '%';
 
-        filtered = objects.filter(o =>           (!city || o.city.includes(city)) &&
+        filtered = objects.filter(o =>
+          (!city || o.city.includes(city)) &&
           (!type || o.type === type) &&
           o.yield >= minY
         );
@@ -282,8 +292,7 @@
             const obj = objects.find(o => o.id == param.replace('obj_', ''));
             if (obj) openModal(obj.id);
           }, 200);
-        }
-      };
+        }      };
 
       document.getElementById('objectsList').addEventListener('click', e => {
         const card = e.target.closest('.card');
@@ -292,7 +301,8 @@
 
         if (copyBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == copyBtn.dataset.id); if (obj) copyLink(obj.id); return; }
         if (shareBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == shareBtn.dataset.id); if (obj) shareObject(obj); return; }
-        if (card) openModal(card.dataset.id);      });
+        if (card) openModal(card.dataset.id);
+      });
 
       const modalOverlay = document.getElementById('modalOverlay');
       const contactCard = document.getElementById('contactCard');
@@ -331,8 +341,7 @@
       const closeModal = () => {
         modalOverlay.classList.remove('active');
         if (history.state?.m) history.back();
-      };
-      document.getElementById('closeModalBtn').onclick = closeModal;
+      };      document.getElementById('closeModalBtn').onclick = closeModal;
       modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) closeModal(); });
       window.addEventListener('popstate', () => { if(modalOverlay.classList.contains('active')) closeModal(); });
 
@@ -341,7 +350,8 @@
         const p = currentObj.price, r = currentObj.rent;
         const annual = r * 12;
         document.getElementById('mResMonthly').textContent = fmt(r) + ' ₽';
-        document.getElementById('mResYield').textContent = (annual / p * 100).toFixed(2) + '%';        document.getElementById('mResPayback').textContent = (p / annual).toFixed(1) + ' лет';
+        document.getElementById('mResYield').textContent = (annual / p * 100).toFixed(2) + '%';
+        document.getElementById('mResPayback').textContent = (p / annual).toFixed(1) + ' лет';
         document.getElementById('modalCalcResult').classList.remove('hidden');
       };
 
@@ -381,7 +391,6 @@
           copyLink(objId);
         }
       };
-
       document.getElementById('calcBtn').onclick = () => {
         const p = parseFloat(document.getElementById('calcPrice').value) || 0;
         const r = parseFloat(document.getElementById('calcRent').value) || 0;
@@ -390,7 +399,8 @@
         document.getElementById('resMonthly').textContent = fmt(r) + ' ₽';
         document.getElementById('resYield').textContent = (annual / p * 100).toFixed(2) + '%';
         document.getElementById('resPayback').textContent = (p / annual).toFixed(1) + ' лет';
-        document.getElementById('calcResult').classList.remove('hidden');        document.getElementById('shareCalcBtn').style.display = 'block';
+        document.getElementById('calcResult').classList.remove('hidden');
+        document.getElementById('shareCalcBtn').style.display = 'block';
       };
 
       document.getElementById('shareCalcBtn').onclick = () => {
@@ -429,8 +439,7 @@
               photo_url: r.c[8]?.v || '', description: r.c[9]?.v || ''
             };
           });
-          saveCache(objects); filtered = [...objects]; renderList();
-          if (!isBackground) showToast('✅ Загружено ' + objects.length + ' объектов');
+          saveCache(objects); filtered = [...objects]; renderList();          if (!isBackground) showToast('✅ Загружено ' + objects.length + ' объектов');
           handleStartParam();
         } catch (e) {
           if (!isBackground && objects.length === 0) {
@@ -439,7 +448,8 @@
         }
       };
 
-      window.addEventListener('DOMContentLoaded', () => {        // Не загружаем данные сразу, ждем клика на кнопку
+      window.addEventListener('DOMContentLoaded', () => {
+        // Не загружаем данные сразу, ждем клика на кнопку
       });
     })();
   </script>
