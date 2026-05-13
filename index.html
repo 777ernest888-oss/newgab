@@ -258,33 +258,80 @@
       }
 
       function renderList() {
-        const city = els.cityFilter.value, type = els.typeFilter.value, minY = parseFloat(els.yieldFilter.value);
-        els.yieldVal.textContent = minY + '%';
-        const filtered = objects.filter(o => (city==='all' || o.city===city) && (type==='all' || o.type===type) && o.yield >= minY);
-       
-        if(filtered.length===0) { els.list.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-sec);padding:40px">Нет объектов по фильтру</p>'; return; }
-       
-        els.list.innerHTML = filtered.map(o => {
-          const link = `${BASE_URL}#obj-${o.id}`;
-          const safeTitle = o.title.replace(/'/g,"\\'");
-          return `
-          <div class="card" onclick="openModalById('${o.id}')">
-            <img class="card-img" src="${o.photo || 'https://via.placeholder.com/400x200?text=Нет+фото'}" loading="lazy">
-            <div class="card-meta"><span>📍 ${o.city}</span><span class="card-badge">≈${o.yield.toFixed(1)}%</span></div>
-            <h3>${o.title}</h3>
-            <div class="card-price">${fmt(o.price)} ₽</div>
-            <div class="card-rent">Аренда: ${fmt(o.rent)} ₽/мес</div>
-            <div class="card-actions" onclick="event.stopPropagation()">
-              <button class="btn btn-primary" onclick="loadToCalc(${o.price},${o.rent},'${safeTitle}','${o.city}, ${o.location}')">📥 Калькулятор</button>
-              <button class="btn btn-outline" onclick="event.stopPropagation(); window.open('${CONTACT_LINK}?text=Интересует: ${o.title.replace(/'/g, "%27")}')">💬</button>
-            </div>
-            <div class="card-links" onclick="event.stopPropagation()">
-              <button class="btn btn-outline btn-small" onclick="copyLink('${link}', '${safeTitle}')"> Копировать</button>
-              <button class="btn btn-outline btn-small" onclick="shareObjectById('${o.id}')">📤 Поделиться</button>
-            </div>
-          </div>`;
-        }).join('');
-      }
+  const city = els.cityFilter.value, type = els.typeFilter.value, minY = parseFloat(els.yieldFilter.value);
+  els.yieldVal.textContent = minY + '%';
+  const filtered = objects.filter(o => (city==='all' || o.city===city) && (type==='all' || o.type===type) && o.yield >= minY);
+ 
+  if(filtered.length===0) { els.list.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-sec);padding:40px">Нет объектов по фильтру</p>'; return; }
+ 
+  els.list.innerHTML = filtered.map((o, index) => {
+    const link = `${BASE_URL}#obj-${o.id}`;
+    const cardId = `card-${index}`;
+    return `
+    <div class="card" id="${cardId}">
+      <img class="card-img" src="${o.photo || 'https://via.placeholder.com/400x200?text=Нет+фото'}" loading="lazy">
+      <div class="card-meta"><span>📍 ${o.city}</span><span class="card-badge">≈${o.yield.toFixed(1)}%</span></div>
+      <h3>${o.title}</h3>
+      <div class="card-price">${fmt(o.price)} ₽</div>
+      <div class="card-rent">Аренда: ${fmt(o.rent)} ₽/мес</div>
+      <div class="card-actions">
+        <button class="btn btn-primary btn-calc" data-price="${o.price}" data-rent="${o.rent}" data-title="${o.title.replace(/"/g, '&quot;')}" data-loc="${o.city}, ${o.location}">📥 Калькулятор</button>
+        <button class="btn btn-outline btn-contact" data-title="${o.title.replace(/"/g, '&quot;')}" data-price="${o.price}">💬</button>
+      </div>
+      <div class="card-links">
+        <button class="btn btn-outline btn-small btn-copy" data-link="${link}" data-title="${o.title.replace(/"/g, '&quot;')}">🔗 Копировать</button>
+        <button class="btn btn-outline btn-small btn-share" data-id="${o.id}">📤 Поделиться</button>
+      </div>
+    </div>`;
+  }).join('');
+ 
+  // Навешиваем обработчики событий
+  document.querySelectorAll('.btn-calc').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const price = parseFloat(this.dataset.price);
+      const rent = parseFloat(this.dataset.rent);
+      const title = this.dataset.title;
+      const loc = this.dataset.loc;
+      loadToCalc(price, rent, title, loc);
+    });
+  });
+ 
+  document.querySelectorAll('.btn-contact').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const title = this.dataset.title;
+      const price = this.dataset.price;
+      window.open(`${CONTACT_LINK}?text=Интересует: ${title} (${fmt(price)} ₽)`);
+    });
+  });
+ 
+  document.querySelectorAll('.btn-copy').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const link = this.dataset.link;
+      const title = this.dataset.title;
+      copyLink(link, title);
+    });
+  });
+ 
+  document.querySelectorAll('.btn-share').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const id = this.dataset.id;
+      const obj = objects.find(o => o.id == id);
+      if(obj) shareObject(obj);
+    });
+  });
+ 
+  // Клик по карточке открывает модалку
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', function() {
+      const index = parseInt(this.id.replace('card-', ''));
+      const obj = filtered[index];
+      if(obj) openModalById(obj.id);
+    });
+  });
+}
 
       window.shareObjectById = function(id) { const obj = objects.find(o=>o.id==id); if(obj) shareObject(obj); };
       window.openModalById = function(id) { const obj = objects.find(o=>o.id==id); if(obj) openModal(obj); };
