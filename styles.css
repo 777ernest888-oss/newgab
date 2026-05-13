@@ -1,4 +1,4 @@
-﻿:root {
+:root {
   --bg: var(--tg-theme-bg-color, #ffffff);
   --text: var(--tg-theme-text-color, #000000);
   --hint: var(--tg-theme-hint-color, #999999);
@@ -7,6 +7,8 @@
   --secondary-bg: var(--tg-theme-secondary-bg-color, #f0f2f5);
   --card-bg: var(--tg-theme-bg-color, #ffffff);
   --border: var(--tg-theme-hint-color, #e0e0e0);
+  --success: #10b981;
+  --error: #ef4444;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -16,6 +18,7 @@ body {
   color: var(--text);
   padding-bottom: 100px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 .container { padding: 16px; max-width: 600px; margin: 0 auto; }
@@ -23,6 +26,7 @@ header { margin-bottom: 16px; }
 h1 { font-size: 22px; font-weight: 700; }
 .hint { color: var(--hint); font-size: 14px; margin-top: 4px; }
 
+/* Фильтры и калькулятор */
 .filters, .calculator {
   background: var(--card-bg); padding: 16px; border-radius: 16px;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 16px;
@@ -37,13 +41,13 @@ select, input {
 select:focus, input:focus { border-color: var(--btn-bg); }
 input[type="range"] { margin: 8px 0 16px; padding: 0; height: 6px; }
 
+/* Список */
 .list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
 .card {
   background: var(--card-bg); padding: 16px; border-radius: 14px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.2s;
 }
-.card:active { transform: scale(0.98); }
-.card-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 13px; color: var(--hint); }
+.card:active { transform: scale(0.98); }.card-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; font-size: 13px; color: var(--hint); }
 .card-yield { background: #e6f4ea; color: #1e7e34; padding: 3px 8px; border-radius: 6px; font-weight: 600; font-size: 13px; }
 .card h3 { font-size: 16px; margin-bottom: 4px; }
 .card-price { font-size: 18px; font-weight: 700; color: var(--btn-bg); margin-bottom: 4px; }
@@ -52,6 +56,7 @@ input[type="range"] { margin: 8px 0 16px; padding: 0; height: 6px; }
   border: none; border-radius: 8px; color: var(--btn-bg); font-weight: 500; cursor: pointer;
 }
 
+/* Кнопки */
 .tg-btn {
   width: 100%; padding: 14px; background: var(--btn-bg); color: var(--btn-text);
   border: none; border-radius: 12px; font-size: 16px; font-weight: 600; cursor: pointer;
@@ -59,6 +64,7 @@ input[type="range"] { margin: 8px 0 16px; padding: 0; height: 6px; }
 }
 .tg-btn:active { opacity: 0.85; transform: scale(0.98); }
 
+/* Результат калькулятора */
 .result {
   margin-top: 16px; padding: 14px; background: var(--secondary-bg);
   border-radius: 10px; border-left: 4px solid var(--btn-bg);
@@ -66,11 +72,54 @@ input[type="range"] { margin: 8px 0 16px; padding: 0; height: 6px; }
 }
 .res-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 14px; }
 .res-row span { font-weight: 700; }
-.hidden { display: none; }
+.hidden { display: none !important; }
 
-@keyframes slideIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Модалка */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+  display: flex; align-items: flex-end; justify-content: center;
+  z-index: 1000; opacity: 0; visibility: hidden; transition: 0.3s;
 }
+.modal-overlay.active { opacity: 1; visibility: visible; }
+.modal {
+  background: var(--card-bg); width: 100%; max-width: 600px;
+  border-radius: 20px 20px 0 0; padding: 20px; max-height: 90vh; overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+@keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); }}
+.modal-close {
+  position: absolute; top: 12px; right: 16px; font-size: 28px;
+  background: none; border: none; color: var(--hint); cursor: pointer;
+}
+.modal-img { width: 100%; height: 200px; object-fit: cover; border-radius: 12px; margin-bottom: 12px; background: var(--secondary-bg); }
+.modal-price { font-size: 24px; font-weight: 700; color: var(--btn-bg); margin: 8px 0; }
+.modal-meta { color: var(--hint); font-size: 14px; margin-bottom: 12px; }
+.modal-yield { background: #e6f4ea; color: #1e7e34; padding: 8px 12px; border-radius: 8px; font-weight: 600; margin-bottom: 16px; display: inline-block; }
+.modal-actions { display: flex; flex-direction: column; gap: 8px; }
+/* Тост-уведомления */
+.toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--btn-bg); color: var(--btn-text);
+  padding: 12px 20px; border-radius: 10px; font-size: 14px; font-weight: 500;
+  z-index: 10000; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: opacity 0.3s, transform 0.3s;
+}
+.toast.hidden { opacity: 0; transform: translate(-50%, 20px); pointer-events: none; }
+.toast.success { background: var(--success); }
+.toast.error { background: var(--error); }
 
-@media (max-width: 400px) { .calc-grid { grid-template-columns: 1fr; } }
+/* Состояния */
+.loading, .empty, .error {
+  text-align: center; padding: 24px; color: var(--hint);
+  background: var(--card-bg); border-radius: 12px;
+}
+.error { color: var(--error); background: #fef2f2; }
+
+/* Анимации */
+@keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); }}
+
+/* Адаптив */
+@media (max-width: 400px) {
+  .calc-grid { grid-template-columns: 1fr; }
+  .modal { border-radius: 16px; }
+}
