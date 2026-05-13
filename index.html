@@ -119,17 +119,14 @@
   <script>
     (function() {
       'use strict';
-      // 👇 ЗАМЕНИ НА СВОИ ДАННЫЕ
       const BROKER_PHONE = '+7 (931) 265-68-00';
       const BROKER_TG = 'newgab_bot';
-      // 👆 КОНЕЦ БЛОКА ЗАМЕНЫ
-
       const BOT_USERNAME = BROKER_TG;
       const MINI_APP_URL = `https://t.me/${BOT_USERNAME}/app`;
       const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
       const SHEET_NAME = 'Sheet1';
       const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-      const CACHE_KEY = 'gab_cache_v7';
+      const CACHE_KEY = 'gab_cache_v8';
       const CACHE_TTL = 6 * 60 * 60 * 1000;
 
       let tg = null, isInTelegram = false;
@@ -145,10 +142,10 @@
               document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
             }
           }
-        }      } catch(e) {}
+        }
+      } catch(e) {}
 
-      document.getElementById('contactPhone').textContent = BROKER_PHONE;
-      document.getElementById('contactPhone').href = `tel:${BROKER_PHONE.replace(/\D/g,'')}`;
+      document.getElementById('contactPhone').textContent = BROKER_PHONE;      document.getElementById('contactPhone').href = `tel:${BROKER_PHONE.replace(/\D/g,'')}`;
       document.getElementById('contactTg').textContent = `@${BROKER_TG}`;
       document.getElementById('contactTg').href = `https://t.me/${BROKER_TG}`;
 
@@ -194,32 +191,28 @@
               <span>${o.city || ''}</span>
               <span class="card-yield">${o.yield.toFixed(1)}%</span>
             </div>
-            <h3>${o.title}</h3>            <div class="card-price">${fmt(o.price)} ₽</div>
+            <h3>${o.title}</h3>
+            <div class="card-price">${fmt(o.price)} ₽</div>
             <small>Аренда: ${fmt(o.rent)} ₽/мес</small>
-            <div style="display:flex;gap:8px;margin-top:10px;">
-              <button class="card-btn btn-copy" data-id="${o.id}">🔗 Копировать</button>
+            <div style="display:flex;gap:8px;margin-top:10px;">              <button class="card-btn btn-copy" data-id="${o.id}">🔗 Копировать</button>
               <button class="card-btn btn-share" data-id="${o.id}">↗️ Поделиться</button>
             </div>
           </div>
         `).join('');
       };
 
-      // === НОВАЯ ЛОГИКА: АВТООТКРЫТИЕ ОБЪЕКТА ПО ССЫЛКЕ ===
       const handleStartParam = () => {
         let param = null;
-        if (isInTelegram && tg.initDataUnsafe?.start_param) {
-          param = tg.initDataUnsafe.start_param;
-        } else {
+        if (isInTelegram && tg.initDataUnsafe?.start_param) param = tg.initDataUnsafe.start_param;
+        else {
           const urlParams = new URLSearchParams(window.location.search);
           param = urlParams.get('startapp');
         }
-       
         if (param && param.startsWith('obj_')) {
-          const objId = param.replace('obj_', '');
           setTimeout(() => {
-            const obj = objects.find(o => o.id == objId);
-            if (obj) openModal(objId);
-          }, 300);
+            const obj = objects.find(o => o.id == param.replace('obj_', ''));
+            if (obj) openModal(obj.id);
+          }, 200);
         }
       };
 
@@ -243,13 +236,13 @@
         contactCard.classList.add('hidden');
 
         const img = document.getElementById('modalImg');
-        const ph = document.getElementById('modalPlaceholder');        if (obj.photo_url?.trim()) {
+        const ph = document.getElementById('modalPlaceholder');
+        if (obj.photo_url?.trim()) {
           img.src = obj.photo_url; img.style.display = 'block'; ph.style.display = 'none';
           img.onerror = () => { img.style.display = 'none'; ph.style.display = 'flex'; };
         } else {
           img.style.display = 'none'; ph.style.display = 'flex';
         }
-
         document.getElementById('modalTitle').textContent = obj.title;
         document.getElementById('modalPrice').textContent = fmt(obj.price) + ' ₽';
         document.getElementById('modalCity').textContent = obj.city;
@@ -285,27 +278,27 @@
       };
 
       document.getElementById('modalShareCalcBtn').onclick = () => {
-        const txt = `🧮 Расчёт: ${currentObj.title}\n💰 ${document.getElementById('mResMonthly').textContent}\n📈 ${document.getElementById('mResYield').textContent}`;
+        const txt = `🧮 Расчёт: ${currentObj.title}\n💰 ${document.getElementById('mResMonthly').textContent}\n📈 ${document.getElementById('mResYield').textContent}\n👇 Нажмите «Открыть» на превью`;
         shareLink(currentObj.id, txt);
       };
 
       document.getElementById('modalShareBtn').onclick = () => { if (currentObj) shareObject(currentObj); };
       document.getElementById('modalCopyLinkBtn').onclick = () => { if (currentObj) copyLink(currentObj.id); };
 
-      document.getElementById('modalContactBtn').onclick = () => {        if (!currentObj) return;
+      document.getElementById('modalContactBtn').onclick = () => {
+        if (!currentObj) return;
         if (isInTelegram) { tg.openLink(`https://t.me/${BOT_USERNAME}`); }
         else { contactCard.classList.toggle('hidden'); }
       };
 
       document.getElementById('hideContactBtn').onclick = () => { contactCard.classList.add('hidden'); };
-
       const copyLink = (objId) => {
         const link = `${MINI_APP_URL}?startapp=obj_${objId}`;
-        navigator.clipboard.writeText(link).then(() => showToast('🔗 Ссылка скопирована'));
+        navigator.clipboard.writeText(link).then(() => showToast('🔗 Ссылка скопирована. Вставьте в чат и нажмите «Открыть» на превью'));
       };
 
       const shareObject = obj => {
-        const text = `🏠 ${obj.title}\n💰 ${fmt(obj.price)} ₽\n📈 ${obj.yield.toFixed(1)}% доходность`;
+        const text = `🏠 ${obj.title}\n💰 ${fmt(obj.price)} ₽\n📈 ${obj.yield.toFixed(1)}% доходность\n👇 Нажмите «Открыть» на превью ниже`;
         shareLink(obj.id, text);
       };
 
@@ -333,7 +326,7 @@
       };
 
       document.getElementById('shareCalcBtn').onclick = () => {
-        const txt = `🧮 Расчёт ГАБ\n💰 ${document.getElementById('resMonthly').textContent}\n📈 ${document.getElementById('resYield').textContent}`;
+        const txt = `🧮 Расчёт ГАБ\n💰 ${document.getElementById('resMonthly').textContent}\n📈 ${document.getElementById('resYield').textContent}\n👇 Нажмите «Открыть» на превью`;
         shareLink(null, txt);
       };
 
@@ -341,14 +334,14 @@
         document.getElementById(id).addEventListener('input', renderList);
       });
 
-      const loadData = async () => {        const cached = getCache();
+      const loadData = async () => {
+        const cached = getCache();
         if (cached) {
           objects = cached; filtered = [...objects]; renderList();
           showToast('✅ Загружено из кэша');
-          handleStartParam(); // Проверяем ссылку сразу
+          handleStartParam();
           fetchSheetData(true);
-          return;
-        }
+          return;        }
         document.getElementById('objectsList').innerHTML = '<div class="loading">⏳ Загрузка...</div>';
         await fetchSheetData(false);
       };
@@ -369,7 +362,7 @@
           });
           saveCache(objects); filtered = [...objects]; renderList();
           if (!isBackground) showToast('✅ Загружено ' + objects.length + ' объектов');
-          handleStartParam(); // Проверяем ссылку после загрузки данных
+          handleStartParam();
         } catch (e) {
           if (!isBackground && objects.length === 0) {
             document.getElementById('objectsList').innerHTML = `<div class="error">❌ Ошибка сети</div>`;
