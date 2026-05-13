@@ -5,17 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>ГАБ Калькулятор</title>
   <link rel="stylesheet" href="styles.css" />
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
   <div class="container">
-    <!-- Заголовок -->
     <header>
       <h1>ГАБ Калькулятор</h1>
       <p class="hint">Подбор готового арендного бизнеса для пассивного дохода</p>
     </header>
 
-    <!-- Фильтры -->
     <section class="filters">
       <label>Город
         <select id="cityFilter">
@@ -38,21 +35,19 @@
       </label>
     </section>
 
-    <!-- Список объектов -->
     <section id="objectsList" class="list">
       <div class="loading">⏳ Загружаем объекты...</div>
     </section>
 
-    <!-- Калькулятор -->
     <section class="calculator hidden" id="calculatorSection">
       <h2>🧮 Калькулятор доходности</h2>
       <div class="input-group">
-        <label>Цена объекта (₽)          <input type="number" id="calcPrice" placeholder="5 000 000" />
+        <label>Цена объекта (₽)
+          <input type="number" id="calcPrice" placeholder="5 000 000" />
         </label>
         <label>Аренда в месяц (₽)
           <input type="number" id="calcRent" placeholder="40 000" />
-        </label>
-        <button class="tg-btn" id="calcBtn">Рассчитать</button>
+        </label>        <button class="tg-btn" id="calcBtn">Рассчитать</button>
       </div>
       <div id="calcResult" class="result hidden">
         <div class="res-row"><span>Доход в месяц:</span><span id="resMonthly">—</span></div>
@@ -67,7 +62,6 @@
     </section>
   </div>
 
-  <!-- Модалка объекта -->
   <div id="modalOverlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
     <div class="modal">
       <button class="modal-close" onclick="closeModal()">×</button>
@@ -83,33 +77,37 @@
         <button class="tg-btn" id="modalContactBtn" style="background:var(--secondary-bg);color:var(--btn-bg)">📞 Связаться</button>
         <div style="display:flex;gap:8px;margin-top:8px">
           <button class="card-btn" id="modalCopyLinkBtn">🔗 Копировать ссылку</button>
-          <button class="card-btn" id="modalShareBtn">️ Поделиться</button>
+          <button class="card-btn" id="modalShareBtn">↗️ Поделиться</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Тост-уведомления -->
   <div id="toast" class="toast hidden"></div>
 
   <script>
     // ==================== НАСТРОЙКИ ====================
     const BASE_URL = window.location.origin + window.location.pathname;
     const CONTACT_LINK = 'https://t.me/newgab_bot';
-    const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';    const SHEET_NAME = 'Sheet1';
+    const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
+    const SHEET_NAME = 'Sheet1';
     const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
 
-    // ==================== TELEGRAM WEBAPP ====================
+    // ==================== TELEGRAM WEBAPP (безопасная инициализация) ====================
     let tg = null;
-    if (window.Telegram?.WebApp) {
-      tg = window.Telegram.WebApp;
-      tg.ready();
-      tg.expand();
-      // Применяем тему
-      document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
-      document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
-      document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
-      document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
+    try {
+      if (window.Telegram && window.Telegram.WebApp) {        tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        if (tg.themeParams) {
+          document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
+          document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
+          document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
+          document.documentElement.style.setProperty('--tg-theme-button-text-color', tg.themeParams.button_text_color || '#ffffff');
+        }
+      }
+    } catch (e) {
+      console.warn('Telegram WebApp не инициализирован:', e);
     }
 
     // ==================== УТИЛИТЫ ====================
@@ -118,49 +116,44 @@
     function showToast(msg, type = 'info') {
       const toast = document.getElementById('toast');
       toast.textContent = msg;
-      toast.className = `toast ${type}`;
+      toast.className = 'toast ' + type;
       toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 3000);
+      setTimeout(function() { toast.classList.add('hidden'); }, 3000);
     }
 
     function copyLink(url, title) {
-      navigator.clipboard.writeText(url).then(() => {
+      navigator.clipboard.writeText(url).then(function() {
         showToast('🔗 Ссылка скопирована! Вставьте в чат');
         if (navigator.vibrate) navigator.vibrate(50);
-      }).catch(() => showToast('❌ Не удалось скопировать', 'error'));
+      }).catch(function() {
+        showToast('❌ Не удалось скопировать', 'error');
+      });
     }
 
-    // УНИВЕРСАЛЬНЫЙ ШЕРИНГ (Mini App + браузер)
     async function shareObject(obj) {
-      const shareUrl = `${BASE_URL}#obj-${obj.id}`;
-      const shareText = `🏠 ${obj.title}\n💰 ${fmt(obj.price)} ₽\n📈 ${obj.yield?.toFixed(1) || 0}% доходность\n\nГАБ Калькулятор`;
+      const shareUrl = BASE_URL + '#obj-' + obj.id;
+      const shareText = '🏠 ' + obj.title + '\n💰 ' + fmt(obj.price) + ' ₽\n📈 ' + (obj.yield ? obj.yield.toFixed(1) : '0') + '% доходность\n\nГАБ Калькулятор';
 
-      // 1. Telegram Mini App
       if (tg) {
-        if (typeof tg.share === 'function') {
-          try {
-            tg.share({ url: shareUrl, text: shareText });
-            showToast('↗️ Выберите чат для отправки');
-            return;
-          } catch (e) { console.warn('tg.share error:', e); }
-        }
         try {
-          const encodedUrl = encodeURIComponent(shareUrl);          const encodedText = encodeURIComponent(shareText);
-          tg.openLink(`https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`);
+          const encodedUrl = encodeURIComponent(shareUrl);
+          const encodedText = encodeURIComponent(shareText);
+          tg.openLink('https://t.me/share/url?url=' + encodedUrl + '&text=' + encodedText);
           showToast('↗️ Выберите чат для отправки');
           return;
-        } catch (e) { console.warn('tg.openLink error:', e); }
+        } catch (e) {
+          console.warn('tg.openLink error:', e);
+        }
       }
-
-      // 2. Браузерный Web Share API
       if (navigator.share) {
         try {
           await navigator.share({ title: obj.title, text: shareText, url: shareUrl });
           return;
-        } catch (e) { if (e.name !== 'AbortError') console.warn('navigator.share error:', e); }
+        } catch (e) {
+          if (e.name !== 'AbortError') console.warn('navigator.share error:', e);
+        }
       }
 
-      // 3. Финальный fallback: копируем
       copyLink(shareUrl, obj.title);
     }
 
@@ -169,35 +162,38 @@
 
     async function loadData() {
       const listEl = document.getElementById('objectsList');
-      listEl.innerHTML = '<div class="loading"> Загружаем объекты...</div>';
+      listEl.innerHTML = '<div class="loading">⏳ Загружаем объекты...</div>';
      
       try {
         const res = await fetch(SHEET_URL);
         const text = await res.text();
-        const json = JSON.parse(text.substring(47).slice(0, -2));
-        const rows = json.table.rows.filter(r => r.c?.[0]?.v);
+        const jsonText = text.substring(47).slice(0, -2);
+        const json = JSON.parse(jsonText);
+        const rows = json.table.rows.filter(function(r) { return r.c && r.c[0] && r.c[0].v; });
        
-        objects = rows.map((r, i) => ({
-          id: r.c[0].v || i,
-          title: r.c[1]?.v || 'Без названия',
-          city: r.c[2]?.v || '',
-          location: r.c[3]?.v || '',
-          type: r.c[4]?.v || '',
-          price: Number(r.c[5]?.v) || 0,
-          rent: Number(r.c[6]?.v) || 0,
-          yield: Number(r.c[7]?.v) || 0,
-          photo: r.c[8]?.v || ''
-        }));
+        objects = rows.map(function(r, i) {
+          return {
+            id: r.c[0].v || i,
+            title: r.c[1] && r.c[1].v ? r.c[1].v : 'Без названия',
+            city: r.c[2] && r.c[2].v ? r.c[2].v : '',
+            location: r.c[3] && r.c[3].v ? r.c[3].v : '',
+            type: r.c[4] && r.c[4].v ? r.c[4].v : '',
+            price: Number(r.c[5] && r.c[5].v ? r.c[5].v : 0),
+            rent: Number(r.c[6] && r.c[6].v ? r.c[6].v : 0),
+            yield: Number(r.c[7] && r.c[7].v ? r.c[7].v : 0),
+            photo: r.c[8] && r.c[8].v ? r.c[8].v : ''
+          };
+        });
        
-        filtered = [...objects];
+        filtered = objects.slice();
         renderList();
-        showToast(`✅ Загружено ${objects.length} объектов`, 'success');
+        showToast('✅ Загружено ' + objects.length + ' объектов', 'success');
       } catch (e) {
         console.error('Load error:', e);
-        listEl.innerHTML = `<div class="error"> Ошибка загрузки:<br><small>${e.message}</small></div>`;        showToast('Не удалось загрузить объекты', 'error');
+        listEl.innerHTML = '<div class="error">❌ Ошибка загрузки:<br><small>' + e.message + '</small></div>';
+        showToast('Не удалось загрузить объекты', 'error');
       }
     }
-
     function renderList() {
       const listEl = document.getElementById('objectsList');
       const city = document.getElementById('cityFilter').value;
@@ -206,55 +202,57 @@
      
       document.getElementById('yieldValue').textContent = minYield + '%';
      
-      filtered = objects.filter(o =>
-        (!city || o.city === city) &&
-        (!type || o.type === type) &&
-        (o.yield >= minYield)
-      );
+      filtered = objects.filter(function(o) {
+        return (!city || o.city === city) &&
+               (!type || o.type === type) &&
+               (o.yield >= minYield);
+      });
      
       if (filtered.length === 0) {
         listEl.innerHTML = '<div class="empty">😕 Объекты не найдены.<br><small>Попробуйте изменить фильтры</small></div>';
         return;
       }
      
-      listEl.innerHTML = filtered.map((obj, idx) => `
-        <div class="card" id="card-${idx}" data-id="${obj.id}">
-          <div class="card-meta">
-            <span>${obj.city}${obj.location ? ', ' + obj.location : ''}</span>
-            <span class="card-yield">${obj.yield.toFixed(1)}%</span>
-          </div>
-          <h3>${obj.title}</h3>
-          <div class="card-price">${fmt(obj.price)} ₽</div>
-          <small style="color:var(--hint)">Аренда: ${fmt(obj.rent)} ₽/мес</small>
-          <div style="display:flex;gap:8px;margin-top:12px">
-            <button class="card-btn btn-copy" data-link="${BASE_URL}#obj-${obj.id}" data-title="${obj.title}">🔗 Копировать</button>
-            <button class="card-btn btn-share" data-id="${obj.id}">↗️ Поделиться</button>
-          </div>
-        </div>
-      `).join('');
+      listEl.innerHTML = filtered.map(function(obj, idx) {
+        return '<div class="card" id="card-' + idx + '" data-id="' + obj.id + '">' +
+          '<div class="card-meta">' +
+            '<span>' + obj.city + (obj.location ? ', ' + obj.location : '') + '</span>' +
+            '<span class="card-yield">' + obj.yield.toFixed(1) + '%</span>' +
+          '</div>' +
+          '<h3>' + obj.title + '</h3>' +
+          '<div class="card-price">' + fmt(obj.price) + ' ₽</div>' +
+          '<small style="color:var(--hint)">Аренда: ' + fmt(obj.rent) + ' ₽/мес</small>' +
+          '<div style="display:flex;gap:8px;margin-top:12px">' +
+            '<button class="card-btn btn-copy" data-link="' + BASE_URL + '#obj-' + obj.id + '" data-title="' + obj.title + '">🔗 Копировать</button>' +
+            '<button class="card-btn btn-share" data-id="' + obj.id + '">↗️ Поделиться</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
      
       bindCardEvents();
     }
 
     function bindCardEvents() {
-      document.querySelectorAll('.btn-copy').forEach(btn => {
-        btn.onclick = (e) => { e.stopPropagation(); copyLink(btn.dataset.link, btn.dataset.title); };
-      });
-      document.querySelectorAll('.btn-share').forEach(btn => {
-        btn.onclick = (e) => {
+      document.querySelectorAll('.btn-copy').forEach(function(btn) {
+        btn.onclick = function(e) {
           e.stopPropagation();
-          const obj = objects.find(o => o.id == btn.dataset.id);           if (obj) shareObject(obj);
+          copyLink(btn.dataset.link, btn.dataset.title);
         };
       });
-      document.querySelectorAll('.card').forEach(card => {
-        card.onclick = () => {
+      document.querySelectorAll('.btn-share').forEach(function(btn) {
+        btn.onclick = function(e) {
+          e.stopPropagation();
+          const obj = objects.find(function(o) { return o.id == btn.dataset.id; });
+          if (obj) shareObject(obj);        };
+      });
+      document.querySelectorAll('.card').forEach(function(card) {
+        card.onclick = function() {
           const idx = parseInt(card.id.replace('card-', ''));
           if (filtered[idx]) openModal(filtered[idx]);
         };
       });
     }
 
-    // ==================== МОДАЛКА ====================
     function openModal(obj) {
       currentObj = obj;
       document.getElementById('modalImg').src = obj.photo || 'https://via.placeholder.com/400x200?text=Нет+фото';
@@ -265,35 +263,36 @@
       document.getElementById('modalType').textContent = obj.type;
       document.getElementById('modalYield').textContent = obj.yield.toFixed(1) + '%';
       document.getElementById('modalOverlay').classList.add('active');
-      history.pushState({modal: true}, '', `#obj-${obj.id}`);
+      history.pushState({modal: true}, '', '#obj-' + obj.id);
     }
 
     window.closeModal = function() {
       document.getElementById('modalOverlay').classList.remove('active');
-      if (history.state?.modal) history.back();
+      if (history.state && history.state.modal) history.back();
     };
 
-    document.getElementById('modalCalcBtn').onclick = () => {
-      loadToCalc(currentObj.price, currentObj.rent, currentObj.title, `${currentObj.city}, ${currentObj.location}`);
+    document.getElementById('modalCalcBtn').onclick = function() {
+      loadToCalc(currentObj.price, currentObj.rent, currentObj.title, currentObj.city + ', ' + currentObj.location);
       closeModal();
     };
-    document.getElementById('modalContactBtn').onclick = () => {
-      const text = `Здравствуйте! Интересует объект: ${currentObj.title} (${fmt(currentObj.price)} ₽)`;
-      window.open(`${CONTACT_LINK}?text=${encodeURIComponent(text)}`, '_blank');
+    document.getElementById('modalContactBtn').onclick = function() {
+      const text = 'Здравствуйте! Интересует объект: ' + currentObj.title + ' (' + fmt(currentObj.price) + ' ₽)';
+      window.open(CONTACT_LINK + '?text=' + encodeURIComponent(text), '_blank');
     };
-    document.getElementById('modalCopyLinkBtn').onclick = () => {
-      copyLink(`${BASE_URL}#obj-${currentObj.id}`, currentObj.title);
+    document.getElementById('modalCopyLinkBtn').onclick = function() {
+      copyLink(BASE_URL + '#obj-' + currentObj.id, currentObj.title);
     };
-    document.getElementById('modalShareBtn').onclick = () => shareObject(currentObj);
+    document.getElementById('modalShareBtn').onclick = function() {
+      shareObject(currentObj);
+    };
 
-    // ==================== КАЛЬКУЛЯТОР ====================
     function loadToCalc(price, rent, name, location) {
       document.getElementById('calcPrice').value = price;
       document.getElementById('calcRent').value = rent;
       document.getElementById('selName').textContent = name;
       document.getElementById('selLoc').textContent = location;
-      document.getElementById('selectedObject').classList.remove('hidden');      document.getElementById('shareCalcBtn').style.display = 'block';
-      document.getElementById('calculatorSection').classList.remove('hidden');
+      document.getElementById('selectedObject').classList.remove('hidden');
+      document.getElementById('shareCalcBtn').style.display = 'block';      document.getElementById('calculatorSection').classList.remove('hidden');
       calculate();
       document.querySelector('.calculator').scrollIntoView({behavior: 'smooth'});
     }
@@ -314,23 +313,18 @@
     }
 
     document.getElementById('calcBtn').onclick = calculate;
-    document.getElementById('shareCalcBtn').onclick = async () => {
-      const text = `🧮 Расчёт ГАБ Калькулятора
-💰 Доход: ${document.getElementById('resMonthly').textContent}
-📈 Доходность: ${document.getElementById('resYield').textContent}
-⏳ Окупаемость: ${document.getElementById('resPayback').textContent}
-
-${BASE_URL}`;
+    document.getElementById('shareCalcBtn').onclick = function() {
+      const text = '🧮 Расчёт ГАБ Калькулятора\n💰 Доход: ' + document.getElementById('resMonthly').textContent + '\n📈 Доходность: ' + document.getElementById('resYield').textContent + '\n⏳ Окупаемость: ' + document.getElementById('resPayback').textContent + '\n\n' + BASE_URL;
      
       if (tg) {
         const encodedUrl = encodeURIComponent(BASE_URL);
         const encodedText = encodeURIComponent(text);
-        tg.openLink(`https://t.me/share/url?url=${encodedUrl}&text=${encodedText}`);
+        tg.openLink('https://t.me/share/url?url=' + encodedUrl + '&text=' + encodedText);
         showToast('↗️ Выберите чат для отправки');
       } else if (navigator.share) {
-        try {
-          await navigator.share({ title: 'ГАБ Калькулятор', text, url: BASE_URL });
-        } catch { copyLink(BASE_URL, 'Расчёт ГАБ'); }
+        navigator.share({ title: 'ГАБ Калькулятор', text: text, url: BASE_URL }).catch(function() {
+          copyLink(BASE_URL, 'Расчёт ГАБ');
+        });
       } else {
         copyLink(BASE_URL, 'Расчёт ГАБ');
       }
@@ -340,15 +334,15 @@ ${BASE_URL}`;
     document.getElementById('typeFilter').onchange = renderList;
     document.getElementById('yieldFilter').oninput = renderList;
 
-    window.addEventListener('load', () => {
-      loadData();      const hash = window.location.hash;
+    window.addEventListener('load', function() {
+      loadData();
+      const hash = window.location.hash;
       if (hash.startsWith('#obj-')) {
         const id = hash.replace('#obj-', '');
-        const obj = objects.find(o => o.id == id);
-        if (obj) setTimeout(() => openModal(obj), 500);
-      }
-    });
-    window.addEventListener('popstate', () => {
+        const obj = objects.find(function(o) { return o.id == id; });
+        if (obj) setTimeout(function() { openModal(obj); }, 500);
+      }    });
+    window.addEventListener('popstate', function() {
       if (!location.hash.startsWith('#obj-')) closeModal();
     });
   </script>
