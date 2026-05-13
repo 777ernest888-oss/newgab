@@ -67,227 +67,331 @@
     </section>
   </div>
 
-  <!-- Модальное окно (строго скрыто по умолчанию) -->
-  <div id="modalOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1000; align-items:flex-end; justify-content:center;">
-    <div class="modal" style="background:var(--card-bg,#fff); width:100%; max-width:600px; border-radius:20px 20px 0 0; padding:20px; max-height:90vh; overflow-y:auto; position:relative;">
-      <button onclick="closeModal()" style="position:absolute; top:12px; right:16px; font-size:24px; background:none; border:none; color:var(--hint,#999); cursor:pointer; z-index:2;">×</button>
-     
-      <!-- Контейнер фото + заглушка -->
-      <div style="width:100%; height:200px; border-radius:12px; margin-bottom:12px; overflow:hidden; position:relative; background:linear-gradient(135deg,#3390ec,#2563eb);">
+  <!-- Модалка -->
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal">
+      <button class="modal-close" id="closeModalBtn">×</button>
+      <div style="width:100%;height:200px;border-radius:12px;margin-bottom:12px;overflow:hidden;position:relative;background:linear-gradient(135deg,#3390ec,#2563eb);">
         <img id="modalImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;" />
-        <div id="modalPlaceholder" style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font-family:system-ui,-apple-system,sans-serif; text-align:center; padding:0 16px;">
-          <span style="font-size:36px;font-weight:bold; line-height:1.2;">ВАШ</span>
-          <span style="font-size:22px;font-weight:bold; margin-top:6px; line-height:1.2;">Готовый Арендный Бизнес</span>
-          <span style="font-size:15px;opacity:0.85; margin-top:10px;">ГАБ Калькулятор</span>
+        <div id="modalPlaceholder" style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:system-ui,-apple-system,sans-serif;text-align:center;padding:0 16px;">
+          <span style="font-size:36px;font-weight:bold;line-height:1.2;">ВАШ</span>
+          <span style="font-size:22px;font-weight:bold;margin-top:6px;line-height:1.2;">Готовый Арендный Бизнес</span>
+          <span style="font-size:15px;opacity:0.85;margin-top:10px;">ГАБ Калькулятор</span>
         </div>
       </div>
      
-      <h3 id="modalTitle" style="margin:0 0 4px 0; font-size:20px;"></h3>
-      <div id="modalPrice" style="font-size:22px; font-weight:700; color:var(--btn-bg,#3390ec); margin-bottom:6px;"></div>
-      <div style="color:var(--hint,#888); font-size:14px; margin-bottom:10px;">
+      <h3 id="modalTitle" style="margin:0 0 4px 0;font-size:20px;"></h3>
+      <div id="modalPrice" style="font-size:22px;font-weight:700;color:var(--btn-bg,#3390ec);margin-bottom:6px;"></div>
+      <div style="color:var(--hint,#888);font-size:14px;margin-bottom:10px;">
         <span id="modalCity"></span> • <span id="modalLoc"></span> • <span id="modalType"></span>
       </div>
-      <div style="background:#e6f4ea; color:#1e7e34; padding:6px 10px; border-radius:6px; font-weight:600; font-size:14px; display:inline-block; margin-bottom:12px;">
+      <div style="background:#e6f4ea;color:#1e7e34;padding:6px 10px;border-radius:6px;font-weight:600;font-size:14px;display:inline-block;margin-bottom:12px;">
         Доходность: <span id="modalYield">0%</span>
       </div>
      
-      <div id="modalDescription" class="hidden" style="margin-bottom:12px; padding:10px; background:var(--secondary-bg,#f5f5f5); border-radius:8px; font-size:14px; line-height:1.5;"></div>
+      <div id="modalDescription" class="hidden" style="margin-bottom:12px;padding:10px;background:var(--secondary-bg,#f5f5f5);border-radius:8px;font-size:14px;line-height:1.5;"></div>
      
-      <div style="display:flex; flex-direction:column; gap:10px;">
-        <button id="modalCalcBtn" class="tg-btn" style="width:100%; padding:14px; background:var(--btn-bg,#3390ec); color:#fff; border:none; border-radius:10px; font-size:16px; font-weight:600; cursor:pointer;">💰 Рассчитать доходность</button>
-        <button id="modalContactBtn" style="width:100%; padding:14px; background:var(--secondary-bg,#f0f2f5); color:var(--btn-bg,#3390ec); border:none; border-radius:10px; font-size:16px; font-weight:500; cursor:pointer;">📞 Связаться</button>
-        <div style="display:flex; gap:10px;">          <button id="modalCopyLinkBtn" style="flex:1; padding:12px; background:var(--secondary-bg,#f0f2f5); border:none; border-radius:8px; color:var(--btn-bg,#3390ec); font-weight:500; cursor:pointer;">🔗 Копировать</button>
-          <button id="modalShareBtn" style="flex:1; padding:12px; background:var(--secondary-bg,#f0f2f5); border:none; border-radius:8px; color:var(--btn-bg,#3390ec); font-weight:500; cursor:pointer;">↗️ Поделиться</button>
-        </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <button id="modalCalcBtn" class="tg-btn">💰 Рассчитать доходность</button>
+        <button id="modalContactBtn" style="width:100%;padding:14px;background:var(--secondary-bg,#f0f2f5);color:var(--btn-bg,#3390ec);border:none;border-radius:10px;font-size:16px;font-weight:500;cursor:pointer;">📞 Связаться</button>
+        <div style="display:flex;gap:10px;">
+          <button id="modalCopyLinkBtn" style="flex:1;padding:12px;background:var(--secondary-bg,#f0f2f5);border:none;border-radius:8px;color:var(--btn-bg,#3390ec);font-weight:500;cursor:pointer;">🔗 Копировать</button>
+          <button id="modalShareBtn" style="flex:1;padding:12px;background:var(--secondary-bg,#f0f2f5);border:none;border-radius:8px;color:var(--btn-bg,#3390ec);font-weight:500;cursor:pointer;">↗️ Поделиться</button>        </div>
       </div>
 
-      <div id="modalCalcResult" class="hidden" style="margin-top:16px; padding:14px; background:var(--secondary-bg,#f5f5f5); border-radius:10px; border-left:4px solid var(--btn-bg,#3390ec);">
-        <div style="font-size:14px; margin-bottom:4px;">💰 Доход: <strong id="mResMonthly"></strong></div>
-        <div style="font-size:14px; margin-bottom:4px;">📈 Доходность: <strong id="mResYield"></strong></div>
-        <div style="font-size:14px; margin-bottom:12px;">⏳ Окупаемость: <strong id="mResPayback"></strong></div>
-        <button id="modalShareCalcBtn" style="width:100%; padding:12px; background:var(--btn-bg,#3390ec); color:#fff; border:none; border-radius:8px; font-size:15px; cursor:pointer;">↗️ Поделиться расчётом</button>
+      <div id="modalCalcResult" class="hidden" style="margin-top:16px;padding:14px;background:var(--secondary-bg,#f5f5f5);border-radius:10px;border-left:4px solid var(--btn-bg,#3390ec);">
+        <div style="font-size:14px;margin-bottom:4px;">💰 Доход: <strong id="mResMonthly"></strong></div>
+        <div style="font-size:14px;margin-bottom:4px;">📈 Доходность: <strong id="mResYield"></strong></div>
+        <div style="font-size:14px;margin-bottom:12px;">⏳ Окупаемость: <strong id="mResPayback"></strong></div>
+        <button id="modalShareCalcBtn" style="width:100%;padding:12px;background:var(--btn-bg,#3390ec);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;">↗️ Поделиться расчётом</button>
       </div>
     </div>
   </div>
 
-  <div id="toast" style="display:none; position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 16px; border-radius:8px; font-size:14px; z-index:2000; box-shadow:0 4px 12px rgba(0,0,0,0.2);"></div>
+  <div id="toast" class="toast hidden"></div>
 
   <script>
-    const BASE_URL = window.location.origin + window.location.pathname;
-    const CONTACT_LINK = 'https://t.me/newgab_bot';
-    const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
-    const SHEET_NAME = 'Sheet1';
-    const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-    const CACHE_DURATION = 6 * 60 * 60 * 1000;
+    (function() {
+      'use strict';
+      const BASE_URL = window.location.origin + window.location.pathname;
+      const CONTACT_LINK = 'https://t.me/newgab_bot';
+      const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
+      const SHEET_NAME = 'Sheet1';
+      const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
+      const CACHE_KEY = 'gab_cache_v2';
+      const CACHE_TTL = 6 * 60 * 60 * 1000;
 
-    let tg = null, isInTelegram = false;
-    try {
-      if (window.Telegram?.WebApp) {
-        tg = window.Telegram.WebApp;
-        isInTelegram = tg.initData !== '' && tg.initData !== undefined;
-        if (isInTelegram) {
-          tg.ready(); tg.expand();
-          if (tg.themeParams) {
-            document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
-            document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
-            document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
+      let tg = null, isInTelegram = false;
+      try {
+        if (window.Telegram?.WebApp) {
+          tg = window.Telegram.WebApp;
+          isInTelegram = tg.initData !== '' && tg.initData !== undefined;
+          if (isInTelegram) {
+            tg.ready(); tg.expand();
+            if (tg.themeParams) {
+              document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
+              document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
+              document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
+            }
           }
         }
-      }
-    } catch(e) {}
+      } catch(e) {}
 
-    const fmt = n => new Intl.NumberFormat('ru-RU').format(n);
-    function showToast(msg) {
-      const t = document.getElementById('toast');
-      t.textContent = msg; t.style.display = 'block';
-      setTimeout(() => t.style.display = 'none', 3000);
-    }
-    function copyLink(url) {
-      navigator.clipboard.writeText(url).then(() => showToast('🔗 Ссылка скопирована!'));
-    }
-    async function shareObject(obj) {      const url = BASE_URL + '#obj-' + obj.id;
-      const txt = `🏠 ${obj.title}\n💰 ${fmt(obj.price)} ₽\n📈 ${obj.yield.toFixed(1)}%`;
-      if (isInTelegram && tg) {
-        tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(txt)}`);
-      } else if (navigator.share) {
-        try { await navigator.share({title: obj.title, text: txt, url}); } catch { copyLink(url); }
-      } else { copyLink(url); }
-    }
+      const fmt = n => new Intl.NumberFormat('ru-RU').format(n || 0);
+      const showToast = msg => {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.classList.remove('hidden');
+        setTimeout(() => t.classList.add('hidden'), 2500);
+      };
 
-    let objects = [], filtered = [], currentObj = null;
-    const calcYield = (p, r) => (p && r && p > 0) ? (r * 12 / p) * 100 : 0;
+      // Данные
+      let objects = [], filtered = [], currentObj = null;      const calcYield = (p, r) => (p && r && p > 0) ? (r * 12 / p) * 100 : 0;
 
-    function saveCache(d) { try { localStorage.setItem('gab_cache', JSON.stringify({d, t: Date.now()})); } catch{} }
-    function getCache() {
-      try {
-        const c = JSON.parse(localStorage.getItem('gab_cache'));
-        return (c && Date.now() - c.t < CACHE_DURATION) ? c.d : null;
-      } catch { return null; }
-    }
+      // Кэш
+      const getCache = () => {
+        try {
+          const c = JSON.parse(localStorage.getItem(CACHE_KEY));
+          return (c && Date.now() - c.t < CACHE_TTL) ? c.d : null;
+        } catch { return null; }
+      };
+      const saveCache = d => { try { localStorage.setItem(CACHE_KEY, JSON.stringify({d, t: Date.now()})); } catch{} };
 
-    async function loadData() {
-      const cached = getCache();
-      if (cached) {
-        objects = cached; filtered = [...objects]; renderList();
-        showToast('✅ Загружено из кэша (быстро)');
-        return;
-      }
-      document.getElementById('objectsList').innerHTML = '<div style="text-align:center;padding:20px;color:#888;">⏳ Загрузка...</div>';
-      try {
-        const res = await fetch(SHEET_URL, {signal: AbortSignal.timeout(8000)});
-        const txt = await res.text();
-        const rows = JSON.parse(txt.substring(47).slice(0,-2)).table.rows.filter(r => r.c?.[0]?.v != null);
-        objects = rows.map(r => {
-          const p = Number(r.c[3]?.v)||0, rent = Number(r.c[4]?.v)||0;
-          return {
-            id: r.c[0].v, title: r.c[1]?.v||'', type: r.c[2]?.v||'',
-            price: p, rent, yield: (Number(r.c[5]?.v)||0) || calcYield(p, rent),
-            city: r.c[6]?.v||'', loc: r.c[7]?.v||'', photo: r.c[8]?.v||'', desc: r.c[9]?.v||''
-          };
-        });
-        saveCache(objects); filtered = [...objects]; renderList();
-        showToast('✅ Загружено ' + objects.length + ' объектов');
-      } catch(e) {
-        document.getElementById('objectsList').innerHTML = `<div style="text-align:center;padding:20px;color:#e53935;">❌ Ошибка: ${e.message}</div>`;
-      }
-    }
+      // Отрисовка списка (Делегирование событий)
+      const renderList = () => {
+        const el = document.getElementById('objectsList');
+        const city = document.getElementById('cityFilter').value;
+        const type = document.getElementById('typeFilter').value;
+        const minY = Number(document.getElementById('yieldFilter').value);
+        document.getElementById('yieldValue').textContent = minY + '%';
 
-    function renderList() {
-      const el = document.getElementById('objectsList');
-      const city = document.getElementById('cityFilter').value;      const type = document.getElementById('typeFilter').value;
-      const minY = Number(document.getElementById('yieldFilter').value);
-      document.getElementById('yieldValue').textContent = minY + '%';
-     
-      filtered = objects.filter(o => (!city || o.city.includes(city)) && (!type || o.type===type) && o.yield >= minY);
-      if (!filtered.length) { el.innerHTML = '<div style="text-align:center;padding:20px;color:#888;">😕 Ничего не найдено</div>'; return; }
-     
-      el.innerHTML = filtered.map(o => `
-        <div style="background:#fff; padding:16px; border-radius:14px; box-shadow:0 2px 8px rgba(0,0,0,0.06); cursor:pointer; margin-bottom:12px;" onclick="openModal('${o.id}')">
-          <div style="display:flex; justify-content:space-between; font-size:13px; color:#888; margin-bottom:4px;">
-            <span>${o.city || ''}</span><span style="background:#e6f4ea; color:#1e7e34; padding:2px 8px; border-radius:4px;">${o.yield.toFixed(1)}%</span>
+        filtered = objects.filter(o =>
+          (!city || o.city.includes(city)) &&
+          (!type || o.type === type) &&
+          o.yield >= minY
+        );
+
+        if (!filtered.length) {
+          el.innerHTML = '<div class="empty">😕 Объекты не найдены</div>';
+          return;
+        }
+
+        el.innerHTML = filtered.map(o => `
+          <div class="card" data-id="${o.id}">
+            <div class="card-meta">
+              <span>${o.city || ''}</span>
+              <span class="card-yield">${o.yield.toFixed(1)}%</span>
+            </div>
+            <h3>${o.title}</h3>
+            <div class="card-price">${fmt(o.price)} ₽</div>
+            <small>Аренда: ${fmt(o.rent)} ₽/мес</small>
+            <div style="display:flex;gap:8px;margin-top:10px;">
+              <button class="card-btn btn-copy" data-id="${o.id}">🔗 Копировать ссылку</button>
+              <button class="card-btn btn-share" data-id="${o.id}">↗️ Поделиться</button>
+            </div>
           </div>
-          <h3 style="margin:0 0 4px; font-size:17px;">${o.title}</h3>
-          <div style="font-size:19px; font-weight:700; color:#3390ec; margin-bottom:4px;">${fmt(o.price)} ₽</div>
-          <div style="font-size:14px; color:#666;">Аренда: ${fmt(o.rent)} ₽/мес</div>
-          <div style="display:flex; gap:8px; margin-top:10px;">
-            <button onclick="event.stopPropagation();copyLink('${BASE_URL}#obj-${o.id}')" style="flex:1; padding:8px; background:#f0f2f5; border:none; border-radius:6px; color:#3390ec; font-size:13px;">🔗 Копировать</button>
-            <button onclick="event.stopPropagation();shareObject(objects.find(x=>x.id=='${o.id}'))" style="flex:1; padding:8px; background:#f0f2f5; border:none; border-radius:6px; color:#3390ec; font-size:13px;">↗️ Поделиться</button>
-          </div>
-        </div>
-      `).join('');
-    }
+        `).join('');
+      };
 
-    function openModal(id) {
-      const o = objects.find(x => x.id == id); if (!o) return;
-      currentObj = o;
-      const img = document.getElementById('modalImg');
-      const ph = document.getElementById('modalPlaceholder');
-      if (o.photo) {
-        img.src = o.photo; img.style.display = 'block'; ph.style.display = 'none';
-        img.onerror = () => { img.style.display='none'; ph.style.display='flex'; };
-      } else {
-        img.style.display = 'none'; ph.style.display = 'flex';
-      }
-      document.getElementById('modalTitle').textContent = o.title;
-      document.getElementById('modalPrice').textContent = fmt(o.price) + ' ₽';
-      document.getElementById('modalCity').textContent = o.city;
-      document.getElementById('modalLoc').textContent = o.loc;
-      document.getElementById('modalType').textContent = o.type;
-      document.getElementById('modalYield').textContent = o.yield.toFixed(1) + '%';
-     
-      const desc = document.getElementById('modalDescription');
-      if (o.desc?.trim()) { desc.textContent = o.desc; desc.className = ''; desc.style.display = 'block'; }
-      else { desc.style.display = 'none'; }
-     
-      document.getElementById('modalCalcResult').style.display = 'none';
-      document.getElementById('modalOverlay').style.display = 'flex';
-      history.pushState({m:1}, '', '#obj-'+id);
-    }
-    window.closeModal = () => {
-      document.getElementById('modalOverlay').style.display = 'none';
-      if (history.state?.m) history.back();
-    };
-    document.getElementById('modalOverlay').addEventListener('click', e => { if(e.target.id==='modalOverlay') closeModal(); });
+      // Обработчик кликов по списку
+      document.getElementById('objectsList').addEventListener('click', e => {
+        const card = e.target.closest('.card');        const copyBtn = e.target.closest('.btn-copy');
+        const shareBtn = e.target.closest('.btn-share');
 
-    document.getElementById('modalCalcBtn').onclick = () => {
-      const p = currentObj.price, r = currentObj.rent;
-      document.getElementById('mResMonthly').textContent = fmt(r) + ' ₽';
-      document.getElementById('mResYield').textContent = ((r*12/p)*100).toFixed(2) + '%';
-      document.getElementById('mResPayback').textContent = (p/(r*12)).toFixed(1) + ' лет';
-      document.getElementById('modalCalcResult').style.display = 'block';
-    };
-    document.getElementById('modalShareCalcBtn').onclick = () => {
-      const txt = `🧮 ${currentObj.title}\n💰 ${document.getElementById('mResMonthly').textContent}\n📈 ${document.getElementById('mResYield').textContent}`;
-      if (isInTelegram && tg) tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(BASE_URL)}&text=${encodeURIComponent(txt)}`);
-      else copyLink(BASE_URL);
-    };
-    document.getElementById('modalShareBtn').onclick = () => shareObject(currentObj);
-    document.getElementById('modalCopyLinkBtn').onclick = () => copyLink(BASE_URL + '#obj-' + currentObj.id);
-    document.getElementById('modalContactBtn').onclick = () => window.open(`${CONTACT_LINK}?text=${encodeURIComponent('Интересует: '+currentObj.title)}`, '_blank');
+        if (copyBtn) {
+          e.stopPropagation();
+          const id = copyBtn.dataset.id;
+          const obj = objects.find(o => o.id == id);
+          if (obj) copyLink(BASE_URL + '#obj-' + obj.id);
+          return;
+        }
+        if (shareBtn) {
+          e.stopPropagation();
+          const id = shareBtn.dataset.id;
+          const obj = objects.find(o => o.id == id);
+          if (obj) shareObject(obj);
+          return;
+        }
+        if (card) {
+          openModal(card.dataset.id);
+        }
+      });
 
-    document.getElementById('calcBtn').onclick = () => {
-      const p = parseFloat(document.getElementById('calcPrice').value)||0, r = parseFloat(document.getElementById('calcRent').value)||0;
-      if (!p || !r) return;
-      document.getElementById('resMonthly').textContent = fmt(r)+' ₽';
-      document.getElementById('resYield').textContent = ((r*12/p)*100).toFixed(2)+'%';
-      document.getElementById('resPayback').textContent = (p/(r*12)).toFixed(1)+' лет';
-      document.getElementById('calcResult').style.display = 'block';
-      document.getElementById('shareCalcBtn').style.display = 'block';
-    };
-    document.getElementById('shareCalcBtn').onclick = () => {
-      const txt = `🧮 Расчёт ГАБ\n💰 ${document.getElementById('resMonthly').textContent}\n📈 ${document.getElementById('resYield').textContent}`;
-      if (isInTelegram && tg) tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(BASE_URL)}&text=${encodeURIComponent(txt)}`);
-      else copyLink(BASE_URL);
-    };
+      // Модалка
+      const modalOverlay = document.getElementById('modalOverlay');
+      const openModal = id => {
+        const obj = objects.find(o => o.id == id);
+        if (!obj) return;
+        currentObj = obj;
 
-    document.getElementById('cityFilter').onchange = renderList;
-    document.getElementById('typeFilter').onchange = renderList;
-    document.getElementById('yieldFilter').oninput = renderList;
+        const img = document.getElementById('modalImg');
+        const ph = document.getElementById('modalPlaceholder');
+        if (obj.photo_url?.trim()) {
+          img.src = obj.photo_url; img.style.display = 'block'; ph.style.display = 'none';
+          img.onerror = () => { img.style.display = 'none'; ph.style.display = 'flex'; };
+        } else {
+          img.style.display = 'none'; ph.style.display = 'flex';
+        }
 
-    window.addEventListener('load', () => {
-      loadData();
-      if (location.hash.startsWith('#obj-')) setTimeout(() => openModal(location.hash.replace('#obj-','')), 300);
-    });
+        document.getElementById('modalTitle').textContent = obj.title;
+        document.getElementById('modalPrice').textContent = fmt(obj.price) + ' ₽';
+        document.getElementById('modalCity').textContent = obj.city;
+        document.getElementById('modalLoc').textContent = obj.location;
+        document.getElementById('modalType').textContent = obj.type;
+        document.getElementById('modalYield').textContent = obj.yield.toFixed(1) + '%';
+
+        const desc = document.getElementById('modalDescription');
+        if (obj.description?.trim()) {
+          desc.textContent = obj.description; desc.classList.remove('hidden');
+        } else {
+          desc.classList.add('hidden');        }
+
+        document.getElementById('modalCalcResult').classList.add('hidden');
+        modalOverlay.classList.add('active');
+        history.pushState({m:1}, '', '#obj-'+id);
+      };
+
+      const closeModal = () => {
+        modalOverlay.classList.remove('active');
+        if (history.state?.m) history.back();
+      };
+      document.getElementById('closeModalBtn').onclick = closeModal;
+      modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) closeModal(); });
+      window.addEventListener('popstate', () => { if(modalOverlay.classList.contains('active')) closeModal(); });
+
+      // Кнопки модалки
+      document.getElementById('modalCalcBtn').onclick = () => {
+        if (!currentObj) return;
+        const p = currentObj.price, r = currentObj.rent;
+        const annual = r * 12;
+        document.getElementById('mResMonthly').textContent = fmt(r) + ' ₽';
+        document.getElementById('mResYield').textContent = (annual / p * 100).toFixed(2) + '%';
+        document.getElementById('mResPayback').textContent = (p / annual).toFixed(1) + ' лет';
+        document.getElementById('modalCalcResult').classList.remove('hidden');
+      };
+
+      document.getElementById('modalShareCalcBtn').onclick = () => {
+        const txt = `🧮 Расчёт: ${currentObj.title}\n💰 ${document.getElementById('mResMonthly').textContent}\n📈 ${document.getElementById('mResYield').textContent}`;
+        shareLink(BASE_URL, txt);
+      };
+
+      document.getElementById('modalShareBtn').onclick = () => {
+        if (currentObj) shareObject(currentObj);
+      };
+
+      document.getElementById('modalCopyLinkBtn').onclick = () => {
+        if (currentObj) copyLink(BASE_URL + '#obj-' + currentObj.id);
+      };
+
+      document.getElementById('modalContactBtn').onclick = () => {
+        if (!currentObj) return;
+        const msg = `Здравствуйте! Интересует объект: ${currentObj.title} (${fmt(currentObj.price)} ₽)`;
+        const link = `${CONTACT_LINK}?text=${encodeURIComponent(msg)}`;
+        if (isInTelegram) tg.openLink(link);
+        else window.open(link, '_blank');
+      };
+
+      // Утилиты шаринга/копирования
+      const copyLink = url => {
+        navigator.clipboard.writeText(url).then(() => showToast('🔗 Ссылка скопирована'));      };
+
+      const shareObject = obj => {
+        const url = BASE_URL + '#obj-' + obj.id;
+        const text = `🏠 ${obj.title}\n💰 ${fmt(obj.price)} ₽\n📈 ${obj.yield.toFixed(1)}% доходность`;
+        shareLink(url, text);
+      };
+
+      const shareLink = (url, text) => {
+        if (isInTelegram) {
+          tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`);
+        } else if (navigator.share) {
+          navigator.share({title: text.split('\n')[0], text, url}).catch(() => copyLink(url));
+        } else {
+          copyLink(url);
+        }
+      };
+
+      // Главный калькулятор
+      document.getElementById('calcBtn').onclick = () => {
+        const p = parseFloat(document.getElementById('calcPrice').value) || 0;
+        const r = parseFloat(document.getElementById('calcRent').value) || 0;
+        if (p <= 0 || r <= 0) return showToast('Введите цену и аренду');
+       
+        const annual = r * 12;
+        document.getElementById('resMonthly').textContent = fmt(r) + ' ₽';
+        document.getElementById('resYield').textContent = (annual / p * 100).toFixed(2) + '%';
+        document.getElementById('resPayback').textContent = (p / annual).toFixed(1) + ' лет';
+        document.getElementById('calcResult').classList.remove('hidden');
+        document.getElementById('shareCalcBtn').style.display = 'block';
+      };
+
+      document.getElementById('shareCalcBtn').onclick = () => {
+        const txt = `🧮 Расчёт ГАБ\n💰 ${document.getElementById('resMonthly').textContent}\n📈 ${document.getElementById('resYield').textContent}`;
+        shareLink(BASE_URL, txt);
+      };
+
+      // Фильтры
+      ['cityFilter', 'typeFilter', 'yieldFilter'].forEach(id => {
+        document.getElementById(id).addEventListener('input', renderList);
+      });
+
+      // Загрузка данных (Кэш-первый, фоновое обновление)
+      const loadData = async () => {
+        const cached = getCache();
+        if (cached) {
+          objects = cached;
+          filtered = [...objects];
+          renderList();
+          showToast('✅ Загружено из кэша');          // Фоновое обновление
+          fetchSheetData(true);
+          return;
+        }
+       
+        document.getElementById('objectsList').innerHTML = '<div class="loading">⏳ Загрузка...</div>';
+        await fetchSheetData(false);
+      };
+
+      const fetchSheetData = async (isBackgroundUpdate) => {
+        try {
+          const res = await fetch(SHEET_URL, {signal: AbortSignal.timeout(8000)});
+          const txt = await res.text();
+          const rows = JSON.parse(txt.substring(47).slice(0, -2)).table.rows.filter(r => r.c?.[0]?.v != null);
+         
+          objects = rows.map(r => {
+            const p = Number(r.c[3]?.v) || 0;
+            const rent = Number(r.c[4]?.v) || 0;
+            const sheetYield = Number(r.c[5]?.v) || 0;
+            return {
+              id: r.c[0].v,
+              title: r.c[1]?.v || 'Без названия',
+              type: r.c[2]?.v || '',
+              price: p, rent,
+              yield: sheetYield > 0 ? sheetYield : calcYield(p, rent),
+              city: r.c[6]?.v || '',
+              location: r.c[7]?.v || '',
+              photo_url: r.c[8]?.v || '',
+              description: r.c[9]?.v || ''
+            };
+          });
+         
+          saveCache(objects);
+          filtered = [...objects];
+          renderList();
+          if (!isBackgroundUpdate) showToast('✅ Загружено ' + objects.length + ' объектов');
+        } catch (e) {
+          console.warn('Fetch error:', e);
+          if (!isBackgroundUpdate && objects.length === 0) {
+            document.getElementById('objectsList').innerHTML = `<div class="error">❌ Ошибка загрузки<br><small>${e.message}</small></div>`;
+          }
+        }
+      };
+
+      // Инициализация
+      window.addEventListener('DOMContentLoaded', () => {
+        loadData();
+        if (window.location.hash.startsWith('#obj-')) {
+          setTimeout(() => openModal(window.location.hash.replace('#obj-', '')), 200);
+        }      });
+    })();
   </script>
 </body>
 </html>
