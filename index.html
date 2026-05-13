@@ -40,7 +40,7 @@
     </section>
 
     <section class="calculator" id="calculatorSection">
-      <h2> Калькулятор доходности</h2>
+      <h2>🧮 Калькулятор доходности</h2>
       <div class="input-group">
         <label>Цена объекта (₽)
           <input type="number" id="calcPrice" placeholder="5 000 000" />
@@ -69,7 +69,7 @@
   <div id="modalOverlay" class="modal-overlay" onclick="if(event.target===this)closeModal()">
     <div class="modal">
       <button class="modal-close" onclick="closeModal()">×</button>
-      <img id="modalImg" src="" alt="" class="modal-img" loading="lazy" />
+      <img id="modalImg" src="" alt="" class="modal-img" />
       <h3 id="modalTitle"></h3>
       <div class="modal-price" id="modalPrice"></div>
       <div class="modal-meta">
@@ -90,7 +90,7 @@
 
       <div id="modalCalcResult" class="hidden" style="margin-top:16px; padding:12px; background:var(--secondary-bg); border-radius:10px; border-left: 4px solid var(--btn-bg);">
         <div style="font-size:14px; margin-bottom:4px;">💰 Доход в месяц: <strong id="mResMonthly"></strong></div>
-        <div style="font-size:14px; margin-bottom:4px;"> Доходность: <strong id="mResYield"></strong></div>
+        <div style="font-size:14px; margin-bottom:4px;">📈 Доходность: <strong id="mResYield"></strong></div>
         <div style="font-size:14px; margin-bottom:12px;">⏳ Окупаемость: <strong id="mResPayback"></strong></div>
         <button class="tg-btn" id="modalShareCalcBtn" style="font-size:14px; padding:10px;">↗️ Поделиться расчётом</button>
       </div>
@@ -106,10 +106,10 @@
     const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
     const SHEET_NAME = 'Sheet1';
     const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-    const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 часов
+    const CACHE_DURATION = 6 * 60 * 60 * 1000;
 
-    // НОВАЯ ЗАГЛУШКА: Маркетинговая, без слова "ФОТО"
-    const PLACEHOLDER_SVG = `image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='400'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%233390ec'/><stop offset='100%' stop-color='%232563eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='45%' font-family='system-ui, sans-serif' font-size='28' font-weight='bold' fill='white' text-anchor='middle'>Ваш Готовый</text><text x='50%' y='58%' font-family='system-ui, sans-serif' font-size='28' font-weight='bold' fill='white' text-anchor='middle'>Арендный Бизнес</text><text x='50%' y='75%' font-family='system-ui, sans-serif' font-size='18' fill='white' opacity='0.8' text-anchor='middle'>ГАБ Калькулятор</text></svg>`;
+    // Base64 encoded SVG placeholder — 100% надёжно
+    const PLACEHOLDER_SVG = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI4MDAiIGhlaWdodD0iNDAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBvZmZzZXQ9IjAlIiBzdG9wLWNvbG9yPSIjMzM5MGVjIi8+PHN0b3Agb2Zmc2V0PSIxMDAlIiBzdG9wLWNvbG9yPSIjMjU2M2ViIi8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNnKSIvPjx0ZXh0IHg9IjUwJSIgeT0iNDUlIiBmb250LWZhbWlseT0ic3lzdGVtLXVpLCBzYW5zLXNlcmlmIiBmb250LXNpemU9IjI4IiBmb250LXdlaWdodD0iYm9sZCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiPldhc2ggR290b3Z5aTwvdGV4dD48dGV4dCB4PSI1MCUiIHk9IjU4JSIgZm9udC1mYW1pbHk9InN5c3RlbS11aSwgc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyOCIgZm9udC13ZWlnaHQ9ImJvbGQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5BcmVuZG55eSBCaXpuZXM8L3RleHQ+PHRleHQgeD0iNTAlIiB5PSI3NSUiIGZvbnQtZmFtaWx5PSJzeXN0ZW0tdWksIHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTgiIGZpbGw9IndoaXRlIiBvcGFjaXR5PSIwLjgiIHRleHQtYW5jaG9yPSJtaWRkbGUiPkdBQiBLYWxrdWx5YXRvcjwvdGV4dD48L3N2Zz4=';
 
     let tg = null;
     let isInTelegram = false;
@@ -287,12 +287,19 @@
 
     function openModal(obj) {
       currentObj = obj;
-      // Заглушка подставляется автоматически, если photo_url пустой
-      document.getElementById('modalImg').src = obj.photo_url || PLACEHOLDER_SVG;
-      document.getElementById('modalImg').style.display = 'block';
+      // ВАЖНО: Сначала устанавливаем src, потом показываем
+      const imgEl = document.getElementById('modalImg');
+      imgEl.src = obj.photo_url || PLACEHOLDER_SVG;
+      imgEl.style.display = 'block';
+      imgEl.style.width = '100%';
+      imgEl.style.height = '200px';      imgEl.style.objectFit = 'cover';
+      imgEl.style.borderRadius = '12px';
+      imgEl.style.marginBottom = '12px';
+      imgEl.style.background = '#f0f2f5';
      
       document.getElementById('modalTitle').textContent = obj.title;
-      document.getElementById('modalPrice').textContent = fmt(obj.price) + ' ₽';      document.getElementById('modalCity').textContent = obj.city;
+      document.getElementById('modalPrice').textContent = fmt(obj.price) + ' ₽';
+      document.getElementById('modalCity').textContent = obj.city;
       document.getElementById('modalLoc').textContent = obj.location;
       document.getElementById('modalType').textContent = obj.type;
       document.getElementById('modalYield').textContent = obj.yield.toFixed(1) + '%';
@@ -333,15 +340,15 @@
       const text = `🧮 Расчёт: ${currentObj.title}\n💰 ${document.getElementById('mResMonthly').textContent}\n📈 ${document.getElementById('mResYield').textContent}`;
       if (isInTelegram && tg) {
         tg.openLink('https://t.me/share/url?url=' + encodeURIComponent(BASE_URL) + '&text=' + encodeURIComponent(text));
-        showToast('️ Выберите чат');
-      } else if (navigator.share) {
-        try { await navigator.share({ title: 'ГАБ Расчёт', text, url: BASE_URL }); }
+        showToast('↗️ Выберите чат');
+      } else if (navigator.share) {        try { await navigator.share({ title: 'ГАБ Расчёт', text, url: BASE_URL }); }
         catch (e) { if (e.name !== 'AbortError') copyLink(BASE_URL); }
       } else { copyLink(BASE_URL); }
     };
 
     document.getElementById('modalShareBtn').onclick = () => shareObject(currentObj);
-    document.getElementById('modalCopyLinkBtn').onclick = () => copyLink(BASE_URL + '#obj-' + currentObj.id);   
+    document.getElementById('modalCopyLinkBtn').onclick = () => copyLink(BASE_URL + '#obj-' + currentObj.id);
+   
     document.getElementById('calcBtn').onclick = calculate;
     function calculate() {
       const p = parseFloat(document.getElementById('calcPrice').value) || 0;
