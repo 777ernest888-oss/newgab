@@ -11,7 +11,7 @@
   <div class="container">
     <header>
       <h1>ГАБ Калькулятор</h1>
-      <p class="hint">Подбор готового арендного бизнеса для п passiveного дохода</p>
+      <p class="hint">Подбор готового арендного бизнеса для пассивного дохода</p>
     </header>
 
     <section class="filters">
@@ -40,7 +40,7 @@
     </section>
 
     <section class="calculator" id="calculatorSection">
-      <h2>🧮 Калькулятор доходности</h2>
+      <h2> Калькулятор доходности</h2>
       <div class="input-group">
         <label>Цена объекта (₽)
           <input type="number" id="calcPrice" placeholder="5 000 000" />
@@ -90,8 +90,8 @@
 
       <div id="modalCalcResult" class="hidden" style="margin-top:16px; padding:12px; background:var(--secondary-bg); border-radius:10px; border-left: 4px solid var(--btn-bg);">
         <div style="font-size:14px; margin-bottom:4px;">💰 Доход в месяц: <strong id="mResMonthly"></strong></div>
-        <div style="font-size:14px; margin-bottom:4px;">📈 Доходность: <strong id="mResYield"></strong></div>
-        <div style="font-size:14px; margin-bottom:12px;"> Окупаемость: <strong id="mResPayback"></strong></div>
+        <div style="font-size:14px; margin-bottom:4px;"> Доходность: <strong id="mResYield"></strong></div>
+        <div style="font-size:14px; margin-bottom:12px;">⏳ Окупаемость: <strong id="mResPayback"></strong></div>
         <button class="tg-btn" id="modalShareCalcBtn" style="font-size:14px; padding:10px;">↗️ Поделиться расчётом</button>
       </div>
 
@@ -108,8 +108,8 @@
     const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
     const CACHE_DURATION = 6 * 60 * 60 * 1000; // 6 часов
 
-    // Надёжная SVG-заглушка (UTF-8, без base64, работает везде)
-    const PLACEHOLDER_SVG = `data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='400'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%233390ec'/><stop offset='100%' stop-color='%232563eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='48%' font-family='system-ui, sans-serif' font-size='36' font-weight='bold' fill='white' text-anchor='middle'>ФОТО ОБЪЕКТА</text><text x='50%' y='62%' font-family='system-ui, sans-serif' font-size='20' fill='white' opacity='0.9' text-anchor='middle'>ГАБ Калькулятор</text></svg>`;
+    // НОВАЯ ЗАГЛУШКА: Маркетинговая, без слова "ФОТО"
+    const PLACEHOLDER_SVG = `image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='800' height='400'><defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'><stop offset='0%' stop-color='%233390ec'/><stop offset='100%' stop-color='%232563eb'/></linearGradient></defs><rect width='100%' height='100%' fill='url(%23g)'/><text x='50%' y='45%' font-family='system-ui, sans-serif' font-size='28' font-weight='bold' fill='white' text-anchor='middle'>Ваш Готовый</text><text x='50%' y='58%' font-family='system-ui, sans-serif' font-size='28' font-weight='bold' fill='white' text-anchor='middle'>Арендный Бизнес</text><text x='50%' y='75%' font-family='system-ui, sans-serif' font-size='18' fill='white' opacity='0.8' text-anchor='middle'>ГАБ Калькулятор</text></svg>`;
 
     let tg = null;
     let isInTelegram = false;
@@ -144,7 +144,7 @@
 
     function copyLink(url) {
       navigator.clipboard.writeText(url).then(() => {
-        showToast(' Ссылка скопирована!');
+        showToast('🔗 Ссылка скопирована!');
       }).catch(() => showToast('❌ Ошибка', 'error'));    }
 
     async function shareObject(obj) {
@@ -221,7 +221,6 @@
           const price = Number(r.c[3]?.v) || 0;
           const rent = Number(r.c[4]?.v) || 0;
           const sheetYield = Number(r.c[5]?.v) || 0;
-          // Автоподсчёт, если в таблице 0 или пусто
           const finalYield = sheetYield > 0 ? sheetYield : calculateYield(price, rent);
          
           return {
@@ -243,9 +242,9 @@
         if (!cachedData) showToast('✅ Загружено ' + objects.length + ' объектов', 'success');
       } catch (e) {
         console.error(e);
-        if (objects.length === 0) {          listEl.innerHTML = '<div class="error">❌ Ошибка загрузки.<br><small>' + e.message + '</small></div>';
-        } else {
-          showToast('️ Нет сети, показываем кэш', 'error');
+        if (objects.length === 0) {
+          listEl.innerHTML = '<div class="error">❌ Ошибка загрузки.<br><small>' + e.message + '</small></div>';        } else {
+          showToast('⚠️ Нет сети, показываем кэш', 'error');
         }
       }
     }
@@ -292,8 +291,8 @@
       document.getElementById('modalImg').src = obj.photo_url || PLACEHOLDER_SVG;
       document.getElementById('modalImg').style.display = 'block';
      
-      document.getElementById('modalTitle').textContent = obj.title;      document.getElementById('modalPrice').textContent = fmt(obj.price) + ' ₽';
-      document.getElementById('modalCity').textContent = obj.city;
+      document.getElementById('modalTitle').textContent = obj.title;
+      document.getElementById('modalPrice').textContent = fmt(obj.price) + ' ₽';      document.getElementById('modalCity').textContent = obj.city;
       document.getElementById('modalLoc').textContent = obj.location;
       document.getElementById('modalType').textContent = obj.type;
       document.getElementById('modalYield').textContent = obj.yield.toFixed(1) + '%';
@@ -334,15 +333,15 @@
       const text = `🧮 Расчёт: ${currentObj.title}\n💰 ${document.getElementById('mResMonthly').textContent}\n📈 ${document.getElementById('mResYield').textContent}`;
       if (isInTelegram && tg) {
         tg.openLink('https://t.me/share/url?url=' + encodeURIComponent(BASE_URL) + '&text=' + encodeURIComponent(text));
-        showToast('↗️ Выберите чат');
+        showToast('️ Выберите чат');
       } else if (navigator.share) {
         try { await navigator.share({ title: 'ГАБ Расчёт', text, url: BASE_URL }); }
         catch (e) { if (e.name !== 'AbortError') copyLink(BASE_URL); }
       } else { copyLink(BASE_URL); }
     };
 
-    document.getElementById('modalShareBtn').onclick = () => shareObject(currentObj);    document.getElementById('modalCopyLinkBtn').onclick = () => copyLink(BASE_URL + '#obj-' + currentObj.id);
-   
+    document.getElementById('modalShareBtn').onclick = () => shareObject(currentObj);
+    document.getElementById('modalCopyLinkBtn').onclick = () => copyLink(BASE_URL + '#obj-' + currentObj.id);   
     document.getElementById('calcBtn').onclick = calculate;
     function calculate() {
       const p = parseFloat(document.getElementById('calcPrice').value) || 0;
