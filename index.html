@@ -8,7 +8,7 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="dns-prefetch" href="https://docs.google.com" />
  
-  <!-- ✅ Google Analytics 4 -->
+  <!-- Google Analytics 4 -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-JSDYGVPTMJ"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -80,7 +80,6 @@
 </head>
 <body style="margin:0; padding:0;">
  
-  <!-- СТАРТОВЫЙ ЭКРАН -->
   <div id="startScreen">
     <img src="hero.png" alt="ГАБ Калькулятор" class="hero-img" onerror="this.style.display='none'; this.parentElement.style.background='#2D35A4'" />
     <div class="hero-content">
@@ -90,15 +89,14 @@
     </div>
   </div>
 
-  <!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
   <div id="mainApp">
     <div class="container">
       <header>
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <h1 style="font-size:20px;">ГАБ Калькулятор</h1>
-          <button id="backToStartBtn" style="background:none;border:none;color:var(--btn-bg);font-size:14px;font-weight:600;cursor:pointer;">🏠 Главная</button>        </div>
-        <p class="hint" style="font-size:13px;">Подбор бизнеса для пассивного дохода</p>
-      </header>
+          <button id="backToStartBtn" style="background:none;border:none;color:var(--btn-bg);font-size:14px;font-weight:600;cursor:pointer;">🏠 Главная</button>
+        </div>
+        <p class="hint" style="font-size:13px;">Подбор бизнеса для пассивного дохода</p>      </header>
 
       <section class="filters">
         <label>Город
@@ -145,10 +143,9 @@
 
       <section id="objectsList" class="list"><div class="loading">⏳ Загружаем объекты...</div></section>
     </div>
-    <!-- МОДАЛЬНОЕ ОКНО -->
+
     <div id="modalOverlay" class="modal-overlay">
-      <div class="modal">
-        <button class="modal-close" id="closeModalBtn">×</button>
+      <div class="modal">        <button class="modal-close" id="closeModalBtn">×</button>
         <div style="width:100%;height:200px;border-radius:12px;margin-bottom:12px;overflow:hidden;position:relative;background:linear-gradient(135deg,#3390ec,#2563eb);">
           <img id="modalImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;" />
           <div id="modalPlaceholder" style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:system-ui,-apple-system,sans-serif;text-align:center;padding:0 16px;">
@@ -193,11 +190,14 @@
       'use strict';
       const BROKER_PHONE = '+79312656800';
       const BROKER_TG = 'ernest_812';
-      const BOT_USERNAME = BROKER_TG;
-      const MINI_APP_URL = `https://t.me/${BOT_USERNAME}/app`;      const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
+     
+      // ✅ ИСПРАВЛЕНО: отдельная переменная для бота
+      const BOT_USERNAME = 'newgab_bot';
+      const MINI_APP_URL = `https://t.me/${BOT_USERNAME}/app`;
+            const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
       const SHEET_NAME = 'Sheet1';
       const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-      const CACHE_KEY = 'gab_cache_v14';
+      const CACHE_KEY = 'gab_cache_v15';
       const CACHE_TTL = 6 * 60 * 60 * 1000;
 
       let tg = null, isInTelegram = false;
@@ -216,7 +216,6 @@
         }
       } catch(e) {}
 
-      // Устанавливаем контакты в DOM
       document.getElementById('contactPhone').textContent = BROKER_PHONE;
       document.getElementById('contactPhone').href = `tel:${BROKER_PHONE}`;
       document.getElementById('contactTg').textContent = `@${BROKER_TG}`;
@@ -243,8 +242,8 @@
       document.getElementById('startBtn').onclick = () => {
         const startScreen = document.getElementById('startScreen');
         const mainApp = document.getElementById('mainApp');
-        startScreen.style.opacity = '0';        setTimeout(() => {
-          startScreen.style.display = 'none';
+        startScreen.style.opacity = '0';
+        setTimeout(() => {          startScreen.style.display = 'none';
           mainApp.style.display = 'block';
           setTimeout(() => mainApp.style.opacity = '1', 50);
           loadData();
@@ -292,8 +291,8 @@
             const obj = objects.find(o => o.id == param.replace('obj_', ''));
             if (obj) {
               if (typeof gtag !== 'undefined') gtag('event', 'view_object', { event_category: 'engagement', event_label: obj.title });
-              openModal(obj.id);            }
-          }, 200);
+              openModal(obj.id);
+            }          }, 200);
         }
       };
 
@@ -361,7 +360,6 @@
       document.getElementById('modalShareBtn').onclick = () => { if (currentObj) shareObject(currentObj); };
       document.getElementById('modalCopyLinkBtn').onclick = () => { if (currentObj) copyLink(currentObj.id); };
 
-      // Кнопка связаться: в мини-аппе открывает чат, на сайте показывает карточку
       document.getElementById('modalContactBtn').onclick = () => {
         if (!currentObj) return;
         if (typeof gtag !== 'undefined') gtag('event', 'contact_broker', { event_category: 'conversion', event_label: currentObj.title });
@@ -390,8 +388,8 @@
           tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
         } else if (navigator.share) {
           navigator.share({title: 'ГАБ Объект', text, url: link}).catch(() => copyLink(objId));
-        } else { copyLink(objId); }      };
-
+        } else { copyLink(objId); }
+      };
       document.getElementById('calcBtn').onclick = () => {
         const p = parseFloat(document.getElementById('calcPrice').value) || 0;
         const r = parseFloat(document.getElementById('calcRent').value) || 0;
@@ -439,9 +437,9 @@
           handleStartParam();
         } catch (e) {
           if (!isBackground && objects.length === 0) {
-            document.getElementById('objectsList').innerHTML = `<div class="error">❌ Ошибка сети</div>`;          }
-        }
-      };
+            document.getElementById('objectsList').innerHTML = `<div class="error">❌ Ошибка сети</div>`;
+          }
+        }      };
 
       window.addEventListener('DOMContentLoaded', () => {
         // Ожидание клика на кнопку старта
