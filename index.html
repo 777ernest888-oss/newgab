@@ -30,50 +30,11 @@
       overflow-y: auto;
       overflow-x: hidden;
     }
-    .hero-img {
-      width: 100%;
-      max-width: 750px;
-      height: auto;
-      margin: 0 auto;
-      display: block;
-      flex-shrink: 0;
-    }
-    .hero-content {
-      padding: 24px 20px 40px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      justify-content: center;
-    }
-    .hero-title {      font-size: 32px;
-      font-weight: 800;
-      margin: 0 0 12px 0;
-      color: #FFFFFF;
-      line-height: 1.2;
-    }
-    .hero-subtitle {
-      font-size: 18px;
-      color: #FFFFFF;
-      margin: 0 0 32px 0;
-      line-height: 1.5;
-      opacity: 0.9;
-    }
-    .hero-btn {
-      width: 100%;
-      max-width: 400px;
-      padding: 18px 24px;
-      background: #FF3B30;
-      color: #FFFFFF;
-      border: none;
-      border-radius: 0;
-      font-size: 20px;
-      font-weight: 700;
-      cursor: pointer;
-      box-shadow: 0 6px 20px rgba(255, 59, 48, 0.4);
-      text-transform: uppercase;
-    }
+    .hero-img { width: 100%; max-width: 750px; height: auto; margin: 0 auto; display: block; flex-shrink: 0; }
+    .hero-content { padding: 24px 20px 40px; flex: 1; display: flex; flex-direction: column; align-items: center; text-align: center; justify-content: center; }
+    .hero-title { font-size: 32px; font-weight: 800; margin: 0 0 12px 0; color: #FFFFFF; line-height: 1.2; }
+    .hero-subtitle { font-size: 18px; color: #FFFFFF; margin: 0 0 32px 0; line-height: 1.5; opacity: 0.9; }
+    .hero-btn { width: 100%; max-width: 400px; padding: 18px 24px; background: #FF3B30; color: #FFFFFF; border: none; border-radius: 0; font-size: 20px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(255, 59, 48, 0.4); text-transform: uppercase; }
     .hero-btn:active { transform: scale(0.97); opacity: 0.95; }
     #mainApp { display: none; opacity: 0; transition: opacity 0.3s ease; min-height: 100vh; }
   </style>
@@ -86,8 +47,7 @@
       <h1 class="hero-title">ГАБ Калькулятор</h1>
       <p class="hero-subtitle">Готовый арендный бизнес для пассивного дохода.<br>Объекты с доходностью от 10% годовых.</p>
       <button id="startBtn" class="hero-btn">🔍 Выбрать ГАБ</button>
-    </div>
-  </div>
+    </div>  </div>
 
   <div id="mainApp">
     <div class="container">
@@ -96,7 +56,8 @@
           <h1 style="font-size:20px;">ГАБ Калькулятор</h1>
           <button id="backToStartBtn" style="background:none;border:none;color:var(--btn-bg);font-size:14px;font-weight:600;cursor:pointer;">🏠 Главная</button>
         </div>
-        <p class="hint" style="font-size:13px;">Подбор бизнеса для пассивного дохода</p>      </header>
+        <p class="hint" style="font-size:13px;">Подбор бизнеса для пассивного дохода</p>
+      </header>
 
       <section class="filters">
         <label>Город
@@ -135,8 +96,7 @@
           <div class="res-row"><span>Доходность:</span><span id="resYield">—</span></div>
           <div class="res-row"><span>Окупаемость:</span><span id="resPayback">—</span></div>
           <button class="tg-btn" id="shareCalcBtn" style="margin-top:12px;display:none">↗️ Поделиться расчётом</button>
-        </div>
-        <div id="selectedObject" class="hidden" style="margin-top:12px;padding:12px;background:var(--secondary-bg);border-radius:10px">
+        </div>        <div id="selectedObject" class="hidden" style="margin-top:12px;padding:12px;background:var(--secondary-bg);border-radius:10px">
           <strong id="selName"></strong><br><small id="selLoc" style="color:var(--hint)"></small>
         </div>
       </section>
@@ -145,7 +105,8 @@
     </div>
 
     <div id="modalOverlay" class="modal-overlay">
-      <div class="modal">        <button class="modal-close" id="closeModalBtn">×</button>
+      <div class="modal">
+        <button class="modal-close" id="closeModalBtn">×</button>
         <div style="width:100%;height:200px;border-radius:12px;margin-bottom:12px;overflow:hidden;position:relative;background:linear-gradient(135deg,#3390ec,#2563eb);">
           <img id="modalImg" src="" alt="" style="width:100%;height:100%;object-fit:cover;display:none;" />
           <div id="modalPlaceholder" style="position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-family:system-ui,-apple-system,sans-serif;text-align:center;padding:0 16px;">
@@ -184,20 +145,17 @@
   </div>
 
   <div id="toast" class="toast hidden"></div>
-
   <script>
     (function() {
       'use strict';
       const BROKER_PHONE = '+79312656800';
       const BROKER_TG = 'ernest_812';
-     
-      // ✅ ИСПРАВЛЕНО: отдельная переменная для бота
       const BOT_USERNAME = 'newgab_bot';
       const MINI_APP_URL = `https://t.me/${BOT_USERNAME}/app`;
-            const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
+      const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
       const SHEET_NAME = 'Sheet1';
       const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-      const CACHE_KEY = 'gab_cache_v15';
+      const CACHE_KEY = 'gab_cache_v16';
       const CACHE_TTL = 6 * 60 * 60 * 1000;
 
       let tg = null, isInTelegram = false;
@@ -229,25 +187,53 @@
       };
 
       let objects = [], filtered = [], currentObj = null;
+      let targetObjId = null;
       const calcYield = (p, r) => (p && r && p > 0) ? (r * 12 / p) * 100 : 0;
+
+      // ✅ Раннее определение параметра из ссылки
+      const getStartParam = () => {
+        try {
+          if (window.Telegram?.WebApp?.initDataUnsafe?.start_param) {
+            return window.Telegram.WebApp.initDataUnsafe.start_param;          }
+        } catch(e) {}
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get('startapp');
+      };
 
       function backToStart() {
         document.getElementById('startScreen').style.display = 'flex';
         document.getElementById('mainApp').style.display = 'none';
         closeModal();
         window.scrollTo(0, 0);
+        targetObjId = null; // сбрасываем цель при возврате
       }
       window.backToStart = backToStart;
 
-      document.getElementById('startBtn').onclick = () => {
+      // ✅ Исправленная кнопка старта с ожиданием данных
+      document.getElementById('startBtn').onclick = async () => {
         const startScreen = document.getElementById('startScreen');
         const mainApp = document.getElementById('mainApp');
+       
         startScreen.style.opacity = '0';
-        setTimeout(() => {          startScreen.style.display = 'none';
+        setTimeout(async () => {
+          startScreen.style.display = 'none';
           mainApp.style.display = 'block';
           setTimeout(() => mainApp.style.opacity = '1', 50);
-          loadData();
-          if (typeof gtag !== 'undefined') gtag('event', 'open_calculator', { event_category: 'engagement' });
+         
+          await loadData(); // Ждём загрузку базы
+         
+          // ✅ Если был передан ID объекта, открываем модалку ПОСЛЕ загрузки
+          if (targetObjId) {
+            setTimeout(() => {
+              const obj = objects.find(o => o.id == targetObjId);
+              if (obj) {
+                openModal(obj.id);
+                if (typeof gtag !== 'undefined') gtag('event', 'deep_link_open', { event_category: 'engagement', event_label: obj.title });
+              } else {
+                showToast('⚠️ Объект не найден или удалён');
+              }
+            }, 400);
+          }
         }, 300);
       };
 
@@ -257,8 +243,7 @@
         try {
           const c = JSON.parse(localStorage.getItem(CACHE_KEY));
           return (c && Date.now() - c.t < CACHE_TTL) ? c.d : null;
-        } catch { return null; }
-      };
+        } catch { return null; }      };
       const saveCache = d => { try { localStorage.setItem(CACHE_KEY, JSON.stringify({d, t: Date.now()})); } catch{} };
 
       const renderList = () => {
@@ -283,17 +268,14 @@
       };
 
       const handleStartParam = () => {
-        let param = null;
-        if (isInTelegram && tg.initDataUnsafe?.start_param) param = tg.initDataUnsafe.start_param;
-        else { const urlParams = new URLSearchParams(window.location.search); param = urlParams.get('startapp'); }
+        const param = getStartParam();
         if (param && param.startsWith('obj_')) {
-          setTimeout(() => {
-            const obj = objects.find(o => o.id == param.replace('obj_', ''));
-            if (obj) {
-              if (typeof gtag !== 'undefined') gtag('event', 'view_object', { event_category: 'engagement', event_label: obj.title });
-              openModal(obj.id);
-            }          }, 200);
+          targetObjId = param.replace('obj_', '');
+          // Если параметр есть, сразу запускаем процесс
+          document.getElementById('startBtn').click();
+          return true;
         }
+        return false;
       };
 
       document.getElementById('objectsList').addEventListener('click', e => {
@@ -310,8 +292,7 @@
       });
 
       const modalOverlay = document.getElementById('modalOverlay');
-      const contactCard = document.getElementById('contactCard');
-     
+      const contactCard = document.getElementById('contactCard');     
       const openModal = id => {
         const obj = objects.find(o => o.id == id);
         if (!obj) return;
@@ -341,6 +322,7 @@
       document.getElementById('closeModalBtn').onclick = closeModal;
       modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) closeModal(); });
       window.addEventListener('popstate', () => { if(modalOverlay.classList.contains('active')) closeModal(); });
+
       document.getElementById('modalCalcBtn').onclick = () => {
         if (!currentObj) return;
         const p = currentObj.price, r = currentObj.rent;
@@ -359,7 +341,6 @@
 
       document.getElementById('modalShareBtn').onclick = () => { if (currentObj) shareObject(currentObj); };
       document.getElementById('modalCopyLinkBtn').onclick = () => { if (currentObj) copyLink(currentObj.id); };
-
       document.getElementById('modalContactBtn').onclick = () => {
         if (!currentObj) return;
         if (typeof gtag !== 'undefined') gtag('event', 'contact_broker', { event_category: 'conversion', event_label: currentObj.title });
@@ -390,6 +371,7 @@
           navigator.share({title: 'ГАБ Объект', text, url: link}).catch(() => copyLink(objId));
         } else { copyLink(objId); }
       };
+
       document.getElementById('calcBtn').onclick = () => {
         const p = parseFloat(document.getElementById('calcPrice').value) || 0;
         const r = parseFloat(document.getElementById('calcRent').value) || 0;
@@ -408,13 +390,18 @@
       };
 
       ['cityFilter', 'typeFilter', 'yieldFilter'].forEach(id => {
-        document.getElementById(id).addEventListener('input', renderList);
-      });
+        document.getElementById(id).addEventListener('input', renderList);      });
 
       const loadData = async () => {
         const cached = getCache();
-        if (cached) { objects = cached; filtered = [...objects]; renderList(); showToast('✅ Загружено из кэша'); handleStartParam(); fetchSheetData(true); return; }
-        document.getElementById('objectsList').innerHTML = '<div class="loading">⏳ Загрузка...</div>';
+        if (cached) {
+          objects = cached;
+          filtered = [...objects];
+          renderList();
+          showToast('✅ Загружено из кэша');
+          return;
+        }
+        document.getElementById('objectsList').innerHTML = '<div class="loading">⏳ Загрузка объектов...</div>';
         await fetchSheetData(false);
       };
 
@@ -434,15 +421,16 @@
           });
           saveCache(objects); filtered = [...objects]; renderList();
           if (!isBackground) showToast('✅ Загружено ' + objects.length + ' объектов');
-          handleStartParam();
         } catch (e) {
           if (!isBackground && objects.length === 0) {
-            document.getElementById('objectsList').innerHTML = `<div class="error">❌ Ошибка сети</div>`;
+            document.getElementById('objectsList').innerHTML = `<div class="error">❌ Ошибка сети. Проверьте интернет.</div>`;
           }
-        }      };
+        }
+      };
 
       window.addEventListener('DOMContentLoaded', () => {
-        // Ожидание клика на кнопку старта
+        // ✅ Проверяем ссылку при загрузке страницы
+        handleStartParam();
       });
     })();
   </script>
