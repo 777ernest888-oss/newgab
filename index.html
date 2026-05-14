@@ -8,22 +8,13 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="dns-prefetch" href="https://docs.google.com" />
  
-  <!-- ✅ АНАЛИТИКА: Простой счётчик (не ломает код) -->
+  <!-- ✅ Google Analytics 4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-JSDYGVPTMJ"></script>
   <script>
-    // Считаем открытия калькулятора
-    window.addEventListener('DOMContentLoaded', () => {
-      const openCount = localStorage.getItem('gab_opens') || '0';
-      const newCount = parseInt(openCount) + 1;
-      localStorage.setItem('gab_opens', newCount);
-     
-      // Логируем в консоль (для тебя)
-      console.log(`📊 Калькулятор открыт в ${newCount} раз`);
-     
-      // Отправляем событие в Telegram (если это мини-апп)
-      if (window.Telegram?.WebApp?.initData) {
-        console.log('📱 Открыто из Telegram Mini App');
-      }
-    });
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-JSDYGVPTMJ');
   </script>
  
   <style>
@@ -47,7 +38,8 @@
       display: block;
       flex-shrink: 0;
     }
-    .hero-content {      padding: 24px 20px 40px;
+    .hero-content {
+      padding: 24px 20px 40px;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -55,8 +47,7 @@
       text-align: center;
       justify-content: center;
     }
-    .hero-title {
-      font-size: 32px;
+    .hero-title {      font-size: 32px;
       font-weight: 800;
       margin: 0 0 12px 0;
       color: #FFFFFF;
@@ -88,6 +79,8 @@
   </style>
 </head>
 <body style="margin:0; padding:0;">
+ 
+  <!-- СТАРТОВЫЙ ЭКРАН -->
   <div id="startScreen">
     <img src="hero.png" alt="ГАБ Калькулятор" class="hero-img" onerror="this.style.display='none'; this.parentElement.style.background='#2D35A4'" />
     <div class="hero-content">
@@ -96,13 +89,14 @@
       <button id="startBtn" class="hero-btn">🔍 Выбрать ГАБ</button>
     </div>
   </div>
+
+  <!-- ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
   <div id="mainApp">
     <div class="container">
       <header>
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <h1 style="font-size:20px;">ГАБ Калькулятор</h1>
-          <button id="backToStartBtn" style="background:none;border:none;color:var(--btn-bg);font-size:14px;font-weight:600;cursor:pointer;">🏠 Главная</button>
-        </div>
+          <button id="backToStartBtn" style="background:none;border:none;color:var(--btn-bg);font-size:14px;font-weight:600;cursor:pointer;">🏠 Главная</button>        </div>
         <p class="hint" style="font-size:13px;">Подбор бизнеса для пассивного дохода</p>
       </header>
 
@@ -145,12 +139,13 @@
           <button class="tg-btn" id="shareCalcBtn" style="margin-top:12px;display:none">↗️ Поделиться расчётом</button>
         </div>
         <div id="selectedObject" class="hidden" style="margin-top:12px;padding:12px;background:var(--secondary-bg);border-radius:10px">
-          <strong id="selName"></strong><br><small id="selLoc" style="color:var(--hint)"></small>        </div>
+          <strong id="selName"></strong><br><small id="selLoc" style="color:var(--hint)"></small>
+        </div>
       </section>
 
       <section id="objectsList" class="list"><div class="loading">⏳ Загружаем объекты...</div></section>
     </div>
-
+    <!-- МОДАЛЬНОЕ ОКНО -->
     <div id="modalOverlay" class="modal-overlay">
       <div class="modal">
         <button class="modal-close" id="closeModalBtn">×</button>
@@ -194,15 +189,15 @@
   <div id="toast" class="toast hidden"></div>
 
   <script>
-    (function() {      'use strict';
+    (function() {
+      'use strict';
       const BROKER_PHONE = '+79312656800';
       const BROKER_TG = 'ernest_812';
       const BOT_USERNAME = BROKER_TG;
-      const MINI_APP_URL = `https://t.me/${BOT_USERNAME}/app`;
-      const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
+      const MINI_APP_URL = `https://t.me/${BOT_USERNAME}/app`;      const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
       const SHEET_NAME = 'Sheet1';
       const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-      const CACHE_KEY = 'gab_cache_v13';
+      const CACHE_KEY = 'gab_cache_v14';
       const CACHE_TTL = 6 * 60 * 60 * 1000;
 
       let tg = null, isInTelegram = false;
@@ -221,6 +216,7 @@
         }
       } catch(e) {}
 
+      // Устанавливаем контакты в DOM
       document.getElementById('contactPhone').textContent = BROKER_PHONE;
       document.getElementById('contactPhone').href = `tel:${BROKER_PHONE}`;
       document.getElementById('contactTg').textContent = `@${BROKER_TG}`;
@@ -243,15 +239,16 @@
         window.scrollTo(0, 0);
       }
       window.backToStart = backToStart;
+
       document.getElementById('startBtn').onclick = () => {
         const startScreen = document.getElementById('startScreen');
         const mainApp = document.getElementById('mainApp');
-        startScreen.style.opacity = '0';
-        setTimeout(() => {
+        startScreen.style.opacity = '0';        setTimeout(() => {
           startScreen.style.display = 'none';
           mainApp.style.display = 'block';
           setTimeout(() => mainApp.style.opacity = '1', 50);
           loadData();
+          if (typeof gtag !== 'undefined') gtag('event', 'open_calculator', { event_category: 'engagement' });
         }, 300);
       };
 
@@ -292,10 +289,10 @@
         else { const urlParams = new URLSearchParams(window.location.search); param = urlParams.get('startapp'); }
         if (param && param.startsWith('obj_')) {
           setTimeout(() => {
-            const obj = objects.find(o => o.id == param.replace('obj_', ''));             if (obj) {
-              console.log(`📊 Открыт объект: ${obj.title}`);
-              openModal(obj.id);
-            }
+            const obj = objects.find(o => o.id == param.replace('obj_', ''));
+            if (obj) {
+              if (typeof gtag !== 'undefined') gtag('event', 'view_object', { event_category: 'engagement', event_label: obj.title });
+              openModal(obj.id);            }
           }, 200);
         }
       };
@@ -304,11 +301,11 @@
         const card = e.target.closest('.card');
         const copyBtn = e.target.closest('.btn-copy');
         const shareBtn = e.target.closest('.btn-share');
-        if (copyBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == copyBtn.dataset.id); if (obj) { console.log('📋 Скопирована ссылка:', obj.title); copyLink(obj.id); } return; }
-        if (shareBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == shareBtn.dataset.id); if (obj) { console.log('↗️ Поделиться:', obj.title); shareObject(obj); } return; }
+        if (copyBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == copyBtn.dataset.id); if (obj) copyLink(obj.id); return; }
+        if (shareBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == shareBtn.dataset.id); if (obj) shareObject(obj); return; }
         if (card) {
           const obj = objects.find(o => o.id == card.dataset.id);
-          console.log('👁 Просмотр объекта:', obj?.title);
+          if (typeof gtag !== 'undefined') gtag('event', 'view_object', { event_category: 'engagement', event_label: obj?.title });
           openModal(card.dataset.id);
         }
       });
@@ -339,13 +336,12 @@
         document.getElementById('modalCalcResult').classList.add('hidden');
         modalOverlay.classList.add('active');
         history.pushState({m:1}, '', '#obj-'+id);
-        console.log('💬 Открыта модалка:', obj.title);
       };
+
       const closeModal = () => { modalOverlay.classList.remove('active'); if (history.state?.m) history.back(); };
       document.getElementById('closeModalBtn').onclick = closeModal;
       modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) closeModal(); });
       window.addEventListener('popstate', () => { if(modalOverlay.classList.contains('active')) closeModal(); });
-
       document.getElementById('modalCalcBtn').onclick = () => {
         if (!currentObj) return;
         const p = currentObj.price, r = currentObj.rent;
@@ -354,7 +350,7 @@
         document.getElementById('mResYield').textContent = (annual / p * 100).toFixed(2) + '%';
         document.getElementById('mResPayback').textContent = (p / annual).toFixed(1) + ' лет';
         document.getElementById('modalCalcResult').classList.remove('hidden');
-        console.log('🧮 Рассчитана доходность:', currentObj.title);
+        if (typeof gtag !== 'undefined') gtag('event', 'calculate_yield', { event_category: 'engagement', event_label: currentObj.title });
       };
 
       document.getElementById('modalShareCalcBtn').onclick = () => {
@@ -362,16 +358,16 @@
         shareLink(currentObj.id, txt);
       };
 
-      document.getElementById('modalShareBtn').onclick = () => { if (currentObj) { console.log('↗️ Поделиться объектом:', currentObj.title); shareObject(currentObj); } };
-      document.getElementById('modalCopyLinkBtn').onclick = () => { if (currentObj) { console.log('📋 Копировать ссылку:', currentObj.title); copyLink(currentObj.id); } };
+      document.getElementById('modalShareBtn').onclick = () => { if (currentObj) shareObject(currentObj); };
+      document.getElementById('modalCopyLinkBtn').onclick = () => { if (currentObj) copyLink(currentObj.id); };
 
+      // Кнопка связаться: в мини-аппе открывает чат, на сайте показывает карточку
       document.getElementById('modalContactBtn').onclick = () => {
         if (!currentObj) return;
+        if (typeof gtag !== 'undefined') gtag('event', 'contact_broker', { event_category: 'conversion', event_label: currentObj.title });
         if (isInTelegram && tg && tg.openLink) {
-          console.log('📞 Связаться (мини-апп):', currentObj.title);
           tg.openLink(`https://t.me/${BROKER_TG}`);
         } else {
-          console.log('📞 Показать контакты (сайт):', currentObj.title);
           contactCard.classList.toggle('hidden');
         }
       };
@@ -390,11 +386,11 @@
 
       const shareLink = (objId, text) => {
         const link = `${MINI_APP_URL}?startapp=obj_${objId}`;
-        if (isInTelegram && tg && tg.openLink) {          tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+        if (isInTelegram && tg && tg.openLink) {
+          tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
         } else if (navigator.share) {
           navigator.share({title: 'ГАБ Объект', text, url: link}).catch(() => copyLink(objId));
-        } else { copyLink(objId); }
-      };
+        } else { copyLink(objId); }      };
 
       document.getElementById('calcBtn').onclick = () => {
         const p = parseFloat(document.getElementById('calcPrice').value) || 0;
@@ -406,7 +402,6 @@
         document.getElementById('resPayback').textContent = (p / annual).toFixed(1) + ' лет';
         document.getElementById('calcResult').classList.remove('hidden');
         document.getElementById('shareCalcBtn').style.display = 'block';
-        console.log('🧮 Рассчитан кастомный ГАБ');
       };
 
       document.getElementById('shareCalcBtn').onclick = () => {
@@ -439,17 +434,17 @@
               photo_url: r.c[8]?.v || '', description: r.c[9]?.v || ''
             };
           });
-          saveCache(objects); filtered = [...objects]; renderList();          if (!isBackground) showToast('✅ Загружено ' + objects.length + ' объектов');
+          saveCache(objects); filtered = [...objects]; renderList();
+          if (!isBackground) showToast('✅ Загружено ' + objects.length + ' объектов');
           handleStartParam();
         } catch (e) {
           if (!isBackground && objects.length === 0) {
-            document.getElementById('objectsList').innerHTML = `<div class="error">❌ Ошибка сети</div>`;
-          }
+            document.getElementById('objectsList').innerHTML = `<div class="error">❌ Ошибка сети</div>`;          }
         }
       };
 
       window.addEventListener('DOMContentLoaded', () => {
-        // Ждём клика на кнопку
+        // Ожидание клика на кнопку старта
       });
     })();
   </script>
