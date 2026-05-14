@@ -95,9 +95,8 @@
           <div class="res-row"><span>Доход в месяц:</span><span id="resMonthly">—</span></div>
           <div class="res-row"><span>Доходность:</span><span id="resYield">—</span></div>
           <div class="res-row"><span>Окупаемость:</span><span id="resPayback">—</span></div>
-          <button class="tg-btn" id="shareCalcBtn" style="margin-top:12px;display:none">↗️ Поделиться расчётом</button>
-        </div>        <div id="selectedObject" class="hidden" style="margin-top:12px;padding:12px;background:var(--secondary-bg);border-radius:10px">
-          <strong id="selName"></strong><br><small id="selLoc" style="color:var(--hint)"></small>
+        </div>
+        <div id="selectedObject" class="hidden" style="margin-top:12px;padding:12px;background:var(--secondary-bg);border-radius:10px">          <strong id="selName"></strong><br><small id="selLoc" style="color:var(--hint)"></small>
         </div>
       </section>
 
@@ -138,16 +137,15 @@
           <div style="font-size:14px;margin-bottom:4px;">💰 Доход: <strong id="mResMonthly"></strong></div>
           <div style="font-size:14px;margin-bottom:4px;">📈 Доходность: <strong id="mResYield"></strong></div>
           <div style="font-size:14px;margin-bottom:12px;">⏳ Окупаемость: <strong id="mResPayback"></strong></div>
-          <button id="modalShareCalcBtn" style="width:100%;padding:12px;background:var(--btn-bg,#3390ec);color:#fff;border:none;border-radius:8px;font-size:15px;cursor:pointer;">↗️ Поделиться расчётом</button>
         </div>
       </div>
     </div>
   </div>
 
   <div id="toast" class="toast hidden"></div>
+
   <script>
-    (function() {
-      'use strict';
+    (function() {      'use strict';
       const BROKER_PHONE = '+79312656800';
       const BROKER_TG = 'ernest_812';
       const BOT_USERNAME = 'newgab_bot';
@@ -155,7 +153,7 @@
       const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
       const SHEET_NAME = 'Sheet1';
       const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-      const CACHE_KEY = 'gab_cache_v17';
+      const CACHE_KEY = 'gab_cache_v18';
       const CACHE_TTL = 6 * 60 * 60 * 1000;
 
       let tg = null, isInTelegram = false;
@@ -189,24 +187,19 @@
       let objects = [], filtered = [], currentObj = null;
       const calcYield = (p, r) => (p && r && p > 0) ? (r * 12 / p) * 100 : 0;
 
-      // ✅ Получаем start_param из Telegram или URL
       const getTargetObjectId = () => {
         try {
-          // Из Telegram Mini App
           if (window.Telegram?.WebApp?.initDataUnsafe?.start_param) {
-            const param = window.Telegram.WebApp.initDataUnsafe.start_param;            if (param && param.startsWith('obj_')) {
+            const param = window.Telegram.WebApp.initDataUnsafe.start_param;
+            if (param && param.startsWith('obj_')) {
               return param.replace('obj_', '');
             }
-          }
-        } catch(e) {}
-       
-        // Из URL query string
+          }        } catch(e) {}
         const urlParams = new URLSearchParams(window.location.search);
         const param = urlParams.get('startapp');
         if (param && param.startsWith('obj_')) {
           return param.replace('obj_', '');
         }
-       
         return null;
       };
 
@@ -218,55 +211,39 @@
       }
       window.backToStart = backToStart;
 
-      // ✅ Функция запуска приложения с автоматическим открытием объекта
       const launchApp = async (targetObjId = null) => {
         const startScreen = document.getElementById('startScreen');
         const mainApp = document.getElementById('mainApp');
-       
-        // Показываем основное приложение
         startScreen.style.opacity = '0';
         setTimeout(async () => {
           startScreen.style.display = 'none';
           mainApp.style.display = 'block';
           setTimeout(() => mainApp.style.opacity = '1', 50);
-         
-          // Загружаем данные
           await loadData();
-         
-          // Если есть ID объекта, открываем его ПОСЛЕ загрузки
           if (targetObjId) {
             setTimeout(() => {
               const obj = objects.find(o => o.id == targetObjId);
               if (obj) {
                 openModal(obj.id);
                 if (typeof gtag !== 'undefined') {
-                  gtag('event', 'deep_link_open', {
-                    event_category: 'engagement',
-                    event_label: obj.title
-                  });                }
-                console.log('✅ Открыт объект из ссылки:', obj.title);
+                  gtag('event', 'deep_link_open', { event_category: 'engagement', event_label: obj.title });
+                }
               } else {
                 showToast('⚠️ Объект не найден или удалён');
-                console.warn('❌ Объект не найден:', targetObjId);
               }
             }, 500);
           }
         }, 300);
       };
 
-      // ✅ Кнопка "Выбрать ГАБ" - обычный запуск без объекта
-      document.getElementById('startBtn').onclick = () => {
-        launchApp(null);
-      };
-
+      document.getElementById('startBtn').onclick = () => { launchApp(null); };
       document.getElementById('backToStartBtn').addEventListener('click', backToStart);
 
       const getCache = () => {
         try {
           const c = JSON.parse(localStorage.getItem(CACHE_KEY));
           return (c && Date.now() - c.t < CACHE_TTL) ? c.d : null;
-        } catch { return null; }
-      };
+        } catch { return null; }      };
       const saveCache = d => { try { localStorage.setItem(CACHE_KEY, JSON.stringify({d, t: Date.now()})); } catch{} };
 
       const renderList = () => {
@@ -292,7 +269,8 @@
 
       document.getElementById('objectsList').addEventListener('click', e => {
         const card = e.target.closest('.card');
-        const copyBtn = e.target.closest('.btn-copy');        const shareBtn = e.target.closest('.btn-share');
+        const copyBtn = e.target.closest('.btn-copy');
+        const shareBtn = e.target.closest('.btn-share');
         if (copyBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == copyBtn.dataset.id); if (obj) copyLink(obj.id); return; }
         if (shareBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == shareBtn.dataset.id); if (obj) shareObject(obj); return; }
         if (card) {
@@ -314,8 +292,7 @@
         const ph = document.getElementById('modalPlaceholder');
         if (obj.photo_url?.trim()) {
           img.src = obj.photo_url; img.style.display = 'block'; ph.style.display = 'none';
-          img.onerror = () => { img.style.display = 'none'; ph.style.display = 'flex'; };
-        } else { img.style.display = 'none'; ph.style.display = 'flex'; }
+          img.onerror = () => { img.style.display = 'none'; ph.style.display = 'flex'; };        } else { img.style.display = 'none'; ph.style.display = 'flex'; }
         document.getElementById('modalTitle').textContent = obj.title;
         document.getElementById('modalPrice').textContent = fmt(obj.price) + ' ₽';
         document.getElementById('modalCity').textContent = obj.city;
@@ -341,13 +318,9 @@
         const annual = r * 12;
         document.getElementById('mResMonthly').textContent = fmt(r) + ' ₽';
         document.getElementById('mResYield').textContent = (annual / p * 100).toFixed(2) + '%';
-        document.getElementById('mResPayback').textContent = (p / annual).toFixed(1) + ' лет';        document.getElementById('modalCalcResult').classList.remove('hidden');
+        document.getElementById('mResPayback').textContent = (p / annual).toFixed(1) + ' лет';
+        document.getElementById('modalCalcResult').classList.remove('hidden');
         if (typeof gtag !== 'undefined') gtag('event', 'calculate_yield', { event_category: 'engagement', event_label: currentObj.title });
-      };
-
-      document.getElementById('modalShareCalcBtn').onclick = () => {
-        const txt = `🧮 Расчёт: ${currentObj.title}\n💰 ${document.getElementById('mResMonthly').textContent}\n📈 ${document.getElementById('mResYield').textContent}\n👇 Нажмите «Открыть» на превью`;
-        shareLink(currentObj.id, txt);
       };
 
       document.getElementById('modalShareBtn').onclick = () => { if (currentObj) shareObject(currentObj); };
@@ -369,7 +342,6 @@
         const link = `${MINI_APP_URL}?startapp=obj_${objId}`;
         navigator.clipboard.writeText(link).then(() => showToast('🔗 Ссылка скопирована'));
       };
-
       const shareObject = obj => {
         const text = `🏠 ${obj.title}\n💰 ${fmt(obj.price)} ₽\n📈 ${obj.yield.toFixed(1)}% доходность\n👇 Нажмите «Открыть» на превью ниже`;
         shareLink(obj.id, text);
@@ -390,14 +362,9 @@
         if (p <= 0 || r <= 0) return showToast('Введите цену и аренду');
         const annual = r * 12;
         document.getElementById('resMonthly').textContent = fmt(r) + ' ₽';
-        document.getElementById('resYield').textContent = (annual / p * 100).toFixed(2) + '%';        document.getElementById('resPayback').textContent = (p / annual).toFixed(1) + ' лет';
+        document.getElementById('resYield').textContent = (annual / p * 100).toFixed(2) + '%';
+        document.getElementById('resPayback').textContent = (p / annual).toFixed(1) + ' лет';
         document.getElementById('calcResult').classList.remove('hidden');
-        document.getElementById('shareCalcBtn').style.display = 'block';
-      };
-
-      document.getElementById('shareCalcBtn').onclick = () => {
-        const txt = `🧮 Расчёт ГАБ\n💰 ${document.getElementById('resMonthly').textContent}\n📈 ${document.getElementById('resYield').textContent}\n👇 Нажмите «Открыть» на превью`;
-        shareLink(null, txt);
       };
 
       ['cityFilter', 'typeFilter', 'yieldFilter'].forEach(id => {
@@ -406,13 +373,7 @@
 
       const loadData = async () => {
         const cached = getCache();
-        if (cached) {
-          objects = cached;
-          filtered = [...objects];
-          renderList();
-          showToast('✅ Загружено из кэша');
-          return;
-        }
+        if (cached) { objects = cached; filtered = [...objects]; renderList(); showToast('✅ Загружено из кэша'); return; }
         document.getElementById('objectsList').innerHTML = '<div class="loading">⏳ Загрузка объектов...</div>';
         await fetchSheetData(false);
       };
@@ -429,8 +390,7 @@
               price: p, rent, yield: sy > 0 ? sy : calcYield(p, rent),
               city: r.c[6]?.v || '', location: r.c[7]?.v || '',
               photo_url: r.c[8]?.v || '', description: r.c[9]?.v || ''
-            };
-          });
+            };          });
           saveCache(objects); filtered = [...objects]; renderList();
           if (!isBackground) showToast('✅ Загружено ' + objects.length + ' объектов');
         } catch (e) {
@@ -439,16 +399,10 @@
           }
         }
       };
-      // ✅ ГЛАВНОЕ: Проверяем ссылку при загрузке страницы
+
       window.addEventListener('DOMContentLoaded', () => {
         const targetObjId = getTargetObjectId();
-       
-        if (targetObjId) {
-          console.log('🎯 Найдена ссылка на объект:', targetObjId);
-          // ✅ Автоматически запускаем приложение и открываем объект
-          launchApp(targetObjId);
-        }
-        // Если параметра нет - ничего не делаем, ждём клика на кнопку
+        if (targetObjId) { launchApp(targetObjId); }
       });
     })();
   </script>
