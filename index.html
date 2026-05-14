@@ -11,55 +11,59 @@
     /* Стили для Стартового Экрана */
     #startScreen {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
+      top: 0; left: 0; right: 0; bottom: 0;
       width: 100vw;
       height: 100vh;
-      background: #29419E; /* Насыщенный синий */
+      background: #1E3A9E; /* Точно твой цвет с картинки! */
       z-index: 100;
       display: flex;
       flex-direction: column;
-      overflow: hidden;
+      overflow-y: auto;
+      overflow-x: hidden;
     }
+   
     .hero-img {
       width: 100%;
-      height: 45vh;
-      object-fit: cover;
+      max-width: 750px;
+      height: auto;
+      margin: 0 auto;
       display: block;
+      flex-shrink: 0;
     }
+
     .hero-content {
-      padding: 30px 24px;
+      padding: 24px 20px 40px;
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
       justify-content: center;
-      overflow-y: auto;
     }
+
     .hero-title {
       font-size: 32px;
       font-weight: 800;
-      margin: 0 0 16px 0;
+      margin: 0 0 12px 0;
       color: #FFFFFF;
       line-height: 1.2;
     }
     .hero-subtitle {
-      font-size: 18px;      color: #FFFFFF;
-      margin: 0 0 40px 0;
-      line-height: 1.6;
+      font-size: 18px;
+      color: #FFFFFF;
+      margin: 0 0 32px 0;
+      line-height: 1.5;
       opacity: 0.9;
     }
+
     .hero-btn {
       width: 100%;
       max-width: 400px;
       padding: 18px 24px;
-      background: #FF3B30; /* Красная кнопка */
+      background: #FF3B30;
       color: #FFFFFF;
       border: none;
-      border-radius: 0; /* 👈 ПРЯМЫЕ УГЛЫ */
+      border-radius: 0;
       font-size: 20px;
       font-weight: 700;
       cursor: pointer;
@@ -84,19 +88,19 @@
  
   <!-- 1. СТАРТОВЫЙ ЭКРАН -->
   <div id="startScreen">
-    <!-- Картинка hero.png -->
-    <img src="hero.png" alt="ГАБ Калькулятор" class="hero-img" onerror="this.style.display='none'; this.parentElement.style.background='#29419E'" />
+    <img src="hero.png" alt="ГАБ Калькулятор" class="hero-img" onerror="this.style.display='none'; this.parentElement.style.background='#1E3A9E'" />
+   
     <div class="hero-content">
       <h1 class="hero-title">ГАБ Калькулятор</h1>
       <p class="hero-subtitle">
         Готовый арендный бизнес для пассивного дохода.<br>
         Объекты с доходностью от 10% годовых.
       </p>
-      <button id="startBtn" class="hero-btn">🔍 Выбрать ГАБ</button>
-    </div>
+      <button id="startBtn" class="hero-btn">🔍 Выбрать ГАБ</button>    </div>
   </div>
 
-  <!-- 2. ОСНОВНОЕ ПРИЛОЖЕНИЕ -->  <div id="mainApp">
+  <!-- 2. ОСНОВНОЕ ПРИЛОЖЕНИЕ -->
+  <div id="mainApp">
     <div class="container">
       <header>
         <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -141,11 +145,11 @@
             <input type="number" id="calcRent" placeholder="40 000" />
           </label>
           <button class="tg-btn" id="calcBtn">Рассчитать</button>
-        </div>
-        <div id="calcResult" class="result hidden">
+        </div>        <div id="calcResult" class="result hidden">
           <div class="res-row"><span>Доход в месяц:</span><span id="resMonthly">—</span></div>
           <div class="res-row"><span>Доходность:</span><span id="resYield">—</span></div>
-          <div class="res-row"><span>Окупаемость:</span><span id="resPayback">—</span></div>          <button class="tg-btn" id="shareCalcBtn" style="margin-top:12px;display:none">↗️ Поделиться расчётом</button>
+          <div class="res-row"><span>Окупаемость:</span><span id="resPayback">—</span></div>
+          <button class="tg-btn" id="shareCalcBtn" style="margin-top:12px;display:none">↗️ Поделиться расчётом</button>
         </div>
         <div id="selectedObject" class="hidden" style="margin-top:12px;padding:12px;background:var(--secondary-bg);border-radius:10px">
           <strong id="selName"></strong><br>
@@ -190,11 +194,12 @@
         </div>
 
         <div style="display:flex;flex-direction:column;gap:10px;">
-          <button id="modalCalcBtn" class="tg-btn">💰 Рассчитать доходность</button>
+          <button id="modalCalcBtn" class="tg-btn">💰 Рассчитать доходность</button>          <!-- КНОПКА СВЯЗАТЬСЯ -->
           <button id="modalContactBtn" style="width:100%;padding:14px;background:var(--secondary-bg,#f0f2f5);color:var(--btn-bg,#3390ec);border:none;border-radius:10px;font-size:16px;font-weight:500;cursor:pointer;">📞 Связаться с брокером</button>
           <div style="display:flex;gap:10px;">
             <button id="modalCopyLinkBtn" style="flex:1;padding:12px;background:var(--secondary-bg,#f0f2f5);border:none;border-radius:8px;color:var(--btn-bg,#3390ec);font-weight:500;cursor:pointer;">🔗 Копировать</button>
-            <button id="modalShareBtn" style="flex:1;padding:12px;background:var(--secondary-bg,#f0f2f5);border:none;border-radius:8px;color:var(--btn-bg,#3390ec);font-weight:500;cursor:pointer;">↗️ Поделиться</button>          </div>
+            <button id="modalShareBtn" style="flex:1;padding:12px;background:var(--secondary-bg,#f0f2f5);border:none;border-radius:8px;color:var(--btn-bg,#3390ec);font-weight:500;cursor:pointer;">↗️ Поделиться</button>
+          </div>
         </div>
 
         <div id="modalCalcResult" class="hidden" style="margin-top:16px;padding:14px;background:var(--secondary-bg,#f5f5f5);border-radius:10px;border-left:4px solid var(--btn-bg,#3390ec);">
@@ -220,7 +225,7 @@
       const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
       const SHEET_NAME = 'Sheet1';
       const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-      const CACHE_KEY = 'gab_cache_v9';
+      const CACHE_KEY = 'gab_cache_v10';
       const CACHE_TTL = 6 * 60 * 60 * 1000;
 
       let tg = null, isInTelegram = false;
@@ -238,11 +243,11 @@
           }
         }
       } catch(e) {}
-
       document.getElementById('contactPhone').textContent = BROKER_PHONE;
       document.getElementById('contactPhone').href = `tel:${BROKER_PHONE.replace(/\D/g,'')}`;
       document.getElementById('contactTg').textContent = `@${BROKER_TG}`;
       document.getElementById('contactTg').href = `https://t.me/${BROKER_TG}`;
+
       const fmt = n => new Intl.NumberFormat('ru-RU').format(n || 0);
       const showToast = msg => {
         const t = document.getElementById('toast');
@@ -262,7 +267,6 @@
       document.getElementById('startBtn').onclick = () => {
         const startScreen = document.getElementById('startScreen');
         const mainApp = document.getElementById('mainApp');
-       
         startScreen.style.opacity = '0';
         setTimeout(() => {
           startScreen.style.display = 'none';
@@ -288,10 +292,10 @@
         document.getElementById('yieldValue').textContent = minY + '%';
 
         filtered = objects.filter(o =>
-          (!city || o.city.includes(city)) &&
-          (!type || o.type === type) &&
+          (!city || o.city.includes(city)) &&           (!type || o.type === type) &&
           o.yield >= minY
         );
+
         if (!filtered.length) {
           el.innerHTML = '<div class="empty">😕 Объекты не найдены</div>';
           return;
@@ -338,10 +342,10 @@
         if (shareBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == shareBtn.dataset.id); if (obj) shareObject(obj); return; }
         if (card) openModal(card.dataset.id);
       });
-
       const modalOverlay = document.getElementById('modalOverlay');
       const contactCard = document.getElementById('contactCard');
-            const openModal = id => {
+     
+      const openModal = id => {
         const obj = objects.find(o => o.id == id);
         if (!obj) return;
         currentObj = obj;
@@ -386,21 +390,32 @@
         const annual = r * 12;
         document.getElementById('mResMonthly').textContent = fmt(r) + ' ₽';
         document.getElementById('mResYield').textContent = (annual / p * 100).toFixed(2) + '%';
-        document.getElementById('mResPayback').textContent = (p / annual).toFixed(1) + ' лет';
-        document.getElementById('modalCalcResult').classList.remove('hidden');
+        document.getElementById('mResPayback').textContent = (p / annual).toFixed(1) + ' лет';        document.getElementById('modalCalcResult').classList.remove('hidden');
       };
 
-      document.getElementById('modalShareCalcBtn').onclick = () => {        const txt = `🧮 Расчёт: ${currentObj.title}\n💰 ${document.getElementById('mResMonthly').textContent}\n📈 ${document.getElementById('mResYield').textContent}\n👇 Нажмите «Открыть» на превью`;
+      document.getElementById('modalShareCalcBtn').onclick = () => {
+        const txt = `🧮 Расчёт: ${currentObj.title}\n💰 ${document.getElementById('mResMonthly').textContent}\n📈 ${document.getElementById('mResYield').textContent}\n👇 Нажмите «Открыть» на превью`;
         shareLink(currentObj.id, txt);
       };
 
       document.getElementById('modalShareBtn').onclick = () => { if (currentObj) shareObject(currentObj); };
       document.getElementById('modalCopyLinkBtn').onclick = () => { if (currentObj) copyLink(currentObj.id); };
 
-      document.getElementById('modalContactBtn').onclick = () => {
+      // ✅ ИСПРАВЛЕННАЯ КНОПКА СВЯЗАТЬСЯ
+      document.getElementById('modalContactBtn').onclick = (e) => {
+        e.preventDefault();
         if (!currentObj) return;
-        if (isInTelegram) { tg.openLink(`https://t.me/${BOT_USERNAME}`); }
-        else { contactCard.classList.toggle('hidden'); }
+        const link = `https://t.me/${BOT_USERNAME}`;
+       
+        try {
+          if (tg && tg.openLink) {
+            tg.openLink(link);
+          } else {
+            window.open(link, '_blank');
+          }
+        } catch (err) {
+          window.open(link, '_blank');
+        }
       };
 
       document.getElementById('hideContactBtn').onclick = () => { contactCard.classList.add('hidden'); };
@@ -417,7 +432,7 @@
 
       const shareLink = (objId, text) => {
         const link = `${MINI_APP_URL}?startapp=obj_${objId}`;
-        if (isInTelegram && tg) {
+        if (isInTelegram && tg && tg.openLink) {
           tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
         } else if (navigator.share) {
           navigator.share({title: 'ГАБ Объект', text, url: link}).catch(() => copyLink(objId));
@@ -425,7 +440,6 @@
           copyLink(objId);
         }
       };
-
       document.getElementById('calcBtn').onclick = () => {
         const p = parseFloat(document.getElementById('calcPrice').value) || 0;
         const r = parseFloat(document.getElementById('calcRent').value) || 0;
@@ -439,7 +453,8 @@
       };
 
       document.getElementById('shareCalcBtn').onclick = () => {
-        const txt = `🧮 Расчёт ГАБ\n💰 ${document.getElementById('resMonthly').textContent}\n📈 ${document.getElementById('resYield').textContent}\n👇 Нажмите «Открыть» на превью`;        shareLink(null, txt);
+        const txt = `🧮 Расчёт ГАБ\n💰 ${document.getElementById('resMonthly').textContent}\n📈 ${document.getElementById('resYield').textContent}\n👇 Нажмите «Открыть» на превью`;
+        shareLink(null, txt);
       };
 
       ['cityFilter', 'typeFilter', 'yieldFilter'].forEach(id => {
@@ -473,8 +488,7 @@
               photo_url: r.c[8]?.v || '', description: r.c[9]?.v || ''
             };
           });
-          saveCache(objects); filtered = [...objects]; renderList();
-          if (!isBackground) showToast('✅ Загружено ' + objects.length + ' объектов');
+          saveCache(objects); filtered = [...objects]; renderList();          if (!isBackground) showToast('✅ Загружено ' + objects.length + ' объектов');
           handleStartParam();
         } catch (e) {
           if (!isBackground && objects.length === 0) {
@@ -488,4 +502,5 @@
       });
     })();
   </script>
-</body></html>
+</body>
+</html>
