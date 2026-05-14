@@ -155,7 +155,7 @@
       const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
       const SHEET_NAME = 'Sheet1';
       const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${SHEET_NAME}`;
-      const CACHE_KEY = 'gab_cache_v16';
+      const CACHE_KEY = 'gab_cache_v17';
       const CACHE_TTL = 6 * 60 * 60 * 1000;
 
       let tg = null, isInTelegram = false;
@@ -187,17 +187,27 @@
       };
 
       let objects = [], filtered = [], currentObj = null;
-      let targetObjId = null;
       const calcYield = (p, r) => (p && r && p > 0) ? (r * 12 / p) * 100 : 0;
 
-      // ✅ Раннее определение параметра из ссылки
-      const getStartParam = () => {
+      // ✅ Получаем start_param из Telegram или URL
+      const getTargetObjectId = () => {
         try {
+          // Из Telegram Mini App
           if (window.Telegram?.WebApp?.initDataUnsafe?.start_param) {
-            return window.Telegram.WebApp.initDataUnsafe.start_param;          }
+            const param = window.Telegram.WebApp.initDataUnsafe.start_param;            if (param && param.startsWith('obj_')) {
+              return param.replace('obj_', '');
+            }
+          }
         } catch(e) {}
+       
+        // Из URL query string
         const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get('startapp');
+        const param = urlParams.get('startapp');
+        if (param && param.startsWith('obj_')) {
+          return param.replace('obj_', '');
+        }
+       
+        return null;
       };
 
       function backToStart() {
@@ -205,36 +215,48 @@
         document.getElementById('mainApp').style.display = 'none';
         closeModal();
         window.scrollTo(0, 0);
-        targetObjId = null; // сбрасываем цель при возврате
       }
       window.backToStart = backToStart;
 
-      // ✅ Исправленная кнопка старта с ожиданием данных
-      document.getElementById('startBtn').onclick = async () => {
+      // ✅ Функция запуска приложения с автоматическим открытием объекта
+      const launchApp = async (targetObjId = null) => {
         const startScreen = document.getElementById('startScreen');
         const mainApp = document.getElementById('mainApp');
        
+        // Показываем основное приложение
         startScreen.style.opacity = '0';
         setTimeout(async () => {
           startScreen.style.display = 'none';
           mainApp.style.display = 'block';
           setTimeout(() => mainApp.style.opacity = '1', 50);
          
-          await loadData(); // Ждём загрузку базы
+          // Загружаем данные
+          await loadData();
          
-          // ✅ Если был передан ID объекта, открываем модалку ПОСЛЕ загрузки
+          // Если есть ID объекта, открываем его ПОСЛЕ загрузки
           if (targetObjId) {
             setTimeout(() => {
               const obj = objects.find(o => o.id == targetObjId);
               if (obj) {
                 openModal(obj.id);
-                if (typeof gtag !== 'undefined') gtag('event', 'deep_link_open', { event_category: 'engagement', event_label: obj.title });
+                if (typeof gtag !== 'undefined') {
+                  gtag('event', 'deep_link_open', {
+                    event_category: 'engagement',
+                    event_label: obj.title
+                  });                }
+                console.log('✅ Открыт объект из ссылки:', obj.title);
               } else {
                 showToast('⚠️ Объект не найден или удалён');
+                console.warn('❌ Объект не найден:', targetObjId);
               }
-            }, 400);
+            }, 500);
           }
         }, 300);
+      };
+
+      // ✅ Кнопка "Выбрать ГАБ" - обычный запуск без объекта
+      document.getElementById('startBtn').onclick = () => {
+        launchApp(null);
       };
 
       document.getElementById('backToStartBtn').addEventListener('click', backToStart);
@@ -243,7 +265,8 @@
         try {
           const c = JSON.parse(localStorage.getItem(CACHE_KEY));
           return (c && Date.now() - c.t < CACHE_TTL) ? c.d : null;
-        } catch { return null; }      };
+        } catch { return null; }
+      };
       const saveCache = d => { try { localStorage.setItem(CACHE_KEY, JSON.stringify({d, t: Date.now()})); } catch{} };
 
       const renderList = () => {
@@ -267,21 +290,9 @@
           </div>`).join('');
       };
 
-      const handleStartParam = () => {
-        const param = getStartParam();
-        if (param && param.startsWith('obj_')) {
-          targetObjId = param.replace('obj_', '');
-          // Если параметр есть, сразу запускаем процесс
-          document.getElementById('startBtn').click();
-          return true;
-        }
-        return false;
-      };
-
       document.getElementById('objectsList').addEventListener('click', e => {
         const card = e.target.closest('.card');
-        const copyBtn = e.target.closest('.btn-copy');
-        const shareBtn = e.target.closest('.btn-share');
+        const copyBtn = e.target.closest('.btn-copy');        const shareBtn = e.target.closest('.btn-share');
         if (copyBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == copyBtn.dataset.id); if (obj) copyLink(obj.id); return; }
         if (shareBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == shareBtn.dataset.id); if (obj) shareObject(obj); return; }
         if (card) {
@@ -292,7 +303,8 @@
       });
 
       const modalOverlay = document.getElementById('modalOverlay');
-      const contactCard = document.getElementById('contactCard');     
+      const contactCard = document.getElementById('contactCard');
+     
       const openModal = id => {
         const obj = objects.find(o => o.id == id);
         if (!obj) return;
@@ -329,8 +341,7 @@
         const annual = r * 12;
         document.getElementById('mResMonthly').textContent = fmt(r) + ' ₽';
         document.getElementById('mResYield').textContent = (annual / p * 100).toFixed(2) + '%';
-        document.getElementById('mResPayback').textContent = (p / annual).toFixed(1) + ' лет';
-        document.getElementById('modalCalcResult').classList.remove('hidden');
+        document.getElementById('mResPayback').textContent = (p / annual).toFixed(1) + ' лет';        document.getElementById('modalCalcResult').classList.remove('hidden');
         if (typeof gtag !== 'undefined') gtag('event', 'calculate_yield', { event_category: 'engagement', event_label: currentObj.title });
       };
 
@@ -341,6 +352,7 @@
 
       document.getElementById('modalShareBtn').onclick = () => { if (currentObj) shareObject(currentObj); };
       document.getElementById('modalCopyLinkBtn').onclick = () => { if (currentObj) copyLink(currentObj.id); };
+
       document.getElementById('modalContactBtn').onclick = () => {
         if (!currentObj) return;
         if (typeof gtag !== 'undefined') gtag('event', 'contact_broker', { event_category: 'conversion', event_label: currentObj.title });
@@ -378,8 +390,7 @@
         if (p <= 0 || r <= 0) return showToast('Введите цену и аренду');
         const annual = r * 12;
         document.getElementById('resMonthly').textContent = fmt(r) + ' ₽';
-        document.getElementById('resYield').textContent = (annual / p * 100).toFixed(2) + '%';
-        document.getElementById('resPayback').textContent = (p / annual).toFixed(1) + ' лет';
+        document.getElementById('resYield').textContent = (annual / p * 100).toFixed(2) + '%';        document.getElementById('resPayback').textContent = (p / annual).toFixed(1) + ' лет';
         document.getElementById('calcResult').classList.remove('hidden');
         document.getElementById('shareCalcBtn').style.display = 'block';
       };
@@ -390,7 +401,8 @@
       };
 
       ['cityFilter', 'typeFilter', 'yieldFilter'].forEach(id => {
-        document.getElementById(id).addEventListener('input', renderList);      });
+        document.getElementById(id).addEventListener('input', renderList);
+      });
 
       const loadData = async () => {
         const cached = getCache();
@@ -427,10 +439,16 @@
           }
         }
       };
-
+      // ✅ ГЛАВНОЕ: Проверяем ссылку при загрузке страницы
       window.addEventListener('DOMContentLoaded', () => {
-        // ✅ Проверяем ссылку при загрузке страницы
-        handleStartParam();
+        const targetObjId = getTargetObjectId();
+       
+        if (targetObjId) {
+          console.log('🎯 Найдена ссылка на объект:', targetObjId);
+          // ✅ Автоматически запускаем приложение и открываем объект
+          launchApp(targetObjId);
+        }
+        // Если параметра нет - ничего не делаем, ждём клика на кнопку
       });
     })();
   </script>
