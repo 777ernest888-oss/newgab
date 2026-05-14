@@ -7,13 +7,32 @@
   <link rel="stylesheet" href="styles.css" />
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="dns-prefetch" href="https://docs.google.com" />
+ 
+  <!-- ✅ АНАЛИТИКА: Простой счётчик (не ломает код) -->
+  <script>
+    // Считаем открытия калькулятора
+    window.addEventListener('DOMContentLoaded', () => {
+      const openCount = localStorage.getItem('gab_opens') || '0';
+      const newCount = parseInt(openCount) + 1;
+      localStorage.setItem('gab_opens', newCount);
+     
+      // Логируем в консоль (для тебя)
+      console.log(`📊 Калькулятор открыт в ${newCount} раз`);
+     
+      // Отправляем событие в Telegram (если это мини-апп)
+      if (window.Telegram?.WebApp?.initData) {
+        console.log('📱 Открыто из Telegram Mini App');
+      }
+    });
+  </script>
+ 
   <style>
     #startScreen {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
       width: 100vw;
       height: 100vh;
-      background: #2D35A4; /* ✅ ТОЧНЫЙ ТВОЙ ЦВЕТ (R:45 G:53 B:164) */
+      background: #2D35A4;
       z-index: 100;
       display: flex;
       flex-direction: column;
@@ -28,8 +47,7 @@
       display: block;
       flex-shrink: 0;
     }
-    .hero-content {
-      padding: 24px 20px 40px;
+    .hero-content {      padding: 24px 20px 40px;
       flex: 1;
       display: flex;
       flex-direction: column;
@@ -47,7 +65,8 @@
     .hero-subtitle {
       font-size: 18px;
       color: #FFFFFF;
-      margin: 0 0 32px 0;      line-height: 1.5;
+      margin: 0 0 32px 0;
+      line-height: 1.5;
       opacity: 0.9;
     }
     .hero-btn {
@@ -77,7 +96,6 @@
       <button id="startBtn" class="hero-btn">🔍 Выбрать ГАБ</button>
     </div>
   </div>
-
   <div id="mainApp">
     <div class="container">
       <header>
@@ -96,7 +114,8 @@
             <option value="Санкт-Петербург">Санкт-Петербург</option>
             <option value="Московская">Московская область</option>
           </select>
-        </label>        <label>Тип объекта
+        </label>
+        <label>Тип объекта
           <select id="typeFilter">
             <option value="">Все типы</option>
             <option value="pharmacy">Аптека</option>
@@ -126,8 +145,7 @@
           <button class="tg-btn" id="shareCalcBtn" style="margin-top:12px;display:none">↗️ Поделиться расчётом</button>
         </div>
         <div id="selectedObject" class="hidden" style="margin-top:12px;padding:12px;background:var(--secondary-bg);border-radius:10px">
-          <strong id="selName"></strong><br><small id="selLoc" style="color:var(--hint)"></small>
-        </div>
+          <strong id="selName"></strong><br><small id="selLoc" style="color:var(--hint)"></small>        </div>
       </section>
 
       <section id="objectsList" class="list"><div class="loading">⏳ Загружаем объекты...</div></section>
@@ -145,7 +163,8 @@
           </div>
         </div>
         <h3 id="modalTitle" style="margin:0 0 4px 0;font-size:20px;"></h3>
-        <div id="modalPrice" style="font-size:22px;font-weight:700;color:var(--btn-bg,#3390ec);margin-bottom:6px;"></div>        <div style="color:var(--hint,#888);font-size:14px;margin-bottom:10px;"><span id="modalCity"></span> • <span id="modalLoc"></span> • <span id="modalType"></span></div>
+        <div id="modalPrice" style="font-size:22px;font-weight:700;color:var(--btn-bg,#3390ec);margin-bottom:6px;"></div>
+        <div style="color:var(--hint,#888);font-size:14px;margin-bottom:10px;"><span id="modalCity"></span> • <span id="modalLoc"></span> • <span id="modalType"></span></div>
         <div style="background:#e6f4ea;color:#1e7e34;padding:6px 10px;border-radius:6px;font-weight:600;font-size:14px;display:inline-block;margin-bottom:12px;">Доходность: <span id="modalYield">0%</span></div>
         <div id="modalDescription" class="hidden" style="margin-bottom:12px;padding:10px;background:var(--secondary-bg,#f5f5f5);border-radius:8px;font-size:14px;line-height:1.5;"></div>
         <div id="contactCard" class="hidden" style="margin-bottom:12px;padding:14px;background:var(--secondary-bg,#f5f5f5);border-radius:10px;text-align:center;">
@@ -175,8 +194,7 @@
   <div id="toast" class="toast hidden"></div>
 
   <script>
-    (function() {
-      'use strict';
+    (function() {      'use strict';
       const BROKER_PHONE = '+79312656800';
       const BROKER_TG = 'ernest_812';
       const BOT_USERNAME = BROKER_TG;
@@ -194,7 +212,8 @@
           isInTelegram = tg.initData !== '' && tg.initData !== undefined;
           if (isInTelegram) {
             tg.ready(); tg.expand();
-            if (tg.themeParams) {              document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
+            if (tg.themeParams) {
+              document.documentElement.style.setProperty('--tg-theme-bg-color', tg.themeParams.bg_color || '#ffffff');
               document.documentElement.style.setProperty('--tg-theme-text-color', tg.themeParams.text_color || '#000000');
               document.documentElement.style.setProperty('--tg-theme-button-color', tg.themeParams.button_color || '#3390ec');
             }
@@ -224,7 +243,6 @@
         window.scrollTo(0, 0);
       }
       window.backToStart = backToStart;
-
       document.getElementById('startBtn').onclick = () => {
         const startScreen = document.getElementById('startScreen');
         const mainApp = document.getElementById('mainApp');
@@ -243,7 +261,8 @@
         try {
           const c = JSON.parse(localStorage.getItem(CACHE_KEY));
           return (c && Date.now() - c.t < CACHE_TTL) ? c.d : null;
-        } catch { return null; }      };
+        } catch { return null; }
+      };
       const saveCache = d => { try { localStorage.setItem(CACHE_KEY, JSON.stringify({d, t: Date.now()})); } catch{} };
 
       const renderList = () => {
@@ -272,7 +291,12 @@
         if (isInTelegram && tg.initDataUnsafe?.start_param) param = tg.initDataUnsafe.start_param;
         else { const urlParams = new URLSearchParams(window.location.search); param = urlParams.get('startapp'); }
         if (param && param.startsWith('obj_')) {
-          setTimeout(() => { const obj = objects.find(o => o.id == param.replace('obj_', '')); if (obj) openModal(obj.id); }, 200);
+          setTimeout(() => {
+            const obj = objects.find(o => o.id == param.replace('obj_', ''));             if (obj) {
+              console.log(`📊 Открыт объект: ${obj.title}`);
+              openModal(obj.id);
+            }
+          }, 200);
         }
       };
 
@@ -280,9 +304,13 @@
         const card = e.target.closest('.card');
         const copyBtn = e.target.closest('.btn-copy');
         const shareBtn = e.target.closest('.btn-share');
-        if (copyBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == copyBtn.dataset.id); if (obj) copyLink(obj.id); return; }
-        if (shareBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == shareBtn.dataset.id); if (obj) shareObject(obj); return; }
-        if (card) openModal(card.dataset.id);
+        if (copyBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == copyBtn.dataset.id); if (obj) { console.log('📋 Скопирована ссылка:', obj.title); copyLink(obj.id); } return; }
+        if (shareBtn) { e.stopPropagation(); const obj = objects.find(o => o.id == shareBtn.dataset.id); if (obj) { console.log('↗️ Поделиться:', obj.title); shareObject(obj); } return; }
+        if (card) {
+          const obj = objects.find(o => o.id == card.dataset.id);
+          console.log('👁 Просмотр объекта:', obj?.title);
+          openModal(card.dataset.id);
+        }
       });
 
       const modalOverlay = document.getElementById('modalOverlay');
@@ -292,7 +320,8 @@
         const obj = objects.find(o => o.id == id);
         if (!obj) return;
         currentObj = obj;
-        contactCard.classList.add('hidden');        const img = document.getElementById('modalImg');
+        contactCard.classList.add('hidden');
+        const img = document.getElementById('modalImg');
         const ph = document.getElementById('modalPlaceholder');
         if (obj.photo_url?.trim()) {
           img.src = obj.photo_url; img.style.display = 'block'; ph.style.display = 'none';
@@ -310,8 +339,8 @@
         document.getElementById('modalCalcResult').classList.add('hidden');
         modalOverlay.classList.add('active');
         history.pushState({m:1}, '', '#obj-'+id);
+        console.log('💬 Открыта модалка:', obj.title);
       };
-
       const closeModal = () => { modalOverlay.classList.remove('active'); if (history.state?.m) history.back(); };
       document.getElementById('closeModalBtn').onclick = closeModal;
       modalOverlay.addEventListener('click', e => { if(e.target === modalOverlay) closeModal(); });
@@ -325,6 +354,7 @@
         document.getElementById('mResYield').textContent = (annual / p * 100).toFixed(2) + '%';
         document.getElementById('mResPayback').textContent = (p / annual).toFixed(1) + ' лет';
         document.getElementById('modalCalcResult').classList.remove('hidden');
+        console.log('🧮 Рассчитана доходность:', currentObj.title);
       };
 
       document.getElementById('modalShareCalcBtn').onclick = () => {
@@ -332,16 +362,18 @@
         shareLink(currentObj.id, txt);
       };
 
-      document.getElementById('modalShareBtn').onclick = () => { if (currentObj) shareObject(currentObj); };
-      document.getElementById('modalCopyLinkBtn').onclick = () => { if (currentObj) copyLink(currentObj.id); };
+      document.getElementById('modalShareBtn').onclick = () => { if (currentObj) { console.log('↗️ Поделиться объектом:', currentObj.title); shareObject(currentObj); } };
+      document.getElementById('modalCopyLinkBtn').onclick = () => { if (currentObj) { console.log('📋 Копировать ссылку:', currentObj.title); copyLink(currentObj.id); } };
 
-      // ✅ КНОПКА СВЯЗАТЬСЯ - ИСПРАВЛЕНА
       document.getElementById('modalContactBtn').onclick = () => {
         if (!currentObj) return;
         if (isInTelegram && tg && tg.openLink) {
+          console.log('📞 Связаться (мини-апп):', currentObj.title);
           tg.openLink(`https://t.me/${BROKER_TG}`);
         } else {
-          contactCard.classList.toggle('hidden');        }
+          console.log('📞 Показать контакты (сайт):', currentObj.title);
+          contactCard.classList.toggle('hidden');
+        }
       };
 
       document.getElementById('hideContactBtn').onclick = () => { contactCard.classList.add('hidden'); };
@@ -358,8 +390,7 @@
 
       const shareLink = (objId, text) => {
         const link = `${MINI_APP_URL}?startapp=obj_${objId}`;
-        if (isInTelegram && tg && tg.openLink) {
-          tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
+        if (isInTelegram && tg && tg.openLink) {          tg.openLink(`https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent(text)}`);
         } else if (navigator.share) {
           navigator.share({title: 'ГАБ Объект', text, url: link}).catch(() => copyLink(objId));
         } else { copyLink(objId); }
@@ -375,6 +406,7 @@
         document.getElementById('resPayback').textContent = (p / annual).toFixed(1) + ' лет';
         document.getElementById('calcResult').classList.remove('hidden');
         document.getElementById('shareCalcBtn').style.display = 'block';
+        console.log('🧮 Рассчитан кастомный ГАБ');
       };
 
       document.getElementById('shareCalcBtn').onclick = () => {
@@ -390,7 +422,8 @@
         const cached = getCache();
         if (cached) { objects = cached; filtered = [...objects]; renderList(); showToast('✅ Загружено из кэша'); handleStartParam(); fetchSheetData(true); return; }
         document.getElementById('objectsList').innerHTML = '<div class="loading">⏳ Загрузка...</div>';
-        await fetchSheetData(false);      };
+        await fetchSheetData(false);
+      };
 
       const fetchSheetData = async (isBackground) => {
         try {
@@ -406,8 +439,7 @@
               photo_url: r.c[8]?.v || '', description: r.c[9]?.v || ''
             };
           });
-          saveCache(objects); filtered = [...objects]; renderList();
-          if (!isBackground) showToast('✅ Загружено ' + objects.length + ' объектов');
+          saveCache(objects); filtered = [...objects]; renderList();          if (!isBackground) showToast('✅ Загружено ' + objects.length + ' объектов');
           handleStartParam();
         } catch (e) {
           if (!isBackground && objects.length === 0) {
