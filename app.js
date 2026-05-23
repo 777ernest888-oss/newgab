@@ -1,10 +1,7 @@
 console.log("🚀 ГАБ Калькулятор запущен!");
 
-// 🎥 НАСТРОЙКИ ВИДЕО
-const CONFIG = {
-  welcomeVideo: '', // Вставь сюда ссылку на видео: 'https://github.com/777ernest888-oss/newgab/blob/main/welcome.mp4' или оставь '' для фото
-  welcomeImage: 'hero.png'
-};
+// 🎥 НАСТРОЙКИ ВИДЕО - вставь ссылку или оставь пустой
+const WELCOME_VIDEO = ''; // Пример: 'https://.../video.mp4'
 
 const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
@@ -47,18 +44,18 @@ async function loadObjects() {
         yield: parseFloat(cols[5]?.trim()) || 0,
         city: cols[6]?.trim() || '',
         location: cols[7]?.trim() || '',
-        photo: cols[8]?.trim() || '',        description: cols[9]?.trim() || ''
+        photo: cols[8]?.trim() || '',
+        description: cols[9]?.trim() || ''
       };
     }).filter(obj => obj.id);
-
     console.log(`✅ Загружено: ${allObjects.length} объектов`);
    
     // 🎥 Показываем видео ИЛИ фото
     const videoEl = document.getElementById('welcomeVideo');
     const imgEl = document.getElementById('welcomeImage');
    
-    if (CONFIG.welcomeVideo) {
-      videoEl.querySelector('source').src = CONFIG.welcomeVideo;
+    if (WELCOME_VIDEO) {
+      videoEl.querySelector('source').src = WELCOME_VIDEO;
       videoEl.classList.remove('hidden');
       imgEl.classList.add('hidden');
     } else {
@@ -96,10 +93,10 @@ function fillFilters() {
   }
 }
 
-// Старт приложенияfunction startApp() {
+// Старт приложения
+function startApp() {
   welcomeScreen.classList.add('hidden');
-  mainContent.classList.remove('hidden');
-  renderList(allObjects);
+  mainContent.classList.remove('hidden');  renderList(allObjects);
 }
 
 // Переключение фильтров
@@ -145,10 +142,10 @@ function filterObjects() {
  
   const filtered = allObjects.filter(obj => {
     const annualIncome = (obj.rent || 0) * 12;
-    const yieldPercent = obj.price ? ((annualIncome / obj.price) * 100) : 0;   
+    const yieldPercent = obj.price ? ((annualIncome / obj.price) * 100) : 0;
+   
     const matchCity = !city || obj.city === city;
-    const matchType = !type || obj.type === type;
-    const matchYield = yieldPercent >= minYield;
+    const matchType = !type || obj.type === type;    const matchYield = yieldPercent >= minYield;
    
     return matchCity && matchType && matchYield;
   });
@@ -194,10 +191,10 @@ function renderList(objects) {
 // Калькулятор
 function calculateYield(price, rent) {
   const p = price || parseFloat(document.getElementById('calcPrice').value) || 0;
-  const r = rent || parseFloat(document.getElementById('calcRent').value) || 0; 
+  const r = rent || parseFloat(document.getElementById('calcRent').value) || 0;
+ 
   if (!p || !r) {
-    alert('Введите цену и аренду');
-    return;
+    alert('Введите цену и аренду');    return;
   }
  
   const annualIncome = r * 12;
@@ -243,10 +240,10 @@ function contactBroker() {
 }
 
 // Инициализация
-if (document.readyState === 'loading') {  document.addEventListener('DOMContentLoaded', loadObjects);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', loadObjects);
 } else {
-  loadObjects();
-}
+  loadObjects();}
 
 // Обработчики фильтров
 if (cityFilter) cityFilter.addEventListener('change', filterObjects);
