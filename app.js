@@ -2,7 +2,7 @@ console.log("🚀 ГАБ Калькулятор запущен!");
 
 // 🎥 НАСТРОЙКИ ВИДЕО
 const CONFIG = {
-  welcomeVideo: '', // Вставь сюда ссылку на видео: 'https://...' или оставь '' для фото
+  welcomeVideo: '', // Вставь сюда ссылку на видео: 'https://github.com/777ernest888-oss/newgab/blob/main/welcome.mp4' или оставь '' для фото
   welcomeImage: 'hero.png'
 };
 
