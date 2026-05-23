@@ -1,7 +1,7 @@
 // ⚙️ НАСТРОЙКИ ПРОЕКТА (меняй здесь)
 const CONFIG = {
   // Если видео не нужно, оставь пустой строкой: welcomeVideo: ''
-  welcomeVideo: 'https://твоя-ссылка-на-видео.mp4',
+  welcomeVideo: 'https://github.com/777ernest888-oss/newgab/blob/main/welcome.mp4',
   welcomeImage: 'welcome.png',
   botToken: 'ТВОЙ_ТОКЕН_БОТА', // Для отправки заявок
   chatId: 'ТВОЙ_CHAT_ID'
