@@ -77,7 +77,7 @@ async function init() {
     }
 
     // Загрузка данных (пример структуры, адаптируй под свою таблицу)
-    const sheetUrl = 'https://docs.google.com/spreadsheets/d/1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk/pub?output=csv';
+    const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRz-fKzbqxB3CU9xqJJVPS-MNx61BBcPGdPsbcc3xqMCtotugz93n9KXJLTiheMcISrmiz_m40-gJsu/pub?output=csv';
     listings = await loadFromGoogleSheets(sheetUrl);
    
     renderFilters();
