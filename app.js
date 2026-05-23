@@ -5,7 +5,7 @@ const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?for
 
 // Элементы DOM
 const loadingScreen = document.getElementById('loadingScreen');
-const listEl = document.getElementById('objectsList');
+const listingsContainer = document.getElementById('listingsContainer');
 const cityFilter = document.getElementById('cityFilter');
 const typeFilter = document.getElementById('typeFilter');
 const yieldFilter = document.getElementById('yieldFilter');
@@ -13,7 +13,6 @@ const yieldValue = document.getElementById('yieldValue');
 const calcViewBtn = document.getElementById('calcViewBtn');
 const listViewBtn = document.getElementById('listViewBtn');
 const calcContainer = document.getElementById('calcContainer');
-const listingsContainer = document.getElementById('listingsContainer');
 
 let allObjects = [];
 
@@ -47,8 +46,8 @@ async function loadObjects() {
       };
     }).filter(obj => obj.id); // Убираем пустые строки
 
-    console.log(`✅ Загружено: ${allObjects.length} объектов`);   
-    // Скрываем экран загрузки
+    console.log(`✅ Загружено: ${allObjects.length} объектов`);
+        // Скрываем экран загрузки
     if (loadingScreen) loadingScreen.classList.add('hidden');
    
     // Показываем главный экран
@@ -88,16 +87,16 @@ function fillFilters() {
 
 // Отображение списка
 function renderList(objects) {
-  if (!listEl) return;
+  if (!listingsContainer) return;
  
   if (objects.length === 0) {
-    listEl.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Ничего не найдено</div>';
+    listingsContainer.innerHTML = '<div style="padding:20px; text-align:center; color:#999;">Ничего не найдено</div>';
     return;
   }
  
-  listEl.innerHTML = objects.map(obj => {
-    const monthlyIncome = obj.rent || 0;    const annualIncome = monthlyIncome * 12;
-    const yieldPercent = obj.price ? ((annualIncome / obj.price) * 100).toFixed(2) : 0;
+  listingsContainer.innerHTML = objects.map(obj => {
+    const monthlyIncome = obj.rent || 0;
+    const annualIncome = monthlyIncome * 12;    const yieldPercent = obj.price ? ((annualIncome / obj.price) * 100).toFixed(2) : 0;
     const paybackYears = annualIncome ? (obj.price / annualIncome).toFixed(1) : 0;
    
     return `
@@ -145,8 +144,8 @@ function filterObjects() {
 function calculateYield(price, rent) {
   if (!price || !rent) return;
  
-  const monthlyIncome = rent;  const annualIncome = rent * 12;
-  const yieldPercent = ((annualIncome / price) * 100).toFixed(2);
+  const monthlyIncome = rent;
+  const annualIncome = rent * 12;  const yieldPercent = ((annualIncome / price) * 100).toFixed(2);
   const paybackYears = (price / annualIncome).toFixed(1);
  
   const resultDiv = document.getElementById('calcResult');
@@ -184,8 +183,26 @@ function openModal(id) {
   const obj = allObjects.find(o => o.id === id);
   if (!obj) return;
  
-  // Здесь можно добавить открытие детальной информации
   alert(`${obj.title}\n\nЦена: ${obj.price.toLocaleString('ru-RU')} ₽\nАренда: ${obj.rent.toLocaleString('ru-RU')} ₽/мес\nГород: ${obj.city}\n\n${obj.description}`);
+}
+
+// Навигация
+function startApp() {
+  document.getElementById('welcomeScreen')?.classList.add('hidden');
+  document.getElementById('mainContent')?.classList.remove('hidden');
+  window.scrollTo(0, 0);
+}
+
+function toggleFilters() {
+  const block = document.getElementById('filtersBlock');  const btn = document.querySelector('.filters-toggle-btn');
+  if (block && btn) {
+    block.classList.toggle('hidden');
+    btn.textContent = block.classList.contains('hidden') ? '🔽 Фильтры' : '🔼 Скрыть фильтры';
+  }
+}
+
+function appBack() {
+  // Заглушка для кнопки назад
 }
 
 // Инициализация
@@ -194,7 +211,8 @@ if (document.readyState === 'loading') {
     loadObjects();
    
     // Навешиваем обработчики
-    if (cityFilter) cityFilter.addEventListener('change', filterObjects);    if (typeFilter) typeFilter.addEventListener('change', filterObjects);
+    if (cityFilter) cityFilter.addEventListener('change', filterObjects);
+    if (typeFilter) typeFilter.addEventListener('change', filterObjects);
     if (yieldFilter) yieldFilter.addEventListener('input', filterObjects);
     if (listViewBtn) listViewBtn.addEventListener('click', () => switchView('list'));
     if (calcViewBtn) calcViewBtn.addEventListener('click', () => switchView('calc'));
