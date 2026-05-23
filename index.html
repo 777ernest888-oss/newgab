@@ -6,31 +6,25 @@
   <meta name="description" content="Калькулятор доходности арендного бизнеса. Подбор объектов с доходностью от 10% годовых.">
   <meta name="theme-color" content="#1a365d">
   <title>ГАБ Калькулятор</title>
- 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="styles.css?v=2">
+  <link rel="stylesheet" href="styles (1) (1).css">
 </head>
 <body>
 
-  <!-- 🔄 ЭКРАН ЗАГРУЗКИ -->
+  <!-- ЭКРАН ЗАГРУЗКИ -->
   <div id="loadingScreen" class="loading-screen hidden">
     <div class="loading-spinner"></div>
     <div class="loading-text">Загружаем объекты...</div>
   </div>
 
-  <!-- 🏠 ПРИВЕТСТВИЕ -->
+  <!-- ПРИВЕТСТВИЕ -->
   <div id="welcomeScreen" class="screen welcome hidden">
     <div class="welcome-brand">
       <img class="brand-logo" src="favicon.png" alt="Logo">
       <div class="brand-company">ГАБ КАЛЬКУЛЯТОР</div>
     </div>
    
-    <!-- Видео ИЛИ Фото -->
     <div class="welcome-media">
-      <video id="welcomeVideo" class="welcome-video hidden" autoplay muted loop playsinline>
-        <source src="" type="video/mp4">
-      </video>
-      <img id="welcomeImage" class="welcome-image hidden" src="hero.png" alt="Welcome">
+      <img id="welcomeImage" class="welcome-image" src="hero.png" alt="Welcome">
     </div>
    
     <div class="welcome-bottom">
@@ -40,31 +34,35 @@
     </div>
   </div>
 
-  <!-- 📋 ОСНОВНОЙ КОНТЕНТ -->
+  <!-- ОСНОВНОЙ КОНТЕНТ -->
   <div id="mainContent" class="screen main hidden">
    
     <!-- HEADER -->
     <header class="header">
       <button id="customBackBtn" class="header-back-btn hidden" onclick="appBack()" type="button">
         <span class="back-arrow">←</span>
-        <span>Назад</span>      </button>
+        <span>Назад</span>
+      </button>
       <div id="headerBrand" class="header-brand"></div>
     </header>
 
     <!-- ФИЛЬТРЫ -->
-    <div class="filters-toggle">
-      <button class="filters-toggle-btn" onclick="toggleFilters()" type="button">🔽 Фильтры</button>
+    <div class="filters-toggle">      <button class="filters-toggle-btn" onclick="toggleFilters()" type="button">🔽 Фильтры</button>
     </div>
    
     <div id="filtersBlock" class="filters-block hidden">
       <div class="filter-group">
         <label>🌍 Город</label>
-        <div id="cityCheckboxes" class="checkbox-group"></div>
+        <select id="cityFilter" class="filter-select">
+          <option value="">Все города</option>
+        </select>
       </div>
 
       <div class="filter-group">
         <label>🏢 Тип объекта</label>
-        <div id="typeCheckboxes" class="checkbox-group"></div>
+        <select id="typeFilter" class="filter-select">
+          <option value="">Все типы</option>
+        </select>
       </div>
 
       <div class="filter-group">
@@ -80,7 +78,7 @@
       <button id="calcViewBtn" class="view-btn" onclick="switchView('calc')" type="button">🧮 Калькулятор</button>
     </div>
 
-    <!-- КОНТЕЙНЕРЫ -->
+    <!-- СПИСОК ОБЪЕКТОВ -->
     <div id="listingsContainer" class="listings"></div>
    
     <!-- КАЛЬКУЛЯТОР -->
@@ -96,21 +94,20 @@
           <input type="number" id="calcRent" placeholder="80000" value="80000">
         </div>
         <button class="tg-btn" onclick="calculateYield()" type="button">Рассчитать</button>
-                <div id="calcResult" class="result hidden">
-          <div class="res-row">Доход в месяц: <span id="resMonth">—</span></div>
-          <div class="res-row">Доходность: <span id="resYield">—</span></div>
+       
+        <div id="calcResult" class="result hidden">
+          <div class="res-row">Доход в год: <span id="resMonth">—</span></div>          <div class="res-row">Доходность: <span id="resYield">—</span></div>
           <div class="res-row">Окупаемость: <span id="resPayback">—</span></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 📋 МОДАЛЬНОЕ ОКНО ДЕТАЛЕЙ -->
+  <!-- МОДАЛЬНОЕ ОКНО -->
   <div id="detailsModal" class="modal hidden">
     <div class="modal-content">
       <button class="close-btn" onclick="closeModal()" type="button" aria-label="Закрыть">✕</button>
       <h2 id="modalTitle"></h2>
-      <div id="modalGallery" class="modal-gallery"></div>
       <div id="modalPrice" class="modal-price"></div>
       <div id="modalMeta" class="modal-meta"></div>
      
@@ -119,32 +116,10 @@
         <div id="modalDescription"></div>
       </div>
 
-      <div class="modal-section">
-        <h3>✨ Преимущества</h3>
-        <div id="modalFeatures"></div>
-      </div>
-
       <button id="modalConsultBtn" class="tg-btn modal-cta" type="button">📞 Связаться с брокером</button>
     </div>
   </div>
 
-  <!-- 📞 МОДАЛЬНОЕ ОКНО ЗАЯВКИ -->
-  <div id="consultModal" class="modal hidden">
-    <div class="modal-content">
-      <button class="close-btn" onclick="closeConsultModal()" type="button" aria-label="Закрыть">✕</button>
-      <h2>Заказать консультацию</h2>
-      <p class="form-hint">Оставьте контакты — мы перезвоним и ответим на все вопросы</p>
-      <div id="consultObjectName" class="form-object">🏢 Объект</div>
-     
-      <form id="consultForm" onsubmit="submitConsultForm(event)" class="form-modal">
-        <input type="text" id="consultName" placeholder="Ваше имя" required autocomplete="name">
-        <input type="tel" id="consultPhone" placeholder="+7 (___) ___-__-__" required autocomplete="tel">
-        <button type="submit" class="tg-btn">Отправить заявку</button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Наш скрипт -->
-  <script src="app.js?v=2"></script>
+  <script src="app (1) (1).js"></script>
 </body>
 </html>
