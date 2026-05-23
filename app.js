@@ -1,7 +1,7 @@
 console.log("🚀 ГАБ Калькулятор запущен!");
 
 // 🎥 НАСТРОЙКИ ВИДЕО - вставь ссылку или оставь пустой
-const WELCOME_VIDEO = ''; // Пример: 'https://.../video.mp4'
+const WELCOME_VIDEO = 'https://github.com/777ernest888-oss/newgab/blob/main/welcome.mp4'
 
 const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
