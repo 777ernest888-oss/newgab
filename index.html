@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="Калькулятор доходности арендного бизнеса. Подбор объектов с доходностью от 10% годовых.">
-  <meta name="theme-color" content="#1a365d">
+  <meta name="description" content="Калькулятор доходности арендного бизнеса">
   <title>ГАБ Калькулятор</title>
   <link rel="stylesheet" href="styles (1) (1).css">
 </head>
@@ -16,70 +15,74 @@
     <div class="loading-text">Загружаем объекты...</div>
   </div>
 
-  <!-- ПРИВЕТСТВИЕ -->
+  <!-- ЭКРАН ПРИВЕТСТВИЯ -->
   <div id="welcomeScreen" class="screen welcome hidden">
     <div class="welcome-brand">
       <img class="brand-logo" src="favicon.png" alt="Logo">
       <div class="brand-company">ГАБ КАЛЬКУЛЯТОР</div>
     </div>
    
+    <!-- 🎥 ВИДЕО ИЛИ ФОТО -->
     <div class="welcome-media">
-      <img id="welcomeImage" class="welcome-image" src="hero.png" alt="Welcome">
+      <video id="welcomeVideo" class="welcome-video hidden" autoplay muted loop playsinline>
+        <source src="" type="video/mp4">
+        Ваш браузер не поддерживает видео
+      </video>
+      <img id="welcomeImage" class="welcome-image hidden" src="hero.png" alt="Welcome">
     </div>
    
     <div class="welcome-bottom">
-      <h1 id="welcomeTitle">ГАБ Калькулятор</h1>
-      <p id="welcomeSubtitle">Готовый арендный бизнес для пассивного дохода</p>
+      <h1 class="welcome-title">ГАБ Калькулятор</h1>
+      <p class="welcome-subtitle">Готовый арендный бизнес для пассивного дохода</p>
       <button class="tg-btn" onclick="startApp()">Начать подбор</button>
     </div>
   </div>
 
-  <!-- ОСНОВНОЙ КОНТЕНТ -->
+  <!-- ОСНОВНОЙ ЭКРАН -->
   <div id="mainContent" class="screen main hidden">
    
     <!-- HEADER -->
     <header class="header">
-      <button id="customBackBtn" class="header-back-btn hidden" onclick="appBack()" type="button">
-        <span class="back-arrow">←</span>
-        <span>Назад</span>
-      </button>
-      <div id="headerBrand" class="header-brand"></div>
+      <button id="backBtn" class="header-back-btn hidden" onclick="goBack()">← Назад</button>
+      <div class="header-title">ГАБ Калькулятор</div>
     </header>
 
-    <!-- ФИЛЬТРЫ -->
-    <div class="filters-toggle">      <button class="filters-toggle-btn" onclick="toggleFilters()" type="button">🔽 Фильтры</button>
-    </div>
-   
-    <div id="filtersBlock" class="filters-block hidden">
-      <div class="filter-group">
-        <label>🌍 Город</label>
-        <select id="cityFilter" class="filter-select">
-          <option value="">Все города</option>
-        </select>
-      </div>
+    <!-- ФИЛЬТРЫ -->    <div class="filters-section">
+      <button class="filters-toggle-btn" onclick="toggleFilters()">🔽 Фильтры</button>
+     
+      <div id="filtersBlock" class="filters-block hidden">
+        <div class="filter-group">
+          <label>🌍 Город</label>
+          <select id="cityFilter" class="filter-select">
+            <option value="">Все города</option>
+          </select>
+        </div>
 
-      <div class="filter-group">
-        <label>🏢 Тип объекта</label>
-        <select id="typeFilter" class="filter-select">
-          <option value="">Все типы</option>
-        </select>
-      </div>
+        <div class="filter-group">
+          <label>🏢 Тип объекта</label>
+          <select id="typeFilter" class="filter-select">
+            <option value="">Все типы</option>
+          </select>
+        </div>
 
-      <div class="filter-group">
-        <label>📈 Доходность от (%)</label>
-        <input type="range" id="yieldFilter" min="0" max="30" value="0" step="1">
-        <div class="range-value" id="yieldValue">0%</div>
+        <div class="filter-group">
+          <label>📈 Доходность от (%)</label>
+          <input type="range" id="yieldFilter" min="0" max="30" value="0" step="1">
+          <div class="range-value" id="yieldValue">0%</div>
+        </div>
       </div>
     </div>
 
     <!-- ПЕРЕКЛЮЧАТЕЛЬ ВИДА -->
     <div class="view-toggle">
-      <button id="listViewBtn" class="view-btn active" onclick="switchView('list')" type="button">📋 Список</button>
-      <button id="calcViewBtn" class="view-btn" onclick="switchView('calc')" type="button">🧮 Калькулятор</button>
+      <button id="listViewBtn" class="view-btn active" onclick="switchView('list')">📋 Список</button>
+      <button id="calcViewBtn" class="view-btn" onclick="switchView('calc')">🧮 Калькулятор</button>
     </div>
 
     <!-- СПИСОК ОБЪЕКТОВ -->
-    <div id="listingsContainer" class="listings"></div>
+    <div id="listingsContainer" class="listings">
+      <!-- Здесь будут карточки -->
+    </div>
    
     <!-- КАЛЬКУЛЯТОР -->
     <div id="calcContainer" class="calculator hidden">
@@ -87,16 +90,16 @@
         <h3>🧮 Калькулятор доходности</h3>
         <div class="input-group">
           <label>Цена объекта (₽)</label>
-          <input type="number" id="calcPrice" placeholder="10000000" value="10000000">
+          <input type="number" id="calcPrice" placeholder="10000000">
         </div>
         <div class="input-group">
           <label>Аренда в месяц (₽)</label>
-          <input type="number" id="calcRent" placeholder="80000" value="80000">
+          <input type="number" id="calcRent" placeholder="80000">
         </div>
-        <button class="tg-btn" onclick="calculateYield()" type="button">Рассчитать</button>
-       
+        <button class="tg-btn" onclick="calculateYield()">Рассчитать</button>       
         <div id="calcResult" class="result hidden">
-          <div class="res-row">Доход в год: <span id="resMonth">—</span></div>          <div class="res-row">Доходность: <span id="resYield">—</span></div>
+          <div class="res-row">Доход в год: <span id="resYear">—</span></div>
+          <div class="res-row">Доходность: <span id="resYield">—</span></div>
           <div class="res-row">Окупаемость: <span id="resPayback">—</span></div>
         </div>
       </div>
@@ -106,7 +109,7 @@
   <!-- МОДАЛЬНОЕ ОКНО -->
   <div id="detailsModal" class="modal hidden">
     <div class="modal-content">
-      <button class="close-btn" onclick="closeModal()" type="button" aria-label="Закрыть">✕</button>
+      <button class="close-btn" onclick="closeModal()">✕</button>
       <h2 id="modalTitle"></h2>
       <div id="modalPrice" class="modal-price"></div>
       <div id="modalMeta" class="modal-meta"></div>
@@ -116,7 +119,7 @@
         <div id="modalDescription"></div>
       </div>
 
-      <button id="modalConsultBtn" class="tg-btn modal-cta" type="button">📞 Связаться с брокером</button>
+      <button class="tg-btn modal-cta" onclick="contactBroker()">📞 Связаться с брокером</button>
     </div>
   </div>
 
