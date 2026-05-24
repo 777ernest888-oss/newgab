@@ -79,7 +79,7 @@ function renderList(objects) {
     const p = (obj.price / (obj.rent * 12)).toFixed(1);
     return `
       <div class="card" onclick="openModal('${obj.id}')">
-        <div class="card-meta"><span>📍 ${obj.city || 'Не указано'}</span><span class="card-yield">📈 ${y}%</span></div>
+        <div class="card-meta"><span>📍 ${obj.city || 'Не указано'}</span><span class="card-yield"> ${y}%</span></div>
         <h3>${obj.title}</h3>
         <div class="card-price">${obj.price.toLocaleString('ru-RU')} ₽</div>
         <div class="card-info">📈 Аренда: ${obj.rent.toLocaleString('ru-RU')} ₽/мес<br>⏳ Окупаемость: ${p} лет</div>
@@ -107,8 +107,9 @@ function openModal(id) {
   document.getElementById('leadForm').classList.add('hidden');
   document.getElementById('leadName').value = '';
   document.getElementById('leadPhone').value = '';
+  document.getElementById('leadTelegram').value = '';
  
-  // Автозаполнение имени, если есть в телеграме
+  // Автозаполнение имени
   if (window.Telegram && window.Telegram.WebApp.initDataUnsafe?.user) {
     document.getElementById('leadName').value = window.Telegram.WebApp.initDataUnsafe.user.first_name || '';
   }
@@ -132,25 +133,50 @@ function cancelLead() {
   document.getElementById('leadForm').classList.add('hidden');
 }
 
-// 📞 МАСКА ТЕЛЕФОНА
-document.getElementById('leadPhone').addEventListener('input', function(e) {
-  let x = e.target.value.replace(/\D/g, '').match(/(\d{0,1})(\d{0,3})(\d{0,3})(\d{0,2})(\d{0,2})/);
-  if (!x[2] && x[1] !== '') {
-    e.target.value = '+7 (';
-  } else {
-    e.target.value = !x[2] ? x[1] : '+7 (' + x[2] + (x[3] ? ') ' + x[3] : '') + (x[4] ? '-' + x[4] : '') + (x[5] ? '-' + x[5] : '');
+// 📞 УМНАЯ МАСКА ТЕЛЕФОНА (Вариант 3)
+document.getElementById('leadPhone')?.addEventListener('input', function(e) {
+  let val = e.target.value.replace(/\D/g, ''); // Только цифры
+  if (val.length > 15) val = val.slice(0, 15); // Макс 15 цифр
+
+  let formatted = val;
+  if (val.startsWith('7')) {
+    // Россия / Казахстан: +7 (XXX) XXX-XX-XX
+    formatted = '+7';
+    if (val.length > 1) formatted += ' (' + val.slice(1, 4);
+    if (val.length >= 5) formatted += ') ' + val.slice(4, 7);
+    if (val.length >= 8) formatted += '-' + val.slice(7, 9);
+    if (val.length >= 10) formatted += '-' + val.slice(9, 11);  } else if (val.startsWith('375')) {
+    // Беларусь: +375 (XX) XXX-XX-XX
+    formatted = '+375';
+    if (val.length > 3) formatted += ' (' + val.slice(3, 5);
+    if (val.length >= 6) formatted += ') ' + val.slice(5, 8);
+    if (val.length >= 9) formatted += '-' + val.slice(8, 10);
+    if (val.length >= 11) formatted += '-' + val.slice(10, 12);
+  } else if (val.length > 0) {
+    // Другие страны: просто +XXXXXXXXXXXX
+    formatted = '+' + val;
   }
+  e.target.value = formatted;
 });
 
 // 🚀 ОТПРАВКА ЗАЯВКИ
 async function submitLead() {
   const obj = allObjects.find(o => o.id === currentModalId);
   if (!obj) return;
+
   const name = document.getElementById('leadName').value.trim();
   const phone = document.getElementById('leadPhone').value.trim();
+  const telegram = document.getElementById('leadTelegram').value.trim();
 
-  if (!name || phone.length < 16) {
-    alert('❌ Пожалуйста, заполните Имя и Телефон полностью');
+  const phoneDigits = phone.replace(/\D/g, '');
+
+  // ВАЛИДАЦИЯ
+  if (!name || name.length < 2) {
+    alert('❌ Пожалуйста, введите имя (минимум 2 символа)');
+    return;
+  }
+  if (phoneDigits.length < 10 || phoneDigits.length > 15) {
+    alert('❌ Введите корректный номер телефона (10–15 цифр)\nПример: +7 (999) 123-45-67');
     return;
   }
 
@@ -168,7 +194,7 @@ async function submitLead() {
         price: obj.price.toLocaleString('ru-RU'),
         city: obj.city,
         leadName: name,
-        leadPhone: phone
+        leadPhone: phone,        leadTelegram: telegram || 'Не указан'
       })
     });
     const result = await response.json();
@@ -190,7 +216,7 @@ function calculateYield() {
   document.getElementById('calcResult').innerHTML = `<div class="res-row"><span>💰 Доход в год:</span> <span>${annual.toLocaleString('ru-RU')} ₽</span></div><div class="res-row"><span>📈 Доходность:</span> <span>${y}%</span></div><div class="res-row"><span>⏳ Окупаемость:</span> <span>${p} лет</span></div>`;
   document.getElementById('calcResult').classList.remove('hidden');
 }
-function copyLink() { navigator.clipboard.writeText(window.location.href); alert('🔗 Ссылка скопирована!'); }
+function copyLink() { navigator.clipboard.writeText(window.location.href); alert(' Ссылка скопирована!'); }
 document.getElementById('cityFilter')?.addEventListener('change', filterObjects);
 document.getElementById('typeFilter')?.addEventListener('change', filterObjects);
 document.getElementById('yieldFilter')?.addEventListener('input', filterObjects);
