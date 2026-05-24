@@ -45,13 +45,9 @@
           <label>🏢 Тип объекта</label>
           <select id="typeFilter"><option value="">Все типы</option></select>
         </div>
-        <div class="filter-group">
-          <label>📈 Доходность от: <span id="yieldValue">0</span>%</label>
-          <input type="range" id="yieldFilter" min="0" max="30" value="0" step="1">        </div>
       </div>
     </div>
-    <div class="view-toggle">
-      <button class="view-btn active" onclick="switchView('list')">📋 Список</button>
+    <div class="view-toggle">      <button class="view-btn active" onclick="switchView('list')">📋 Список</button>
       <button class="view-btn" onclick="switchView('calc')">🧮 Калькулятор</button>
     </div>
     <div id="objectsList" class="list"></div>
@@ -96,11 +92,11 @@
           <label>Телефон *</label>
           <input type="tel" id="leadPhone" placeholder="+7 (999) 000-00-00">
         </div>
-        <div class="input-group">          <label>Telegram (необязательно)</label>
+        <div class="input-group">
+          <label>Telegram (необязательно)</label>
           <input type="text" id="leadTelegram" placeholder="@username">
         </div>
-        <button class="tg-btn" id="submitLeadBtn" onclick="submitLead()">Отправить заявку</button>
-        <button class="tg-btn secondary" style="margin-top: 8px;" onclick="cancelLead()">Отмена</button>
+        <button class="tg-btn" id="submitLeadBtn" onclick="submitLead()">Отправить заявку</button>        <button class="tg-btn secondary" style="margin-top: 8px;" onclick="cancelLead()">Отмена</button>
       </div>
 
       <div id="modalActions" class="modal-actions">
