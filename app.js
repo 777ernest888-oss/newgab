@@ -29,18 +29,18 @@ async function loadObjects() {
 
     console.log(`✅ Загружено: ${allObjects.length} объектов`);
 
-    // 🎥 Показываем видео ИЛИ фото (сразу, без мелькания)
+    // 🎥 Показываем ТОЛЬКО видео ИЛИ ТОЛЬКО фото
     const videoEl = document.getElementById('welcomeVideo');
     const imgEl = document.getElementById('welcomeImage');
    
     if (WELCOME_VIDEO && WELCOME_VIDEO.trim() !== '') {
       videoEl.src = WELCOME_VIDEO;
-      videoEl.classList.remove('hidden-video');
-      imgEl.classList.add('hidden');
+      videoEl.style.display = 'block';
+      imgEl.style.display = 'none';
       console.log("🎥 Показываем ВИДЕО");
     } else {
-      videoEl.classList.add('hidden-video');
-      imgEl.classList.remove('hidden');
+      videoEl.style.display = 'none';
+      imgEl.style.display = 'block';
       console.log("🖼️ Показываем ФОТО");
     }
 
@@ -92,7 +92,7 @@ function renderList() {
     `;
   }).join('');
  
-  console.log("✅ Карточки отрисованы");
+  console.log("✅ Карточки отрисованы: " + allObjects.length + " шт.");
 }
 
 function showDetails(title, price, rent) {
