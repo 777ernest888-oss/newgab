@@ -1,7 +1,7 @@
 console.log("🚀 ГАБ Калькулятор запущен!");
 
-// 🎥 НАСТРОЙКИ ВИДЕО - вставь прямую ссылку (raw.githubusercontent.com/...) или оставь пустой
-const WELCOME_VIDEO = '';
+// 🎥 ССЫЛКА НА ВИДЕО — УЖЕ ВСТАВЛЕНА!
+const WELCOME_VIDEO = 'https://raw.githubusercontent.com/777ernest888-oss/newgab/main/welcome.mp4';
 
 const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
@@ -29,7 +29,7 @@ async function loadObjects() {
 
     console.log(`✅ Загружено: ${allObjects.length} объектов`);
 
-    // Управление видео/фото
+    // 🎥 ВКЛЮЧАЕМ ВИДЕО
     const videoEl = document.getElementById('welcomeVideo');
     const imgEl = document.getElementById('welcomeImage');
    
@@ -37,21 +37,21 @@ async function loadObjects() {
       videoEl.src = WELCOME_VIDEO;
       videoEl.style.display = 'block';
       imgEl.style.display = 'none';
-      console.log("🎥 Видео включено");
+      console.log("🎥 ВИДЕО ВКЛЮЧЕНО");
     } else {
       videoEl.style.display = 'none';
       imgEl.style.display = 'block';
       console.log("🖼️ Фото включено");
     }
 
-    // Переключение экранов
+    // Скрываем загрузку, показываем приветствие
     document.getElementById('loadingScreen').classList.add('hidden');
     document.getElementById('welcomeScreen').classList.remove('hidden');
 
     renderList();
   } catch (e) {
     console.error("❌ Ошибка:", e);
-    alert("Ошибка загрузки данных");
+    alert("Ошибка загрузки: " + e.message);
     document.getElementById('loadingScreen').classList.add('hidden');
   }
 }
@@ -60,11 +60,15 @@ function startApp() {
   console.log("Переход к списку...");
   document.getElementById('welcomeScreen').classList.add('hidden');
   document.getElementById('mainScreen').classList.remove('hidden');
+  renderList();
 }
 
 function renderList() {
   const container = document.getElementById('objectsList');
-  if (!container) return;
+  if (!container) {
+    console.error("❌ Не найден objectsList!");
+    return;
+  }
 
   if (allObjects.length === 0) {
     container.innerHTML = '<p style="text-align:center; color:#666; padding:20px;">Нет объектов</p>';
@@ -75,12 +79,14 @@ function renderList() {
     <div class="card">
       <h3>${obj.title}</h3>
       <div class="card-info">💰 Цена: ${obj.price.toLocaleString('ru-RU')} ₽<br>📈 Аренда: ${obj.rent.toLocaleString('ru-RU')} ₽/мес</div>
-      <button class="card-btn" onclick="alert('Доходность: ${((obj.rent*12/obj.price)*100).toFixed(2)}%')">💰 Рассчитать</button>
+      <button class="card-btn" onclick="alert('💰 ${obj.title}\\n\\n📈 Доходность: ${((obj.rent*12/obj.price)*100).toFixed(2)}%\\n⏳ Окупаемость: ${(obj.price/(obj.rent*12)).toFixed(1)} лет')">💰 Рассчитать</button>
     </div>
   `).join('');
-  console.log("Список отрисован");
+ 
+  console.log("✅ Список отрисован: " + allObjects.length + " карточек");
 }
 
+// Запускаем
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', loadObjects);
 } else {
