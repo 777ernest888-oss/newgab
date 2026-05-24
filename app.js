@@ -1,7 +1,7 @@
 console.log("🚀 ГАБ Калькулятор запущен!");
 
-// 🎥 НАСТРОЙКИ ВИДЕО - вставь ссылку или оставь пустой
-const WELCOME_VIDEO = ''; // Пример: 'https://raw.githubusercontent.com/.../welcome.mp4'
+// 🎥 НАСТРОЙКИ ВИДЕО - вставь прямую ссылку (raw.githubusercontent.com/...) или оставь пустой
+const WELCOME_VIDEO = '';
 
 const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
@@ -14,9 +14,8 @@ async function loadObjects() {
     const response = await fetch(SHEET_URL);
     const text = await response.text();
     const lines = text.trim().split('\n');
-   
     const rows = lines.slice(1);
-   
+
     allObjects = rows.map(row => {
       const cols = row.split(',');
       return {
@@ -29,81 +28,59 @@ async function loadObjects() {
     }).filter(obj => obj.id);
 
     console.log(`✅ Загружено: ${allObjects.length} объектов`);
-   
-    // 🎥 Показываем видео ИЛИ фото
+
+    // Управление видео/фото
     const videoEl = document.getElementById('welcomeVideo');
     const imgEl = document.getElementById('welcomeImage');
    
     if (WELCOME_VIDEO && WELCOME_VIDEO.trim() !== '') {
-      videoEl.querySelector('source').src = WELCOME_VIDEO;
+      videoEl.src = WELCOME_VIDEO;
       videoEl.style.display = 'block';
       imgEl.style.display = 'none';
-      console.log("🎥 Показываем видео");
+      console.log("🎥 Видео включено");
     } else {
       videoEl.style.display = 'none';
       imgEl.style.display = 'block';
-      console.log("🖼️ Показываем фото hero.png");
+      console.log("🖼️ Фото включено");
     }
-   
-    // Скрываем загрузку (если есть)
-    const loadingScreen = document.getElementById('loadingScreen');
-    if (loadingScreen) {      loadingScreen.classList.add('hidden');
-    }
-   
+
+    // Переключение экранов
+    document.getElementById('loadingScreen').classList.add('hidden');
+    document.getElementById('welcomeScreen').classList.remove('hidden');
+
+    renderList();
   } catch (e) {
     console.error("❌ Ошибка:", e);
-    alert("Ошибка загрузки: " + e.message);
-   
-    const loadingScreen = document.getElementById('loadingScreen');
-    if (loadingScreen) {
-      loadingScreen.classList.add('hidden');
-    }
+    alert("Ошибка загрузки данных");
+    document.getElementById('loadingScreen').classList.add('hidden');
   }
 }
 
 function startApp() {
-  console.log("startApp вызвана");
+  console.log("Переход к списку...");
   document.getElementById('welcomeScreen').classList.add('hidden');
-  document.getElementById('mainContent').classList.remove('hidden');
- 
-  // Показываем список
-  renderList();
+  document.getElementById('mainScreen').classList.remove('hidden');
 }
 
 function renderList() {
-  const listEl = document.getElementById('objectsList');
-  if (!listEl) {
-    console.error("Не найден elementsList!");
-    return;
-  }
- 
+  const container = document.getElementById('objectsList');
+  if (!container) return;
+
   if (allObjects.length === 0) {
-    listEl.innerHTML = '<p>Объекты не загружены</p>';
+    container.innerHTML = '<p style="text-align:center; color:#666; padding:20px;">Нет объектов</p>';
     return;
   }
- 
-  listEl.innerHTML = allObjects.map(obj => `
+
+  container.innerHTML = allObjects.map(obj => `
     <div class="card">
       <h3>${obj.title}</h3>
-      <div class="card-price">💰 Цена: ${obj.price.toLocaleString('ru-RU')} ₽</div>
-      <div class="card-rent">📈 Аренда: ${obj.rent.toLocaleString('ru-RU')} ₽/мес</div>
-      <button class="card-btn" onclick="calculateYield(${obj.price}, ${obj.rent}, '${obj.title}')">
-        💰 Рассчитать доходность
-      </button>
+      <div class="card-info">💰 Цена: ${obj.price.toLocaleString('ru-RU')} ₽<br>📈 Аренда: ${obj.rent.toLocaleString('ru-RU')} ₽/мес</div>
+      <button class="card-btn" onclick="alert('Доходность: ${((obj.rent*12/obj.price)*100).toFixed(2)}%')">💰 Рассчитать</button>
     </div>
   `).join('');
- 
   console.log("Список отрисован");
 }
 
-function calculateYield(price, rent, title) {  const annualIncome = rent * 12;
-  const yieldPercent = ((annualIncome / price) * 100).toFixed(2);
-  const paybackYears = (price / annualIncome).toFixed(1);
- 
-  alert(`${title}\n\n💰 Доход в год: ${annualIncome.toLocaleString('ru-RU')} ₽\n📈 Доходность: ${yieldPercent}%\n⏳ Окупаемость: ${paybackYears} лет`);
-}
-
-// Запускаем
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', loadObjects);
 } else {
