@@ -79,7 +79,7 @@ function renderList(objects) {
     const p = (obj.price / (obj.rent * 12)).toFixed(1);
     return `
       <div class="card" onclick="openModal('${obj.id}')">
-        <div class="card-meta"><span>📍 ${obj.city || 'Не указано'}</span><span class="card-yield"> ${y}%</span></div>
+        <div class="card-meta"><span>📍 ${obj.city || 'Не указано'}</span><span class="card-yield">📈 ${y}%</span></div>
         <h3>${obj.title}</h3>
         <div class="card-price">${obj.price.toLocaleString('ru-RU')} ₽</div>
         <div class="card-info">📈 Аренда: ${obj.rent.toLocaleString('ru-RU')} ₽/мес<br>⏳ Окупаемость: ${p} лет</div>
@@ -159,25 +159,48 @@ document.getElementById('leadPhone')?.addEventListener('input', function(e) {
   e.target.value = formatted;
 });
 
-// 🚀 ОТПРАВКА ЗАЯВКИ
+// 🚀 ОТПРАВКА ЗАЯВКИ С ВАЛИДАЦИЕЙ
 async function submitLead() {
   const obj = allObjects.find(o => o.id === currentModalId);
   if (!obj) return;
 
   const name = document.getElementById('leadName').value.trim();
   const phone = document.getElementById('leadPhone').value.trim();
-  const telegram = document.getElementById('leadTelegram').value.trim();
+  let telegram = document.getElementById('leadTelegram').value.trim();
 
   const phoneDigits = phone.replace(/\D/g, '');
 
-  // ВАЛИДАЦИЯ
+  // ВАЛИДАЦИЯ ИМЕНИ
   if (!name || name.length < 2) {
     alert('❌ Пожалуйста, введите имя (минимум 2 символа)');
     return;
   }
+
+  // ВАЛИДАЦИЯ ТЕЛЕФОНА
   if (phoneDigits.length < 10 || phoneDigits.length > 15) {
     alert('❌ Введите корректный номер телефона (10–15 цифр)\nПример: +7 (999) 123-45-67');
     return;
+  }
+
+  // ВАЛИДАЦИЯ TELEGRAM
+  if (telegram) {
+    // Проверяем на кириллицу
+    const cyrillicRegex = /[а-яА-ЯёЁ]/;
+    if (cyrillicRegex.test(telegram)) {
+      alert('❌ Telegram username не должен содержать кириллицу\nИспользуйте только латинские буквы, цифры и _');
+      return;
+    }
+
+    // Проверяем допустимые символы (только буквы, цифры, подчёркивания)
+    const validTelegramRegex = /^@?[a-zA-Z0-9_]{3,32}$/;
+    if (!validTelegramRegex.test(telegram)) {
+      alert('❌ Неверный формат Telegram username\nРазрешены только латинские буквы, цифры и символ _\nПример: @username или username');      return;
+    }
+
+    // Автоматически добавляем @ если нет
+    if (!telegram.startsWith('@')) {
+      telegram = '@' + telegram;
+    }
   }
 
   const btn = document.getElementById('submitLeadBtn');
@@ -194,7 +217,8 @@ async function submitLead() {
         price: obj.price.toLocaleString('ru-RU'),
         city: obj.city,
         leadName: name,
-        leadPhone: phone,        leadTelegram: telegram || 'Не указан'
+        leadPhone: phone,
+        leadTelegram: telegram || 'Не указан'
       })
     });
     const result = await response.json();
@@ -216,8 +240,7 @@ function calculateYield() {
   document.getElementById('calcResult').innerHTML = `<div class="res-row"><span>💰 Доход в год:</span> <span>${annual.toLocaleString('ru-RU')} ₽</span></div><div class="res-row"><span>📈 Доходность:</span> <span>${y}%</span></div><div class="res-row"><span>⏳ Окупаемость:</span> <span>${p} лет</span></div>`;
   document.getElementById('calcResult').classList.remove('hidden');
 }
-function copyLink() { navigator.clipboard.writeText(window.location.href); alert(' Ссылка скопирована!'); }
+function copyLink() { navigator.clipboard.writeText(window.location.href); alert('🔗 Ссылка скопирована!'); }
 document.getElementById('cityFilter')?.addEventListener('change', filterObjects);
 document.getElementById('typeFilter')?.addEventListener('change', filterObjects);
-document.getElementById('yieldFilter')?.addEventListener('input', filterObjects);
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadObjects); else loadObjects();
+document.getElementById('yieldFilter')?.addEventListener('input', filterObjects);if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadObjects); else loadObjects();
