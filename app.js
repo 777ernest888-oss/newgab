@@ -1,6 +1,6 @@
 console.log("🚀 ГАБ Калькулятор запущен!");
 
-// 🎥 ССЫЛКА НА ВИДЕО — УЖЕ ВСТАВЛЕНА!
+// 🎥 ССЫЛКА НА ВИДЕО
 const WELCOME_VIDEO = 'https://raw.githubusercontent.com/777ernest888-oss/newgab/main/welcome.mp4';
 
 const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
@@ -29,29 +29,27 @@ async function loadObjects() {
 
     console.log(`✅ Загружено: ${allObjects.length} объектов`);
 
-    // 🎥 ВКЛЮЧАЕМ ВИДЕО
+    // 🎥 Показываем видео ИЛИ фото (сразу, без мелькания)
     const videoEl = document.getElementById('welcomeVideo');
     const imgEl = document.getElementById('welcomeImage');
    
     if (WELCOME_VIDEO && WELCOME_VIDEO.trim() !== '') {
       videoEl.src = WELCOME_VIDEO;
-      videoEl.style.display = 'block';
-      imgEl.style.display = 'none';
-      console.log("🎥 ВИДЕО ВКЛЮЧЕНО");
+      videoEl.classList.remove('hidden-video');
+      imgEl.classList.add('hidden');
+      console.log("🎥 Показываем ВИДЕО");
     } else {
-      videoEl.style.display = 'none';
-      imgEl.style.display = 'block';
-      console.log("🖼️ Фото включено");
+      videoEl.classList.add('hidden-video');
+      imgEl.classList.remove('hidden');
+      console.log("🖼️ Показываем ФОТО");
     }
 
     // Скрываем загрузку, показываем приветствие
     document.getElementById('loadingScreen').classList.add('hidden');
     document.getElementById('welcomeScreen').classList.remove('hidden');
-
-    renderList();
   } catch (e) {
     console.error("❌ Ошибка:", e);
-    alert("Ошибка загрузки: " + e.message);
+    alert("Ошибка: " + e.message);
     document.getElementById('loadingScreen').classList.add('hidden');
   }
 }
@@ -71,19 +69,37 @@ function renderList() {
   }
 
   if (allObjects.length === 0) {
-    container.innerHTML = '<p style="text-align:center; color:#666; padding:20px;">Нет объектов</p>';
+    container.innerHTML = '<p style="text-align:center; color:#999; padding:40px;">Нет объектов</p>';
     return;
   }
 
-  container.innerHTML = allObjects.map(obj => `
-    <div class="card">
-      <h3>${obj.title}</h3>
-      <div class="card-info">💰 Цена: ${obj.price.toLocaleString('ru-RU')} ₽<br>📈 Аренда: ${obj.rent.toLocaleString('ru-RU')} ₽/мес</div>
-      <button class="card-btn" onclick="alert('💰 ${obj.title}\\n\\n📈 Доходность: ${((obj.rent*12/obj.price)*100).toFixed(2)}%\\n⏳ Окупаемость: ${(obj.price/(obj.rent*12)).toFixed(1)} лет')">💰 Рассчитать</button>
-    </div>
-  `).join('');
+  container.innerHTML = allObjects.map(obj => {
+    const yieldPercent = ((obj.rent * 12 / obj.price) * 100).toFixed(2);
+    const payback = (obj.price / (obj.rent * 12)).toFixed(1);
+   
+    return `
+      <div class="card">
+        <h3>${obj.title}</h3>
+        <div class="card-info">
+          💰 Цена: ${obj.price.toLocaleString('ru-RU')} ₽<br>
+          📈 Аренда: ${obj.rent.toLocaleString('ru-RU')} ₽/мес<br>
+          📊 Доходность: ${yieldPercent}% • Окупаемость: ${payback} лет
+        </div>
+        <button class="card-btn" onclick="showDetails('${obj.title}', ${obj.price}, ${obj.rent})">
+          💰 Подробнее
+        </button>
+      </div>
+    `;
+  }).join('');
  
-  console.log("✅ Список отрисован: " + allObjects.length + " карточек");
+  console.log("✅ Карточки отрисованы");
+}
+
+function showDetails(title, price, rent) {
+  const yieldPercent = ((rent * 12 / price) * 100).toFixed(2);  const payback = (price / (rent * 12)).toFixed(1);
+  const annualIncome = (rent * 12).toLocaleString('ru-RU');
+ 
+  alert(`📊 ${title}\n\n💰 Цена: ${price.toLocaleString('ru-RU')} ₽\n📈 Аренда: ${rent.toLocaleString('ru-RU')} ₽/мес\n📊 Доход в год: ${annualIncome} ₽\n📈 Доходность: ${yieldPercent}%\n⏳ Окупаемость: ${payback} лет`);
 }
 
 // Запускаем
