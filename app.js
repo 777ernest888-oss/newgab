@@ -2,11 +2,11 @@ console.log("🚀 ГАБ Калькулятор запущен!");
 
 // 🎥 ССЫЛКА НА ВИДЕО
 const WELCOME_VIDEO = 'https://raw.githubusercontent.com/777ernest888-oss/newgab/main/welcome.mp4';
-
 const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
 
 let allObjects = [];
+let currentModalId = null;
 let currentView = 'list';
 
 async function loadObjects() {
@@ -38,7 +38,6 @@ async function loadObjects() {
     // 🎥 Видео ИЛИ фото
     const videoEl = document.getElementById('welcomeVideo');
     const imgEl = document.getElementById('welcomeImage');
-   
     if (WELCOME_VIDEO && WELCOME_VIDEO.trim() !== '') {
       videoEl.src = WELCOME_VIDEO;
       videoEl.style.display = 'block';
@@ -47,13 +46,9 @@ async function loadObjects() {
       videoEl.style.display = 'none';
       imgEl.style.display = 'block';
     }
-    // Заполняем фильтры
-    fillFilters();
 
-    // Скрываем загрузку, показываем приветствие
-    document.getElementById('loadingScreen').classList.add('hidden');
+    fillFilters();    document.getElementById('loadingScreen').classList.add('hidden');
     document.getElementById('welcomeScreen').classList.remove('hidden');
-
   } catch (e) {
     console.error("❌ Ошибка:", e);
     alert("Ошибка: " + e.message);
@@ -68,15 +63,8 @@ function fillFilters() {
   const cityFilter = document.getElementById('cityFilter');
   const typeFilter = document.getElementById('typeFilter');
  
-  if (cityFilter) {
-    cityFilter.innerHTML = '<option value="">Все города</option>' +
-      cities.map(city => `<option value="${city}">${city}</option>`).join('');
-  }
- 
-  if (typeFilter) {
-    typeFilter.innerHTML = '<option value="">Все типы</option>' +
-      types.map(type => `<option value="${type}">${type}</option>`).join('');
-  }
+  if (cityFilter) cityFilter.innerHTML = '<option value="">Все города</option>' + cities.map(c => `<option value="${c}">${c}</option>`).join('');
+  if (typeFilter) typeFilter.innerHTML = '<option value="">Все типы</option>' + types.map(t => `<option value="${t}">${t}</option>`).join('');
 }
 
 function startApp() {
@@ -96,7 +84,7 @@ function switchView(view) {
   const calcContainer = document.getElementById('calcContainer');
   const backBtn = document.getElementById('backBtn');
  
-  buttons.forEach(btn => btn.classList.remove('active')); 
+  buttons.forEach(b => b.classList.remove('active'));
   if (view === 'list') {
     buttons[0].classList.add('active');
     listContainer.classList.remove('hidden');
@@ -109,10 +97,7 @@ function switchView(view) {
     backBtn.classList.remove('hidden');
   }
 }
-
-function goBack() {
-  switchView('list');
-}
+function goBack() { switchView('list'); }
 
 function filterObjects() {
   const city = document.getElementById('cityFilter')?.value || '';
@@ -122,95 +107,77 @@ function filterObjects() {
   document.getElementById('yieldValue').textContent = minYield;
  
   const filtered = allObjects.filter(obj => {
-    const matchCity = !city || obj.city === city;
-    const matchType = !type || obj.type === type;
-    const matchYield = obj.yield >= minYield;
-    return matchCity && matchType && matchYield;
+    const y = obj.yield || ((obj.rent * 12 / obj.price) * 100);
+    return (!city || obj.city === city) && (!type || obj.type === type) && y >= minYield;
   });
- 
   renderList(filtered);
 }
 
 function renderList(objects) {
   const container = document.getElementById('objectsList');
   if (!container) return;
-
   if (objects.length === 0) {
     container.innerHTML = '<p style="text-align:center; color:#999; padding:40px;">Нет объектов</p>';
     return;
   }
 
   container.innerHTML = objects.map(obj => {
-    const yieldPercent = obj.yield || ((obj.rent * 12 / obj.price) * 100).toFixed(2);
-    const payback = (obj.price / (obj.rent * 12)).toFixed(1);
-   
+    const y = obj.yield || ((obj.rent * 12 / obj.price) * 100).toFixed(2);
+    const p = (obj.price / (obj.rent * 12)).toFixed(1);
     return `
-      <div class="card" onclick="openModal('${obj.id}')">        <div class="card-meta">
-          <span>📍 ${obj.city || 'Не указано'}</span>
-          <span class="card-yield">📈 ${yieldPercent}%</span>
-        </div>
+      <div class="card" onclick="openModal('${obj.id}')">
+        <div class="card-meta"><span> ${obj.city || 'Не указано'}</span><span class="card-yield">📈 ${y}%</span></div>
         <h3>${obj.title}</h3>
         <div class="card-price">${obj.price.toLocaleString('ru-RU')} ₽</div>
-        <div class="card-info">
-          📈 Аренда: ${obj.rent.toLocaleString('ru-RU')} ₽/мес<br>
-          ⏳ Окупаемость: ${payback} лет
-        </div>
-        <button class="card-btn" onclick="event.stopPropagation(); openModal('${obj.id}')">
-          💰 Подробнее
-        </button>
-      </div>
-    `;
+        <div class="card-info">📈 Аренда: ${obj.rent.toLocaleString('ru-RU')} ₽/мес<br> Окупаемость: ${p} лет</div>
+        <button class="card-btn" onclick="event.stopPropagation(); openModal('${obj.id}')">💰 Подробнее</button>
+      </div>`;
   }).join('');
 }
 
 function openModal(id) {
+  currentModalId = id;
   const obj = allObjects.find(o => o.id === id);
   if (!obj) return;
 
-  const yieldPercent = obj.yield || ((obj.rent * 12 / obj.price) * 100).toFixed(2);
-  const annualIncome = (obj.rent * 12).toLocaleString('ru-RU');
-  const payback = (obj.price / (obj.rent * 12)).toFixed(1);
+  const y = obj.yield || ((obj.rent * 12 / obj.price) * 100).toFixed(2);
+  const p = (obj.price / (obj.rent * 12)).toFixed(1);
+  const annual = (obj.rent * 12).toLocaleString('ru-RU');
 
   document.getElementById('modalImg').src = obj.photo || 'hero.png';
-  document.getElementById('modalTitle').textContent = obj.title;
-  document.getElementById('modalPrice').textContent = `${obj.price.toLocaleString('ru-RU')} ₽`;
-  document.getElementById('modalYield').textContent = `📈 Доходность: ${yieldPercent}% • Окупаемость: ${payback} лет`;
-  document.getElementById('modalMeta').innerHTML = `
-    📍 ${obj.city || 'Не указано'} • ${obj.location || ''}<br>
-    🏢 Тип: ${obj.type || 'Не указан'}<br>
-    💰 Доход в год: ${annualIncome} ₽
-  `;
+  document.getElementById('modalTitle').textContent = obj.title;  document.getElementById('modalPrice').textContent = `${obj.price.toLocaleString('ru-RU')} ₽`;
+  document.getElementById('modalYield').textContent = `📈 Доходность: ${y}% • Окупаемость: ${p} лет`;
+  document.getElementById('modalMeta').innerHTML = `📍 ${obj.city || 'Не указано'} • ${obj.location || ''}<br>🏢 Тип: ${obj.type || 'Не указан'}<br>💰 Доход в год: ${annual} ₽`;
   document.getElementById('modalDesc').textContent = obj.description;
-
-  document.getElementById('detailsModal').classList.remove('hidden');
+  document.getElementById('modalOverlay').classList.remove('hidden');
 }
 
-function closeModal() {
-  document.getElementById('detailsModal').classList.add('hidden');
+function closeModal(e) {
+  if (!e || e.target.id === 'modalOverlay') {
+    document.getElementById('modalOverlay').classList.add('hidden');
+  }
+}
+
+function contactBroker() {
+  // 🔜 ЗАГЛУШКА: Здесь будет отправка через Google Apps Script
+  alert('✅ Заявка отправлена!\n(Настройка безопасной отправки токенов будет следующим шагом)');
+  closeModal();
 }
 
 function calculateYield() {
   const price = parseFloat(document.getElementById('calcPrice')?.value) || 0;
   const rent = parseFloat(document.getElementById('calcRent')?.value) || 0;
- 
-  if (!price || !rent) {
-    alert('Введите цену и аренду');    return;
-  }
+  if (!price || !rent) return alert('Введите цену и аренду');
 
-  const annualIncome = rent * 12;
-  const yieldPercent = ((annualIncome / price) * 100).toFixed(2);
-  const payback = (price / annualIncome).toFixed(1);
+  const annual = rent * 12;
+  const y = ((annual / price) * 100).toFixed(2);
+  const p = (price / annual).toFixed(1);
 
   document.getElementById('calcResult').innerHTML = `
-    <div class="res-row"><span>💰 Доход в год:</span> <span>${annualIncome.toLocaleString('ru-RU')} ₽</span></div>
-    <div class="res-row"><span>📈 Доходность:</span> <span>${yieldPercent}%</span></div>
-    <div class="res-row"><span>⏳ Окупаемость:</span> <span>${payback} лет</span></div>
-  `;
+    <div class="res-row"><span> Доход в год:</span> <span>${annual.toLocaleString('ru-RU')} ₽</span></div>
+    <div class="res-row"><span>📈 Доходность:</span> <span>${y}%</span></div>
+    <div class="res-row"><span>⏳ Окупаемость:</span> <span>${p} лет</span></div>`;
   document.getElementById('calcResult').classList.remove('hidden');
-}
-
-function contactBroker() {
-  alert('📞 Свяжитесь с брокером:\n\n📱 +7 (XXX) XXX-XX-XX\n✈️ @username');
 }
 
 function copyLink() {
@@ -218,20 +185,10 @@ function copyLink() {
   alert('🔗 Ссылка скопирована!');
 }
 
-// Обработчики фильтров
-if (document.getElementById('cityFilter')) {
-  document.getElementById('cityFilter').addEventListener('change', filterObjects);
-}
-if (document.getElementById('typeFilter')) {
-  document.getElementById('typeFilter').addEventListener('change', filterObjects);
-}
-if (document.getElementById('yieldFilter')) {
-  document.getElementById('yieldFilter').addEventListener('input', filterObjects);
-}
+// Слушатели фильтров
+document.getElementById('cityFilter')?.addEventListener('change', filterObjects);
+document.getElementById('typeFilter')?.addEventListener('change', filterObjects);
+document.getElementById('yieldFilter')?.addEventListener('input', filterObjects);
 
-// Запускаем
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', loadObjects);
-} else {
-  loadObjects();
-}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadObjects);
+else loadObjects();
