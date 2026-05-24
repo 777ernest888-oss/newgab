@@ -10,40 +10,37 @@
 
   <!-- ЭКРАН ЗАГРУЗКИ -->
   <div id="loadingScreen" class="loading-screen hidden">
-    <div class="loading-spinner"></div>
-    <div>⏳ Загружаем объекты...</div>
+    <div class="spinner"></div>
+    <div>Загружаем объекты...</div>
   </div>
 
-  <!-- ПРИВЕТСТВИЕ -->
-  <div id="welcomeScreen" class="screen welcome">
+  <!-- ЭКРАН ПРИВЕТСТВИЯ -->
+  <div id="welcomeScreen" class="screen welcome hidden">
     <div class="welcome-brand">
-      <img class="brand-logo" src="favicon.png" alt="Logo">
-      <div class="brand-company">ГАБ КАЛЬКУЛЯТОР</div>
+      <img src="favicon.png" alt="Logo" class="logo">
+      <div class="brand-name">ГАБ КАЛЬКУЛЯТОР</div>
     </div>
-   
-    <!-- 🎥 ВИДЕО ИЛИ ФОТО -->
+
     <div class="welcome-media">
-      <video id="welcomeVideo" class="welcome-video" autoplay muted loop playsinline style="display: none;">
-        <source src="" type="video/mp4">
-      </video>
-      <img id="welcomeImage" class="welcome-image" src="hero.png" alt="Welcome" style="display: none;">
+      <!-- Видео и фото управляются через style.display в JS -->
+      <video id="welcomeVideo" autoplay muted loop playsinline style="display: none; width: 100%; border-radius: 12px;"></video>
+      <img id="welcomeImage" src="hero.png" alt="Welcome" style="width: 100%; border-radius: 12px; display: block;">
     </div>
-   
-    <div class="welcome-bottom">
-      <h1 class="welcome-title">ГАБ Калькулятор</h1>
-      <p class="welcome-subtitle">Готовый арендный бизнес для пассивного дохода</p>
-      <button class="tg-btn" onclick="startApp()">Начать подбор</button>
+
+    <div class="welcome-text">
+      <h1>ГАБ Калькулятор</h1>
+      <p>Готовый арендный бизнес для пассивного дохода</p>
     </div>
+
+    <button class="btn-start" onclick="startApp()">Начать подбор</button>
   </div>
 
   <!-- ОСНОВНОЙ ЭКРАН -->
-  <div id="mainContent" class="screen main hidden">
-    <div class="container">
-      <h1>🏠 Главная</h1>
-      <p>Подбор бизнеса для пассивного дохода</p>
-     
-      <div id="objectsList" class="list"></div>
-    </div>
+  <div id="mainScreen" class="screen main hidden">
+    <header class="main-header">
+      <h2>🏠 Объекты</h2>
+    </header>
+    <div id="objectsList" class="list-container"></div>
   </div>
 
   <script src="app.js"></script>
