@@ -11,20 +11,19 @@
   <!-- ЭКРАН ЗАГРУЗКИ -->
   <div id="loadingScreen" class="loading-screen hidden">
     <div class="spinner"></div>
-    <div>Загружаем объекты...</div>
+    <div>⏳ Загружаем объекты...</div>
   </div>
 
-  <!-- ЭКРАН ПРИВЕТСТВИЯ -->
-  <div id="welcomeScreen" class="screen welcome hidden">
+  <!-- ПРИВЕТСТВИЕ -->
+  <div id="welcomeScreen" class="screen welcome">
     <div class="welcome-brand">
       <img src="favicon.png" alt="Logo" class="logo">
       <div class="brand-name">ГАБ КАЛЬКУЛЯТОР</div>
     </div>
 
     <div class="welcome-media">
-      <!-- Видео и фото управляются через style.display в JS -->
       <video id="welcomeVideo" autoplay muted loop playsinline style="display: none; width: 100%; border-radius: 12px;"></video>
-      <img id="welcomeImage" src="hero.png" alt="Welcome" style="width: 100%; border-radius: 12px; display: block;">
+      <img id="welcomeImage" src="hero.png" alt="Welcome" style="width: 100%; border-radius: 12px;">
     </div>
 
     <div class="welcome-text">
