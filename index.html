@@ -15,7 +15,7 @@
   </div>
 
   <!-- ПРИВЕТСТВИЕ -->
-  <div id="welcomeScreen" class="screen welcome hidden">
+  <div id="welcomeScreen" class="screen welcome">
     <div class="welcome-brand">
       <img class="brand-logo" src="favicon.png" alt="Logo">
       <div class="brand-company">ГАБ КАЛЬКУЛЯТОР</div>
@@ -23,11 +23,10 @@
    
     <!-- 🎥 ВИДЕО ИЛИ ФОТО -->
     <div class="welcome-media">
-      <video id="welcomeVideo" class="welcome-video hidden" autoplay muted loop playsinline>
+      <video id="welcomeVideo" class="welcome-video" autoplay muted loop playsinline style="display: none;">
         <source src="" type="video/mp4">
-        Ваш браузер не поддерживает видео
       </video>
-      <img id="welcomeImage" class="welcome-image hidden" src="hero.png" alt="Welcome">
+      <img id="welcomeImage" class="welcome-image" src="hero.png" alt="Welcome" style="display: none;">
     </div>
    
     <div class="welcome-bottom">
@@ -43,7 +42,7 @@
       <h1>🏠 Главная</h1>
       <p>Подбор бизнеса для пассивного дохода</p>
      
-      <div id="objectsList"></div>
+      <div id="objectsList" class="list"></div>
     </div>
   </div>
 
