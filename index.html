@@ -8,11 +8,13 @@
 </head>
 <body>
 
+  <!-- ЭКРАН ЗАГРУЗКИ -->
   <div id="loadingScreen" class="loading-screen">
     <div class="spinner"></div>
     <div>⏳ Загружаем объекты...</div>
   </div>
 
+  <!-- ПРИВЕТСТВИЕ -->
   <div id="welcomeScreen" class="screen welcome hidden">
     <div class="welcome-brand">
       <img src="favicon.png" alt="Logo" class="logo">
@@ -29,12 +31,23 @@
     <button class="btn-start" onclick="startApp()">ЗДЕСЬ</button>
   </div>
 
+  <!-- ОСНОВНОЙ ЭКРАН -->
   <div id="mainScreen" class="screen main hidden">
     <header class="main-header">
       <button id="backBtn" class="back-btn hidden" onclick="goBack()">← Назад</button>
       <h2> ГАБ Калькулятор</h2>
     </header>
-    <div class="filters-section">
+
+    <!--  ВВОДНЫЙ БАННЕР -->
+    <div id="introBanner" class="intro-banner">
+      <div class="intro-content">
+        <p class="intro-title">С приложением «ГАБ Калькулятор» выбрать оптимальный объект Готового Арендного Бизнеса стало легко и удобно!</p>
+        <p class="intro-hint">Используйте фильтры или просто листайте список объектов <span class="arrow-bounce">👇</span></p>
+      </div>
+      <button class="close-banner" onclick="closeBanner()" aria-label="Закрыть">×</button>
+    </div>
+
+    <!-- ФИЛЬТРЫ -->    <div class="filters-section">
       <button class="filters-toggle" onclick="toggleFilters()">🔽 Фильтры</button>
       <div id="filtersBlock" class="filters-block hidden">
         <div class="filter-group">
@@ -47,10 +60,17 @@
         </div>
       </div>
     </div>
-    <div class="view-toggle">      <button class="view-btn active" onclick="switchView('list')">📋 Список</button>
+
+    <!-- ПЕРЕКЛЮЧАТЕЛЬ -->
+    <div class="view-toggle">
+      <button class="view-btn active" onclick="switchView('list')">📋 Список</button>
       <button class="view-btn" onclick="switchView('calc')">🧮 Калькулятор</button>
     </div>
+
+    <!-- СПИСОК -->
     <div id="objectsList" class="list"></div>
+
+    <!-- КАЛЬКУЛЯТОР -->
     <div id="calcContainer" class="calculator hidden">
       <h3>🧮 Калькулятор доходности</h3>
       <div class="input-group">
@@ -66,22 +86,24 @@
     </div>
   </div>
 
+  <!-- МОДАЛЬНОЕ ОКНО -->
   <div id="modalOverlay" class="modal-overlay hidden" onclick="closeModal(event)">
     <div class="modal" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeModal()">×</button>
      
+      <!-- Блок с информацией об объекте -->
       <div id="objectDetails">
         <img id="modalImg" class="modal-img" src="" alt="">
         <h2 id="modalTitle"></h2>
         <div class="modal-price" id="modalPrice"></div>
-        <div class="modal-yield" id="modalYield"></div>
-        <div class="modal-meta" id="modalMeta"></div>
+        <div class="modal-yield" id="modalYield"></div>        <div class="modal-meta" id="modalMeta"></div>
         <div class="modal-section">
           <h3>📖 Описание</h3>
           <p id="modalDesc"></p>
         </div>
       </div>
 
+      <!-- Блок формы заявки -->
       <div id="leadForm" class="hidden" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
         <h3 style="margin-bottom: 15px; text-align: center;">📝 Оставьте заявку</h3>
         <div class="input-group">
@@ -96,12 +118,14 @@
           <label>Telegram (необязательно)</label>
           <input type="text" id="leadTelegram" placeholder="@username">
         </div>
-        <button class="tg-btn" id="submitLeadBtn" onclick="submitLead()">Отправить заявку</button>        <button class="tg-btn secondary" style="margin-top: 8px;" onclick="cancelLead()">Отмена</button>
+        <button class="tg-btn" id="submitLeadBtn" onclick="submitLead()">Отправить заявку</button>
+        <button class="tg-btn secondary" style="margin-top: 8px;" onclick="cancelLead()">Отмена</button>
       </div>
 
+      <!-- Кнопки действий -->
       <div id="modalActions" class="modal-actions">
         <button class="tg-btn" onclick="openLeadForm()">📞 Связаться с брокером</button>
-        <button class="tg-btn secondary" onclick="copyLink()">🔗 Копировать ссылку</button>
+        <button class="tg-btn secondary" onclick="copyLink()"> Копировать ссылку</button>
       </div>
     </div>
   </div>
