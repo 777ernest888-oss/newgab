@@ -5,6 +5,10 @@ const WELCOME_VIDEO = 'https://raw.githubusercontent.com/777ernest888-oss/newgab
 const SHEET_ID = '1tLCnDY0j9GNpVde3P9XF9VVjpi2xLGXy_3ScYxEYSXk';
 const SHEET_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=0`;
 
+// 🔐 НАСТРОЙКИ GOOGLE SCRIPT
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxiuUMeslxZOUBC2Y4sg2QqJe_Iy5u8qA3WE7j3sWfuvWmzXz8P807FK9m7Q5YFiWs2/exec';
+const SECRET_KEY = 'SecretParol999';
+
 let allObjects = [];
 let currentModalId = null;
 let currentView = 'list';
@@ -43,11 +47,11 @@ async function loadObjects() {
       videoEl.style.display = 'block';
       imgEl.style.display = 'none';
     } else {
-      videoEl.style.display = 'none';
-      imgEl.style.display = 'block';
+      videoEl.style.display = 'none';      imgEl.style.display = 'block';
     }
 
-    fillFilters();    document.getElementById('loadingScreen').classList.add('hidden');
+    fillFilters();
+    document.getElementById('loadingScreen').classList.add('hidden');
     document.getElementById('welcomeScreen').classList.remove('hidden');
   } catch (e) {
     console.error("❌ Ошибка:", e);
@@ -92,11 +96,11 @@ function switchView(view) {
     backBtn.classList.add('hidden');
   } else {
     buttons[1].classList.add('active');
-    listContainer.classList.add('hidden');
-    calcContainer.classList.remove('hidden');
+    listContainer.classList.add('hidden');    calcContainer.classList.remove('hidden');
     backBtn.classList.remove('hidden');
   }
 }
+
 function goBack() { switchView('list'); }
 
 function filterObjects() {
@@ -126,10 +130,10 @@ function renderList(objects) {
     const p = (obj.price / (obj.rent * 12)).toFixed(1);
     return `
       <div class="card" onclick="openModal('${obj.id}')">
-        <div class="card-meta"><span> ${obj.city || 'Не указано'}</span><span class="card-yield">📈 ${y}%</span></div>
+        <div class="card-meta"><span>📍 ${obj.city || 'Не указано'}</span><span class="card-yield">📈 ${y}%</span></div>
         <h3>${obj.title}</h3>
         <div class="card-price">${obj.price.toLocaleString('ru-RU')} ₽</div>
-        <div class="card-info">📈 Аренда: ${obj.rent.toLocaleString('ru-RU')} ₽/мес<br> Окупаемость: ${p} лет</div>
+        <div class="card-info">📈 Аренда: ${obj.rent.toLocaleString('ru-RU')} ₽/мес<br>⏳ Окупаемость: ${p} лет</div>
         <button class="card-btn" onclick="event.stopPropagation(); openModal('${obj.id}')">💰 Подробнее</button>
       </div>`;
   }).join('');
@@ -141,11 +145,11 @@ function openModal(id) {
   if (!obj) return;
 
   const y = obj.yield || ((obj.rent * 12 / obj.price) * 100).toFixed(2);
-  const p = (obj.price / (obj.rent * 12)).toFixed(1);
-  const annual = (obj.rent * 12).toLocaleString('ru-RU');
+  const p = (obj.price / (obj.rent * 12)).toFixed(1);  const annual = (obj.rent * 12).toLocaleString('ru-RU');
 
   document.getElementById('modalImg').src = obj.photo || 'hero.png';
-  document.getElementById('modalTitle').textContent = obj.title;  document.getElementById('modalPrice').textContent = `${obj.price.toLocaleString('ru-RU')} ₽`;
+  document.getElementById('modalTitle').textContent = obj.title;
+  document.getElementById('modalPrice').textContent = `${obj.price.toLocaleString('ru-RU')} ₽`;
   document.getElementById('modalYield').textContent = `📈 Доходность: ${y}% • Окупаемость: ${p} лет`;
   document.getElementById('modalMeta').innerHTML = `📍 ${obj.city || 'Не указано'} • ${obj.location || ''}<br>🏢 Тип: ${obj.type || 'Не указан'}<br>💰 Доход в год: ${annual} ₽`;
   document.getElementById('modalDesc').textContent = obj.description;
@@ -158,10 +162,54 @@ function closeModal(e) {
   }
 }
 
-function contactBroker() {
-  // 🔜 ЗАГЛУШКА: Здесь будет отправка через Google Apps Script
-  alert('✅ Заявка отправлена!\n(Настройка безопасной отправки токенов будет следующим шагом)');
-  closeModal();
+// 🚀 ОТПРАВКА ЗАЯВКИ В TELEGRAM
+async function contactBroker() {
+  const obj = allObjects.find(o => o.id === currentModalId);
+  if (!obj) return;
+
+  const btn = document.querySelector('.modal-cta') || document.querySelector('.tg-btn');
+  const originalText = btn ? btn.textContent : '';
+  if (btn) {
+    btn.textContent = 'Отправка...';
+    btn.disabled = true;
+  }
+
+  try {
+    // Получаем данные пользователя (если открыто в Telegram)
+    let userName = 'Гость';
+    if (window.Telegram && window.Telegram.WebApp.initDataUnsafe?.user) {
+      const user = window.Telegram.WebApp.initDataUnsafe.user;
+      userName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
+    }
+
+    // Отправляем запрос на Google Script
+    const response = await fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      body: JSON.stringify({
+        secret: SECRET_KEY,
+        projectId: 'gab_calc',
+        title: obj.title,
+        price: obj.price.toLocaleString('ru-RU'),
+        city: obj.city,
+        userName: userName
+      })
+    });
+    const result = await response.json();
+
+    if (result.success) {
+      alert('✅ Заявка успешно отправлена брокеру!');
+      closeModal();
+    } else {
+      alert('❌ Ошибка: ' + (result.error || 'Не удалось отправить'));
+    }
+  } catch (e) {
+    alert('❌ Ошибка сети: ' + e.message);
+  } finally {
+    if (btn) {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }
+  }
 }
 
 function calculateYield() {
@@ -174,7 +222,7 @@ function calculateYield() {
   const p = (price / annual).toFixed(1);
 
   document.getElementById('calcResult').innerHTML = `
-    <div class="res-row"><span> Доход в год:</span> <span>${annual.toLocaleString('ru-RU')} ₽</span></div>
+    <div class="res-row"><span>💰 Доход в год:</span> <span>${annual.toLocaleString('ru-RU')} ₽</span></div>
     <div class="res-row"><span>📈 Доходность:</span> <span>${y}%</span></div>
     <div class="res-row"><span>⏳ Окупаемость:</span> <span>${p} лет</span></div>`;
   document.getElementById('calcResult').classList.remove('hidden');
