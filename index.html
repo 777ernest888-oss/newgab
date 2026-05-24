@@ -2,8 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="description" content="Калькулятор доходности арендного бизнеса">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ГАБ Калькулятор</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -12,10 +11,10 @@
   <!-- ЭКРАН ЗАГРУЗКИ -->
   <div id="loadingScreen" class="loading-screen hidden">
     <div class="loading-spinner"></div>
-    <div class="loading-text">Загружаем объекты...</div>
+    <div>⏳ Загружаем объекты...</div>
   </div>
 
-  <!-- ЭКРАН ПРИВЕТСТВИЯ -->
+  <!-- ПРИВЕТСТВИЕ -->
   <div id="welcomeScreen" class="screen welcome hidden">
     <div class="welcome-brand">
       <img class="brand-logo" src="favicon.png" alt="Logo">
@@ -40,86 +39,11 @@
 
   <!-- ОСНОВНОЙ ЭКРАН -->
   <div id="mainContent" class="screen main hidden">
-   
-    <!-- HEADER -->
-    <header class="header">
-      <button id="backBtn" class="header-back-btn hidden" onclick="goBack()">← Назад</button>
-      <div class="header-title">ГАБ Калькулятор</div>
-    </header>
-
-    <!-- ФИЛЬТРЫ -->    <div class="filters-section">
-      <button class="filters-toggle-btn" onclick="toggleFilters()">🔽 Фильтры</button>
+    <div class="container">
+      <h1>🏠 Главная</h1>
+      <p>Подбор бизнеса для пассивного дохода</p>
      
-      <div id="filtersBlock" class="filters-block hidden">
-        <div class="filter-group">
-          <label>🌍 Город</label>
-          <select id="cityFilter" class="filter-select">
-            <option value="">Все города</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label>🏢 Тип объекта</label>
-          <select id="typeFilter" class="filter-select">
-            <option value="">Все типы</option>
-          </select>
-        </div>
-
-        <div class="filter-group">
-          <label>📈 Доходность от (%)</label>
-          <input type="range" id="yieldFilter" min="0" max="30" value="0" step="1">
-          <div class="range-value" id="yieldValue">0%</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ПЕРЕКЛЮЧАТЕЛЬ ВИДА -->
-    <div class="view-toggle">
-      <button id="listViewBtn" class="view-btn active" onclick="switchView('list')">📋 Список</button>
-      <button id="calcViewBtn" class="view-btn" onclick="switchView('calc')">🧮 Калькулятор</button>
-    </div>
-
-    <!-- СПИСОК ОБЪЕКТОВ -->
-    <div id="listingsContainer" class="listings">
-      <!-- Здесь будут карточки -->
-    </div>
-   
-    <!-- КАЛЬКУЛЯТОР -->
-    <div id="calcContainer" class="calculator hidden">
-      <div class="calc-card">
-        <h3>🧮 Калькулятор доходности</h3>
-        <div class="input-group">
-          <label>Цена объекта (₽)</label>
-          <input type="number" id="calcPrice" placeholder="10000000">
-        </div>
-        <div class="input-group">
-          <label>Аренда в месяц (₽)</label>
-          <input type="number" id="calcRent" placeholder="80000">
-        </div>
-        <button class="tg-btn" onclick="calculateYield()">Рассчитать</button>       
-        <div id="calcResult" class="result hidden">
-          <div class="res-row">Доход в год: <span id="resYear">—</span></div>
-          <div class="res-row">Доходность: <span id="resYield">—</span></div>
-          <div class="res-row">Окупаемость: <span id="resPayback">—</span></div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- МОДАЛЬНОЕ ОКНО -->
-  <div id="detailsModal" class="modal hidden">
-    <div class="modal-content">
-      <button class="close-btn" onclick="closeModal()">✕</button>
-      <h2 id="modalTitle"></h2>
-      <div id="modalPrice" class="modal-price"></div>
-      <div id="modalMeta" class="modal-meta"></div>
-     
-      <div class="modal-section">
-        <h3>📖 Описание</h3>
-        <div id="modalDescription"></div>
-      </div>
-
-      <button class="tg-btn modal-cta" onclick="contactBroker()">📞 Связаться с брокером</button>
+      <div id="objectsList"></div>
     </div>
   </div>
 
