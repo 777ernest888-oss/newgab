@@ -64,9 +64,10 @@ function goBack() { switchView('list'); }
 function filterObjects() {
   const city = document.getElementById('cityFilter')?.value || '';
   const type = document.getElementById('typeFilter')?.value || '';
-  const minYield = parseFloat(document.getElementById('yieldFilter')?.value) || 0;
-  document.getElementById('yieldValue').textContent = minYield;
-  const filtered = allObjects.filter(obj => { const y = obj.yield || ((obj.rent * 12 / obj.price) * 100); return (!city || obj.city === city) && (!type || obj.type === type) && y >= minYield; });
+ 
+  const filtered = allObjects.filter(obj => {
+    return (!city || obj.city === city) && (!type || obj.type === type);
+  });
   renderList(filtered);
 }
 
@@ -95,10 +96,16 @@ function openModal(id) {
   const y = obj.yield || ((obj.rent * 12 / obj.price) * 100).toFixed(2);
   const p = (obj.price / (obj.rent * 12)).toFixed(1);
   const annual = (obj.rent * 12).toLocaleString('ru-RU');
-  document.getElementById('modalImg').src = obj.photo || 'hero.png';
-  document.getElementById('modalTitle').textContent = obj.title;  document.getElementById('modalPrice').textContent = `${obj.price.toLocaleString('ru-RU')} ₽`;
-  document.getElementById('modalYield').textContent = `📈 Доходность: ${y}% • Окупаемость: ${p} лет`;
-  document.getElementById('modalMeta').innerHTML = `📍 ${obj.city || 'Не указано'} • ${obj.location || ''}<br> Тип: ${obj.type || 'Не указан'}<br>💰 Доход в год: ${annual} ₽`;
+  document.getElementById('modalImg').src = obj.photo || 'hero.png';  document.getElementById('modalTitle').textContent = obj.title;
+  document.getElementById('modalPrice').textContent = `${obj.price.toLocaleString('ru-RU')} ₽`;
+ 
+  // Две строки: доходность и окупаемость
+  document.getElementById('modalYield').innerHTML = `
+    <div style="margin-bottom: 4px;">📈 <b>Доходность:</b> ${y}%</div>
+    <div>⏳ <b>Окупаемость:</b> ${p} лет</div>
+  `;
+ 
+  document.getElementById('modalMeta').innerHTML = `📍 ${obj.city || 'Не указано'} • ${obj.location || ''}<br>🏢 Тип: ${obj.type || 'Не указан'}<br>💰 Доход в год: ${annual} ₽`;
   document.getElementById('modalDesc').textContent = obj.description;
  
   // Сброс формы
@@ -138,14 +145,14 @@ document.getElementById('leadPhone')?.addEventListener('input', function(e) {
   let val = e.target.value.replace(/\D/g, ''); // Только цифры
   if (val.length > 15) val = val.slice(0, 15); // Макс 15 цифр
 
-  let formatted = val;
-  if (val.startsWith('7')) {
+  let formatted = val;  if (val.startsWith('7')) {
     // Россия / Казахстан: +7 (XXX) XXX-XX-XX
     formatted = '+7';
     if (val.length > 1) formatted += ' (' + val.slice(1, 4);
     if (val.length >= 5) formatted += ') ' + val.slice(4, 7);
     if (val.length >= 8) formatted += '-' + val.slice(7, 9);
-    if (val.length >= 10) formatted += '-' + val.slice(9, 11);  } else if (val.startsWith('375')) {
+    if (val.length >= 10) formatted += '-' + val.slice(9, 11);
+  } else if (val.startsWith('375')) {
     // Беларусь: +375 (XX) XXX-XX-XX
     formatted = '+375';
     if (val.length > 3) formatted += ' (' + val.slice(3, 5);
@@ -187,14 +194,14 @@ async function submitLead() {
     // Проверяем на кириллицу
     const cyrillicRegex = /[а-яА-ЯёЁ]/;
     if (cyrillicRegex.test(telegram)) {
-      alert('❌ Telegram username не должен содержать кириллицу\nИспользуйте только латинские буквы, цифры и _');
-      return;
+      alert('❌ Telegram username не должен содержать кириллицу\nИспользуйте только латинские буквы, цифры и _');      return;
     }
 
     // Проверяем допустимые символы (только буквы, цифры, подчёркивания)
     const validTelegramRegex = /^@?[a-zA-Z0-9_]{3,32}$/;
     if (!validTelegramRegex.test(telegram)) {
-      alert('❌ Неверный формат Telegram username\nРазрешены только латинские буквы, цифры и символ _\nПример: @username или username');      return;
+      alert('❌ Неверный формат Telegram username\nРазрешены только латинские буквы, цифры и символ _\nПример: @username или username');
+      return;
     }
 
     // Автоматически добавляем @ если нет
@@ -236,11 +243,10 @@ function calculateYield() {
   if (!price || !rent) return alert('Введите цену и аренду');
   const annual = rent * 12;
   const y = ((annual / price) * 100).toFixed(2);
-  const p = (price / annual).toFixed(1);
-  document.getElementById('calcResult').innerHTML = `<div class="res-row"><span>💰 Доход в год:</span> <span>${annual.toLocaleString('ru-RU')} ₽</span></div><div class="res-row"><span>📈 Доходность:</span> <span>${y}%</span></div><div class="res-row"><span>⏳ Окупаемость:</span> <span>${p} лет</span></div>`;
+  const p = (price / annual).toFixed(1);  document.getElementById('calcResult').innerHTML = `<div class="res-row"><span>💰 Доход в год:</span> <span>${annual.toLocaleString('ru-RU')} ₽</span></div><div class="res-row"><span>📈 Доходность:</span> <span>${y}%</span></div><div class="res-row"><span>⏳ Окупаемость:</span> <span>${p} лет</span></div>`;
   document.getElementById('calcResult').classList.remove('hidden');
 }
 function copyLink() { navigator.clipboard.writeText(window.location.href); alert('🔗 Ссылка скопирована!'); }
 document.getElementById('cityFilter')?.addEventListener('change', filterObjects);
 document.getElementById('typeFilter')?.addEventListener('change', filterObjects);
-document.getElementById('yieldFilter')?.addEventListener('input', filterObjects);if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadObjects); else loadObjects();
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadObjects); else loadObjects();
