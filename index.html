@@ -8,13 +8,11 @@
 </head>
 <body>
 
-  <!-- ЭКРАН ЗАГРУЗКИ -->
   <div id="loadingScreen" class="loading-screen">
     <div class="spinner"></div>
     <div>⏳ Загружаем объекты...</div>
   </div>
 
-  <!-- ПРИВЕТСТВИЕ -->
   <div id="welcomeScreen" class="screen welcome hidden">
     <div class="welcome-brand">
       <img src="favicon.png" alt="Logo" class="logo">
@@ -31,7 +29,6 @@
     <button class="btn-start" onclick="startApp()">ЗДЕСЬ</button>
   </div>
 
-  <!-- ОСНОВНОЙ ЭКРАН -->
   <div id="mainScreen" class="screen main hidden">
     <header class="main-header">
       <button id="backBtn" class="back-btn hidden" onclick="goBack()">← Назад</button>
@@ -41,25 +38,25 @@
       <button class="filters-toggle" onclick="toggleFilters()">🔽 Фильтры</button>
       <div id="filtersBlock" class="filters-block hidden">
         <div class="filter-group">
-          <label>🌍 Город</label>
+          <label> Город</label>
           <select id="cityFilter"><option value="">Все города</option></select>
         </div>
         <div class="filter-group">
           <label>🏢 Тип объекта</label>
           <select id="typeFilter"><option value="">Все типы</option></select>
-        </div>        <div class="filter-group">
-          <label>📈 Доходность от: <span id="yieldValue">0</span>%</label>
-          <input type="range" id="yieldFilter" min="0" max="30" value="0" step="1">
         </div>
+        <div class="filter-group">
+          <label>📈 Доходность от: <span id="yieldValue">0</span>%</label>
+          <input type="range" id="yieldFilter" min="0" max="30" value="0" step="1">        </div>
       </div>
     </div>
     <div class="view-toggle">
-      <button class="view-btn active" onclick="switchView('list')"> Список</button>
+      <button class="view-btn active" onclick="switchView('list')">📋 Список</button>
       <button class="view-btn" onclick="switchView('calc')">🧮 Калькулятор</button>
     </div>
     <div id="objectsList" class="list"></div>
     <div id="calcContainer" class="calculator hidden">
-      <h3> Калькулятор доходности</h3>
+      <h3>🧮 Калькулятор доходности</h3>
       <div class="input-group">
         <label>Цена объекта (₽)</label>
         <input type="number" id="calcPrice" placeholder="10000000">
@@ -73,12 +70,10 @@
     </div>
   </div>
 
-  <!-- МОДАЛЬНОЕ ОКНО -->
   <div id="modalOverlay" class="modal-overlay hidden" onclick="closeModal(event)">
     <div class="modal" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeModal()">×</button>
      
-      <!-- Блок с информацией об объекте -->
       <div id="objectDetails">
         <img id="modalImg" class="modal-img" src="" alt="">
         <h2 id="modalTitle"></h2>
@@ -91,24 +86,26 @@
         </div>
       </div>
 
-      <!-- Блок формы заявки (скрыт по умолчанию) -->
       <div id="leadForm" class="hidden" style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
-        <h3 style="margin-bottom: 15px; text-align: center;"> Оставьте заявку</h3>
+        <h3 style="margin-bottom: 15px; text-align: center;">📝 Оставьте заявку</h3>
         <div class="input-group">
-          <label>Ваше имя</label>
-          <input type="text" id="leadName" placeholder="Иван">        </div>
+          <label>Ваше имя *</label>
+          <input type="text" id="leadName" placeholder="Иван">
+        </div>
         <div class="input-group">
-          <label>Телефон</label>
+          <label>Телефон *</label>
           <input type="tel" id="leadPhone" placeholder="+7 (999) 000-00-00">
+        </div>
+        <div class="input-group">          <label>Telegram (необязательно)</label>
+          <input type="text" id="leadTelegram" placeholder="@username">
         </div>
         <button class="tg-btn" id="submitLeadBtn" onclick="submitLead()">Отправить заявку</button>
         <button class="tg-btn secondary" style="margin-top: 8px;" onclick="cancelLead()">Отмена</button>
       </div>
 
-      <!-- Кнопки действий (видны до нажатия "Связаться") -->
       <div id="modalActions" class="modal-actions">
         <button class="tg-btn" onclick="openLeadForm()">📞 Связаться с брокером</button>
-        <button class="tg-btn secondary" onclick="copyLink()"> Копировать ссылку</button>
+        <button class="tg-btn secondary" onclick="copyLink()">🔗 Копировать ссылку</button>
       </div>
     </div>
   </div>
