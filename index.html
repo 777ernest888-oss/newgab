@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>ГАБ Калькулятор</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -22,8 +22,8 @@
     </div>
 
     <div class="welcome-media">
-      <video id="welcomeVideo" autoplay muted loop playsinline></video>
-      <img id="welcomeImage" src="hero.png" alt="Welcome">
+      <video id="welcomeVideo" autoplay muted loop playsinline style="display: none;"></video>
+      <img id="welcomeImage" src="hero.png" alt="Welcome" style="display: block;">
     </div>
 
     <div class="welcome-text">
@@ -36,27 +36,21 @@
 
   <!-- ОСНОВНОЙ ЭКРАН -->
   <div id="mainScreen" class="screen main hidden">
-   
-    <!-- HEADER -->
     <header class="main-header">
       <button id="backBtn" class="back-btn hidden" onclick="goBack()">← Назад</button>
-      <h2>🏠 ГАБ Калькулятор</h2>
+      <h2> ГАБ Калькулятор</h2>
     </header>
 
     <!-- ФИЛЬТРЫ -->
     <div class="filters-section">
       <button class="filters-toggle" onclick="toggleFilters()">🔽 Фильтры</button>
       <div id="filtersBlock" class="filters-block hidden">
-        <div class="filter-group">          <label>🌍 Город</label>
-          <select id="cityFilter">
-            <option value="">Все города</option>
-          </select>
-        </div>
+        <div class="filter-group">
+          <label>🌍 Город</label>
+          <select id="cityFilter"><option value="">Все города</option></select>        </div>
         <div class="filter-group">
           <label>🏢 Тип объекта</label>
-          <select id="typeFilter">
-            <option value="">Все типы</option>
-          </select>
+          <select id="typeFilter"><option value="">Все типы</option></select>
         </div>
         <div class="filter-group">
           <label>📈 Доходность от: <span id="yieldValue">0</span>%</label>
@@ -71,7 +65,7 @@
       <button class="view-btn" onclick="switchView('calc')">🧮 Калькулятор</button>
     </div>
 
-    <!-- СПИСОК ОБЪЕКТОВ -->
+    <!-- СПИСОК -->
     <div id="objectsList" class="list"></div>
 
     <!-- КАЛЬКУЛЯТОР -->
@@ -88,31 +82,23 @@
       <button class="tg-btn" onclick="calculateYield()">Рассчитать</button>
       <div id="calcResult" class="result hidden"></div>
     </div>
-
   </div>
 
   <!-- МОДАЛЬНОЕ ОКНО -->
-  <div id="detailsModal" class="modal-overlay hidden">
-    <div class="modal">
+  <div id="modalOverlay" class="modal-overlay hidden" onclick="closeModal(event)">
+    <div class="modal" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeModal()">×</button>
-     
-      <img id="modalImg" class="modal-img" src="" alt="">     
+      <img id="modalImg" class="modal-img" src="" alt="">
       <h2 id="modalTitle"></h2>
-     
       <div class="modal-price" id="modalPrice"></div>
-     
       <div class="modal-yield" id="modalYield"></div>
-     
       <div class="modal-meta" id="modalMeta"></div>
-     
       <div class="modal-section">
         <h3>📖 Описание</h3>
         <p id="modalDesc"></p>
-      </div>
-
-      <div class="modal-actions">
+      </div>      <div class="modal-actions">
         <button class="tg-btn" onclick="contactBroker()">📞 Связаться с брокером</button>
-        <button class="tg-btn" style="background:var(--secondary-bg); color:var(--btn-bg)" onclick="copyLink()">🔗 Копировать ссылку</button>
+        <button class="tg-btn secondary" onclick="copyLink()">🔗 Копировать ссылку</button>
       </div>
     </div>
   </div>
