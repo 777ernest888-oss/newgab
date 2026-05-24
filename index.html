@@ -11,24 +11,26 @@
   <!-- ЭКРАН ЗАГРУЗКИ -->
   <div id="loadingScreen" class="loading-screen hidden">
     <div class="spinner"></div>
-    <div>⏳ Загружаем объекты...</div>
+    <div>⏳ Загружаем...</div>
   </div>
 
   <!-- ПРИВЕТСТВИЕ -->
-  <div id="welcomeScreen" class="screen welcome">
+  <div id="welcomeScreen" class="screen welcome hidden">
     <div class="welcome-brand">
       <img src="favicon.png" alt="Logo" class="logo">
       <div class="brand-name">ГАБ КАЛЬКУЛЯТОР</div>
     </div>
 
     <div class="welcome-media">
-      <video id="welcomeVideo" autoplay muted loop playsinline style="display: none; width: 100%; border-radius: 12px;"></video>
-      <img id="welcomeImage" src="hero.png" alt="Welcome" style="width: 100%; border-radius: 12px;">
+      <!-- Видео по умолчанию скрыто через CSS класс -->
+      <video id="welcomeVideo" autoplay muted loop playsinline class="hidden-video"></video>
+      <!-- Фото по умолчанию показано -->
+      <img id="welcomeImage" src="hero.png" alt="Welcome" class="welcome-img">
     </div>
 
     <div class="welcome-text">
       <h1>ГАБ Калькулятор</h1>
-      <p>Готовый арендный бизнес для пассивного дохода</p>
+      <p>Готовый арендный бизнес</p>
     </div>
 
     <button class="btn-start" onclick="startApp()">Начать подбор</button>
@@ -39,7 +41,7 @@
     <header class="main-header">
       <h2>🏠 Объекты</h2>
     </header>
-    <div id="objectsList" class="list-container"></div>
+    <div id="objectsList" class="list"></div>
   </div>
 
   <script src="app.js"></script>
