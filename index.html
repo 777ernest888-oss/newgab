@@ -11,7 +11,7 @@
   <!-- ЭКРАН ЗАГРУЗКИ -->
   <div id="loadingScreen" class="loading-screen">
     <div class="spinner"></div>
-    <div>⏳ Загружаем объекты...</div>
+    <div> Загружаем объекты...</div>
   </div>
 
   <!-- ПРИВЕТСТВИЕ -->
@@ -51,7 +51,7 @@
       <button class="filters-toggle" onclick="toggleFilters()">🔽 Фильтры</button>
       <div id="filtersBlock" class="filters-block hidden">
         <div class="filter-group">
-          <label> Город</label>
+          <label>📍 Город</label>
           <select id="cityFilter"><option value="">Все города</option></select>
         </div>
         <div class="filter-group">
@@ -63,7 +63,7 @@
 
     <!-- ПЕРЕКЛЮЧАТЕЛЬ -->
     <div class="view-toggle">
-      <button class="view-btn active" onclick="switchView('list')">📋 Список</button>
+      <button class="view-btn active" onclick="switchView('list')"> Список</button>
       <button class="view-btn" onclick="switchView('calc')">🧮 Калькулятор</button>
     </div>
 
@@ -90,7 +90,7 @@
   <div id="modalOverlay" class="modal-overlay hidden" onclick="closeModal(event)">
     <div class="modal" onclick="event.stopPropagation()">
       <button class="modal-close" onclick="closeModal()">×</button>
-     
+    
       <!-- Блок с информацией об объекте -->
       <div id="objectDetails">
         <img id="modalImg" class="modal-img" src="" alt="">
@@ -98,7 +98,7 @@
         <div class="modal-price" id="modalPrice"></div>
         <div class="modal-yield" id="modalYield"></div>        <div class="modal-meta" id="modalMeta"></div>
         <div class="modal-section">
-          <h3>📖 Описание</h3>
+          <h3> Описание</h3>
           <p id="modalDesc"></p>
         </div>
       </div>
@@ -110,10 +110,14 @@
           <label>Ваше имя *</label>
           <input type="text" id="leadName" placeholder="Иван">
         </div>
+       
+        <!-- ✅ ИСПРАВЛЕНО: добавлены атрибуты для корректной маски на мобильных -->
         <div class="input-group">
           <label>Телефон *</label>
-          <input type="tel" id="leadPhone" placeholder="+7 (999) 000-00-00">
+          <input type="tel" id="leadPhone" placeholder="+7 (999) 000-00-00"
+                 inputmode="tel" pattern="[0-9+]*" autocomplete="tel">
         </div>
+
         <div class="input-group">
           <label>Telegram (необязательно)</label>
           <input type="text" id="leadTelegram" placeholder="@username">
